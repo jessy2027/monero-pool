@@ -2023,6 +2023,9 @@ startup_scan_round_shares(void)
     if (*config.upstream_host)
         return 0;
 
+    /* Reset round_hashes before scanning to avoid accumulation on residual value */
+    pool_stats.round_hashes = 0;
+
     if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
     {
         err = mdb_strerror(rc);
