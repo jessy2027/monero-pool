@@ -1996,6 +1996,8 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
                 log_debug("New block height detected, resetting round hashes (was %"PRIu64")",
                         pool_stats.round_hashes);
                 pool_stats.round_hashes = 0;
+                /* Note: last_block_found is only updated when pool finds a block,
+                   not on network height change. See rpc_on_block_submitted. */
             }
             bstack_push(bst, &cand);
         }
@@ -2264,8 +2266,11 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
     if (!upstream_event)
     {
         pool_stats.last_block_found = b->timestamp;
-        /* round_hashes reset is handled in rpc_on_block_template_extended
-           when new block height is detected - no duplicate reset needed */
+        /* Reset round_hashes immediately when pool finds a block.
+           The rpc_on_block_template reset is a backup for network blocks. */
+        log_info("Block found by pool, resetting round hashes (was %"PRIu64")",
+                pool_stats.round_hashes);
+        pool_stats.round_hashes = 0;
     }
     log_info("Block submitted at height: %"PRIu64, b->height);
     if ((rc = store_block(b->height, b)))
