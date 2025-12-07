@@ -1984,6 +1984,8 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
 
     if ((top = bstack_top(bst)))
     {
+        log_debug("Height comparison: top=%"PRIu64" cand=%"PRIu64" round_hashes=%"PRIu64,
+                top->height, cand.height, pool_stats.round_hashes);
         if (cand.tx_count > top->tx_count || cand.height > top->height)
         {
             log_trace("Using new template, height: %"PRIu64", txs: %"PRIu64,
@@ -1991,7 +1993,8 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
             /* Reset round hashes when new block height detected (new round) */
             if (cand.height > top->height && !upstream_event)
             {
-                log_debug("New block height detected, resetting round hashes");
+                log_debug("New block height detected, resetting round hashes (was %"PRIu64")",
+                        pool_stats.round_hashes);
                 pool_stats.round_hashes = 0;
             }
             bstack_push(bst, &cand);
