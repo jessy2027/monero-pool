@@ -1,226 +1,1022 @@
-<!doctype html>
-<html>
-    <head>
-        <title>monero-pool</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {
-                font-family: "Courier New", Courier, monospace;
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EuroXMR - Monero Mining Pool</title>
+    <meta name="description"
+        content="EuroXMR - High-performance European Monero mining pool with low fees and reliable payouts.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(20, 20, 30, 0.6);
+            --bg-card-hover: rgba(30, 30, 45, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #06b6d4;
+            --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --glass-blur: blur(20px);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 0 60px rgba(139, 92, 246, 0.15);
+            --transition: all 0.3s ease;
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .bg-effects {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            inset: -50%;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+            animation: bgFloat 30s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
             }
-            header {
-                font-size: larger;
-                font-weight: bold;
-                padding-bottom: 1em;
+
+            50% {
+                transform: translate(0, 2%);
             }
-            table {
-                padding-bottom: 1em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: var(--glass-border);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            color: var(--accent-primary);
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Hero */
+        .hero {
+            padding: calc(72px + 60px) 0 60px;
+            text-align: center;
+        }
+
+        .pool-hashrate {
+            display: inline-block;
+            padding: 40px 60px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .pool-hashrate .label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .hashrate-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 600;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hashrate-value .unit {
+            font-size: 1.75rem;
+            opacity: 0.7;
+        }
+
+        .pool-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
             }
-            td {
-                vertical-align: top;
-                white-space: nowrap;
+
+            50% {
+                opacity: 0.5;
             }
-            td:last-child {
-                white-space: unset;
-            }
-            .miner {
+        }
+
+        /* Stats Grid */
+        .stats-section {
+            padding: 40px 0 60px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 24px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent-primary);
+        }
+
+        .stat-icon.cyan svg {
+            stroke: var(--accent-secondary);
+        }
+
+        .stat-icon.green svg {
+            stroke: var(--success);
+        }
+
+        .stat-icon.orange svg {
+            stroke: var(--warning);
+        }
+
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* Round Progress */
+        .round-card {
+            padding: 24px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .round-card h3 {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .round-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .round-stat .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .round-stat .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.125rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Miner Section */
+        .miner-section {
+            padding: 60px 0;
+            background: var(--bg-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+        }
+
+        .miner-lookup {
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            padding: 8px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .miner-stats {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .miner-stats.hidden {
+            display: none;
+        }
+
+        .miner-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .miner-card {
+            padding: 24px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .miner-card .label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .miner-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Start Section */
+        .start-section {
+            padding: 60px 0;
+        }
+
+        .start-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .start-card {
+            padding: 32px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .step-num {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .start-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 12px;
+        }
+
+        .start-card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-secondary {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: var(--border-radius-sm);
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        /* Connection Details */
+        .connection-box {
+            padding: 24px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .connection-box h3 {
+            font-size: 1.25rem;
+            margin-bottom: 24px;
+        }
+
+        .conn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .conn-item .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .conn-item code {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--accent-secondary);
+            background: rgba(6, 182, 212, 0.1);
+            padding: 10px 14px;
+            border-radius: var(--border-radius-sm);
+            word-break: break-all;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            background: var(--bg-secondary);
+            border-top: var(--glass-border);
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 12px 24px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.875rem;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
                 display: none;
             }
-            #address {
-                min-width: 10ch;
-                max-width: 10ch;
-                overflow: hidden;
-                border-bottom: 1px dashed black;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-wrap: unset;
-            }
-            #address:focus {
-                outline: 0px solid transparent;
-                text-overflow: initial;
-                white-space: initial;
-                word-wrap: break-word;
-            }
-        </style>
-    </head>
-    <body>
-        <header>Monero Mining Pool</header>
-        <table>
-            <tr><td>Pool HR: </td><td id="pool_hashrate"></td></tr>
-            <tr><td>Network HR: </td><td id="network_hashrate"></td></tr>
-            <tr><td>Network height: </td><td id="network_height"></td></tr>
-            <tr><td>Blocks found: </td><td id="pool_blocks_found"></td></tr>
-            <tr><td>Last block found: </td><td id="last_block_found"></td></tr>
-            <tr><td>Last template: </td><td id="last_template_fetched"></td></tr>
-            <tr><td>Round HR: </td><td id="round_hashrate"></td></tr>
-            <tr><td>Round hashes: </td><td id="round_hashes"></td></tr>
-            <tr><td>Payment threshold: </td><td id="payment_threshold"></td></tr>
-            <tr><td>Pool fee: </td><td id="pool_fee"></td></tr>
-            <tr><td>Pool port: </td><td id="pool_port"></td></tr>
-            <tr><td>Pool SSL port: </td><td id="pool_ssl_port"></td></tr>
-            <tr><td>Allow self-select: </td><td id="allow_self_select"></td></tr>
-            <tr><td>Miners connected: </td><td id="connected_miners"></td></tr>
-            <tr class="miner"><td>Your HR: </td><td id="miner_hashrate"></td></tr>
-            <tr class="miner"><td>Balance due: </td><td id="miner_balance"></td></tr>
-            <tr><td>Miner address: </td><td id="address" contenteditable="true"></td></tr>
-        </table>
-        <small><a href="https://github.com/jtgrassie/monero-pool">https://github.com/jtgrassie/monero-pool</a></small>
-        <script>
-            function format_last_time(last)
-            {
-                var now = new Date().getTime() / 1000;
-                var diff = now - last;
-                var v;
-                if (last == 0)
-                    return "None yet";
-                else if (diff <= 0)
-                    return "Just now";
-                else if (diff < 60)
-                {
-                    v = parseInt(diff);
-                    return v + " second" + (v != 1 ? "s" : "") + " ago";
-                }
-                else if (diff < 3600)
-                {
-                    v = parseInt(diff/60);
-                    return v + " minute" + (v != 1 ? "s" : "") + " ago";
-                }
-                else if (diff < 86400)
-                {
-                    v = parseInt(diff/3600);
-                    return v + " hour" + (v != 1 ? "s" : "") + " ago";
-                }
-                else
-                {
-                    v = parseInt(diff/86400);
-                    return v + " day" + (v != 1 ? "s" : "") + " ago";
-                }
+
+            .hashrate-value {
+                font-size: 2.5rem;
             }
 
-            function max_precision(n, p)
-            {
-                return parseFloat(parseFloat(n).toFixed(p));
+            .hashrate-value .unit {
+                font-size: 1.25rem;
             }
 
-            function format_hashes(h)
-            {
-                if (h < 1e-12)
-                    return "0 H";
-                else if (h < 1e-9)
-                    return max_precision(h*1e+12, 0) + " pH";
-                else if (h < 1e-6)
-                    return max_precision(h*1e+9, 0) + " nH";
-                else if (h < 1e-3)
-                    return max_precision(h*1e+6, 0) + " μH";
-                else if (h < 1)
-                    return max_precision(h*1e+3, 0) + " mH";
-                else if (h < 1e+3)
-                    return parseInt(h) + " H";
-                else if (h < 1e+6)
-                    return max_precision(h*1e-3, 2) + " KH";
-                else if (h < 1e+9)
-                    return max_precision(h*1e-6, 2) + " MH";
-                else
-                    return max_precision(h*1e-9, 2) + " GH";
+            .pool-hashrate {
+                padding: 24px 32px;
             }
 
-            function format_hashrate(h)
-            {
-                return format_hashes(h) + "/s";
+            .miner-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::selection {
+            background: rgba(139, 92, 246, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-effects">
+        <div class="bg-gradient"></div>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 256 256" width="36" height="36">
+                            <circle cx="128" cy="128" r="120" fill="none" stroke="currentColor" stroke-width="16" />
+                            <path d="M60 176V80l68 68 68-68v96" fill="none" stroke="currentColor" stroke-width="16"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M60 176h40v-48M196 176h-40v-48" fill="none" stroke="currentColor" stroke-width="16"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>EuroXMR</h1>
+                        <span class="tagline">Monero Mining Pool</span>
+                    </div>
+                </div>
+                <nav class="nav">
+                    <a href="#stats" class="nav-link">Dashboard</a>
+                    <a href="#miner" class="nav-link">Miner Stats</a>
+                    <a href="#start" class="nav-link">Get Started</a>
+                    <a href="https://github.com/jtgrassie/monero-pool" class="nav-link" target="_blank">GitHub ↗</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="pool-hashrate">
+                <span class="label">Pool Hashrate</span>
+                <div class="hashrate-value">
+                    <span id="pool_hashrate">--</span>
+                </div>
+            </div>
+            <div class="pool-status">
+                <div class="status-dot"></div>
+                <span>Pool Online</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="stats" class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon cyan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path
+                                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Network Hashrate</span>
+                        <span class="stat-value" id="network_hashrate">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M3 9h18M9 21V9" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Block Height</span>
+                        <span class="stat-value" id="network_height">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Miners Connected</span>
+                        <span class="stat-value" id="connected_miners">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Blocks Found</span>
+                        <span class="stat-value" id="pool_blocks_found">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Last Block Found</span>
+                        <span class="stat-value" id="last_block_found">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23" />
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Pool Fee</span>
+                        <span class="stat-value" id="pool_fee">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                            <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Min. Payout</span>
+                        <span class="stat-value" id="payment_threshold">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Port / SSL</span>
+                        <span class="stat-value"><span id="pool_port">--</span> / <span
+                                id="pool_ssl_port">--</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="round-card">
+                <h3>Current Round Progress</h3>
+                <div class="round-stats">
+                    <div class="round-stat">
+                        <span class="label">Round Hashes</span>
+                        <span class="value" id="round_hashes">--</span>
+                    </div>
+                    <div class="round-stat">
+                        <span class="label">Last Template</span>
+                        <span class="value" id="last_template_fetched">--</span>
+                    </div>
+                    <div class="round-stat" id="self_select_row" style="display:none;">
+                        <span class="label">Self-Select</span>
+                        <span class="value" id="allow_self_select">--</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="round_progress"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="miner" class="miner-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Miner Statistics</h2>
+                <p>Enter your wallet address to view your mining stats</p>
+            </div>
+            <div class="miner-lookup">
+                <div class="input-wrapper">
+                    <input type="text" id="address" placeholder="Enter your Monero wallet address...">
+                    <button class="btn-primary" id="lookup_btn">Lookup</button>
+                </div>
+            </div>
+            <div class="miner-stats hidden" id="miner_stats">
+                <div class="miner-grid">
+                    <div class="miner-card">
+                        <span class="label">Your Hashrate</span>
+                        <span class="value" id="miner_hashrate">--</span>
+                    </div>
+                    <div class="miner-card">
+                        <span class="label">Balance Due</span>
+                        <span class="value" id="miner_balance">--</span>
+                    </div>
+                    <div class="miner-card">
+                        <span class="label">Workers</span>
+                        <span class="value" id="worker_count">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="start" class="start-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get Started Mining</h2>
+                <p>Connect to our pool in minutes</p>
+            </div>
+            <div class="start-grid">
+                <div class="start-card">
+                    <div class="step-num">1</div>
+                    <h3>Get a Wallet</h3>
+                    <p>Download the official Monero GUI wallet or use a paper wallet.</p>
+                    <a href="https://www.getmonero.org/downloads/" target="_blank" class="btn-secondary">Download
+                        Wallet</a>
+                </div>
+                <div class="start-card">
+                    <div class="step-num">2</div>
+                    <h3>Download Miner</h3>
+                    <p>We recommend XMRig for the best performance and compatibility.</p>
+                    <a href="https://xmrig.com/download" target="_blank" class="btn-secondary">Get XMRig</a>
+                </div>
+                <div class="start-card">
+                    <div class="step-num">3</div>
+                    <h3>Configure & Start</h3>
+                    <p>Use the connection details below to configure your miner.</p>
+                </div>
+            </div>
+            <div class="connection-box">
+                <h3>Connection Details</h3>
+                <div class="conn-grid">
+                    <div class="conn-item">
+                        <div class="label">Stratum URL</div>
+                        <code id="stratum_url">stratum+tcp://euroxmr.eu:4242</code>
+                    </div>
+                    <div class="conn-item">
+                        <div class="label">Username</div>
+                        <code>YOUR_WALLET_ADDRESS</code>
+                    </div>
+                    <div class="conn-item">
+                        <div class="label">Password</div>
+                        <code>x</code>
+                    </div>
+                    <div class="conn-item">
+                        <div class="label">Algorithm</div>
+                        <code>RandomX</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Powered by <a href="https://github.com/jtgrassie/monero-pool" target="_blank">JT-Pool</a></p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Utility functions
+        function formatHashrate(h) {
+            if (h < 1e3) return h.toFixed(0) + ' H/s';
+            if (h < 1e6) return (h / 1e3).toFixed(2) + ' KH/s';
+            if (h < 1e9) return (h / 1e6).toFixed(2) + ' MH/s';
+            return (h / 1e9).toFixed(2) + ' GH/s';
+        }
+        function formatHashes(h) {
+            if (h < 1e6) return h.toLocaleString();
+            if (h < 1e9) return (h / 1e6).toFixed(2) + ' MH';
+            if (h < 1e12) return (h / 1e9).toFixed(2) + ' GH';
+            return (h / 1e12).toFixed(2) + ' TH';
+        }
+        function formatTime(ts) {
+            if (!ts || ts === 0) return 'Never';
+            var diff = Date.now() / 1000 - ts;
+            if (diff < 60) return Math.floor(diff) + 's ago';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            return Math.floor(diff / 86400) + 'd ago';
+        }
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function () { t.classList.remove('show'); }, 3000);
+        }
+        function getCookie(name) {
+            var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return v ? v.pop() : '';
+        }
+        function setCookie(name, value) {
+            var d = new Date();
+            d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+            document.cookie = name + '=' + value + ';expires=' + d.toGMTString() + ';path=/';
+        }
+
+        // Stats update
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            var s = JSON.parse(xhr.responseText);
+
+            document.getElementById('pool_hashrate').innerHTML = formatHashrate(s.pool_hashrate);
+            document.getElementById('network_hashrate').innerHTML = formatHashrate(s.network_hashrate);
+            document.getElementById('network_height').innerHTML = s.network_height.toLocaleString();
+            document.getElementById('connected_miners').innerHTML = s.connected_miners;
+            document.getElementById('pool_blocks_found').innerHTML = s.pool_blocks_found;
+            document.getElementById('last_block_found').innerHTML = formatTime(s.last_block_found);
+            document.getElementById('pool_fee').innerHTML = (s.pool_fee * 100).toFixed(1) + '%';
+            document.getElementById('payment_threshold').innerHTML = s.payment_threshold + ' XMR';
+            document.getElementById('pool_port').innerHTML = s.pool_port;
+            document.getElementById('pool_ssl_port').innerHTML = s.pool_ssl_port || '--';
+            document.getElementById('last_template_fetched').innerHTML = formatTime(s.last_template_fetched);
+
+            // Round progress
+            var pct = (s.round_hashes / s.network_difficulty) * 100;
+            document.getElementById('round_hashes').innerHTML = formatHashes(s.round_hashes) + ' (' + pct.toFixed(2) + '%)';
+            document.getElementById('round_progress').style.width = Math.min(pct, 100) + '%';
+
+            // Self-select
+            if (s.allow_self_select) {
+                document.getElementById('self_select_row').style.display = 'block';
+                document.getElementById('allow_self_select').innerHTML = 'Yes';
             }
 
-            function format_round_hashrate(round_hashes, last_block_found)
-            {
-                var now = new Date().getTime() / 1000;
-                var diff = now - last_block_found;
-                if (last_block_found == 0)
-                    return 0;
-                if (diff <= 0)
-                    return 0;
-                return format_hashrate(round_hashes / diff);
+            // Stratum URL
+            var host = window.location.hostname || 'euroxmr.eu';
+            document.getElementById('stratum_url').innerHTML = 'stratum+tcp://' + host + ':' + s.pool_port;
+
+            // Miner stats
+            if (s.miner_hashrate > 0 || s.miner_balance > 0) {
+                document.getElementById('miner_stats').classList.remove('hidden');
+                document.getElementById('miner_hashrate').innerHTML = formatHashrate(s.miner_hashrate);
+                document.getElementById('miner_balance').innerHTML = s.miner_balance.toFixed(8) + ' XMR';
+                document.getElementById('worker_count').innerHTML = s.worker_count || 0;
             }
+        };
 
-            var wf = document.querySelector("#address");
-            var xhr = new XMLHttpRequest();
-            var rhr = document.querySelector("#round_hashrate");
+        function fetchStats() {
+            xhr.open('GET', '/stats');
+            xhr.send();
+        }
 
-            xhr.onload = function()
-            {
-                var stats = JSON.parse(xhr.responseText);
-                for (var e in stats)
-                {
-                    var el = document.querySelector("#"+e);
-                    if (!el)
-                        continue;
-                    if (/^last/.test(e))
-                        el.innerHTML = format_last_time(stats[e]);
-                    else if (/hashrate/.test(e))
-                        el.innerHTML = format_hashrate(stats[e]);
-                    else if (e == "pool_fee")
-                        el.innerHTML = (stats[e]*100) + "%";
-                    else if (e == "allow_self_select")
-                        el.innerHTML = stats[e] == 1 ? "Yes" : "No";
-                    else if (e == "round_hashes")
-                    {
-                        el.innerHTML = max_precision(stats[e]*100 /
-                            stats["network_difficulty"], 1) + "%" +
-                            " (" + format_hashes(stats[e]) + " / " +
-                            format_hashes(stats["network_difficulty"]) + ")";
-                        rhr.innerHTML = format_round_hashrate(
-                            stats["round_hashes"], stats["last_block_found"]);
-                    }
-                    else if (e == "pool_ssl_port")
-                    {
-                        el.closest("tr").style = "display: " +
-                            (stats[e] == 0 ? "none;" : "table-row;");
-                        el.innerHTML = stats[e];
-                    }
-                    else
-                        el.innerHTML = stats[e];
-                }
-            };
+        // Wallet lookup
+        var addressEl = document.getElementById('address');
+        var lookupBtn = document.getElementById('lookup_btn');
 
-            wf.onblur = function(e)
-            {
-                var d = new Date();
-                d.setTime(d.getTime() + (86400 * 365 * 1000));
-                document.cookie = "wa=" + this.innerText +
-                    ";expires=" + d.toGMTString();
-                window.location.reload();
-                return false;
-            };
+        lookupBtn.onclick = function () {
+            var wa = addressEl.value.trim();
+            if (wa && /^[48][1-9A-HJ-NP-Za-km-z]{94,105}$/.test(wa)) {
+                setCookie('wa', wa);
+                document.getElementById('miner_stats').classList.remove('hidden');
+                showToast('Wallet saved! Refreshing...');
+                setTimeout(fetchStats, 500);
+            } else {
+                showToast('Invalid Monero address');
+            }
+        };
+        addressEl.onkeypress = function (e) { if (e.key === 'Enter') lookupBtn.onclick(); };
 
-            window.onload = function()
-            {
-                var jar = {};
-                for (var kv, i=0, kvs=document.cookie.split(/\s*;\s*/); i<kvs.length; i++)
-                {
-                    kv = kvs[i].split(/\s*=\s*/);
-                    if (kv.length > 1)
-                    {
-                        try {
-                            jar[kv[0]] = kv[1];
-                        } catch (e) {}
-                    }
-                }
-                if (jar.wa &&
-                    /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/.test(jar.wa))
-                {
-                    var m = document.querySelectorAll(".miner");
-                    for (var i=0; i<m.length; i++)
-                    {
-                        m[i].style = "display: table-row;";
-                    }
-                    wf.innerText = jar.wa;
-                }
-                var get_stats = function()
-                {
-                    xhr.open("GET", "/stats");
-                    xhr.send(null);
-                };
-                setInterval(get_stats, 30000);
-                get_stats();
-            };
-        </script>
-    </body>
+        // Load saved wallet
+        var savedWa = getCookie('wa');
+        if (savedWa) {
+            addressEl.value = savedWa;
+        }
+
+        // Init
+        window.onload = function () {
+            fetchStats();
+            setInterval(fetchStats, 30000);
+        };
+    </script>
+</body>
+
 </html>
