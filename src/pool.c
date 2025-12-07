@@ -825,6 +825,134 @@ bail:
     pthread_rwlock_unlock(&rwlock_acc);
 }
 
+void
+block_list(char *list_start, char *list_end, int limit)
+{
+    char *body = list_start;
+    char *end = list_end;
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+    int count = 0;
+
+    pthread_rwlock_rdlock(&rwlock_tx);
+
+    if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        goto cleanup;
+    }
+    if ((rc = mdb_cursor_open(txn, db_blocks, &cursor)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        goto cleanup;
+    }
+
+    MDB_val key, val;
+    rc = mdb_cursor_get(cursor, &key, &val, MDB_LAST);
+    
+    while (rc == 0 && count < limit && body < (end - 256))
+    {
+        block_t *block = (block_t*)val.mv_data;
+        char hash_hex[129] = {0};
+        bin_to_hex((unsigned char*)block->hash, 32, hash_hex, 65);
+        
+        if (body != list_start)
+            *body++ = ',';
+        
+        body += sprintf(body,
+            "{\"height\":%"PRIu64","
+            "\"hash\":\"%.64s\","
+            "\"status\":%u,"
+            "\"reward\":%"PRIu64","
+            "\"timestamp\":%"PRIu64"}",
+            block->height,
+            hash_hex,
+            block->status,
+            block->reward,
+            (uint64_t)block->timestamp);
+        
+        count++;
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_PREV);
+    }
+
+cleanup:
+    pthread_rwlock_unlock(&rwlock_tx);
+    if (cursor)
+        mdb_cursor_close(cursor);
+    if (txn)
+        mdb_txn_abort(txn);
+}
+
+void
+payment_list(char *list_start, char *list_end, const char *address, int limit)
+{
+    char *body = list_start;
+    char *end = list_end;
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+    int count = 0;
+
+    if (strlen(address) > ADDRESS_MAX)
+        return;
+
+    pthread_rwlock_rdlock(&rwlock_tx);
+
+    if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        goto cleanup;
+    }
+    if ((rc = mdb_cursor_open(txn, db_payments, &cursor)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        goto cleanup;
+    }
+
+    MDB_val key = {ADDRESS_MAX, (void*)address};
+    MDB_val val;
+    
+    rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
+    if (rc == 0)
+    {
+        /* Move to last payment for this address */
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_LAST_DUP);
+    }
+    
+    while (rc == 0 && count < limit && body < (end - 128))
+    {
+        payment_t *payment = (payment_t*)val.mv_data;
+        
+        if (body != list_start)
+            *body++ = ',';
+        
+        body += sprintf(body,
+            "{\"amount\":%"PRIu64","
+            "\"timestamp\":%"PRIu64"}",
+            payment->amount,
+            (uint64_t)payment->timestamp);
+        
+        count++;
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_PREV_DUP);
+    }
+
+cleanup:
+    pthread_rwlock_unlock(&rwlock_tx);
+    if (cursor)
+        mdb_cursor_close(cursor);
+    if (txn)
+        mdb_txn_abort(txn);
+}
+
 static int
 balance_add(const char *address, uint64_t amount, MDB_txn *parent)
 {

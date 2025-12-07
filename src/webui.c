@@ -92,6 +92,43 @@ send_json_workers(struct evhttp_request *req, void *arg)
     evbuffer_add_printf(buf, "[%s]", rig_list);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+}
+
+static void
+send_json_blocks(struct evhttp_request *req, void *arg)
+{
+    struct evbuffer *buf = evhttp_request_get_output_buffer(req);
+    struct evkeyvalq *hdrs_out = NULL;
+    char block_data[0x10000] = {0};
+    char *end = block_data + sizeof(block_data);
+
+    block_list(block_data, end, 20);
+
+    evbuffer_add_printf(buf, "[%s]", block_data);
+    hdrs_out = evhttp_request_get_output_headers(req);
+    evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+}
+
+static void
+send_json_payments(struct evhttp_request *req, void *arg)
+{
+    struct evbuffer *buf = evhttp_request_get_output_buffer(req);
+    struct evkeyvalq *hdrs_out = NULL;
+    char payment_data[0x10000] = {0};
+    char *end = payment_data + sizeof(payment_data);
+    const char *wa = fetch_wa_cookie(req);
+
+    if (wa)
+        payment_list(payment_data, end, wa, 50);
+
+    evbuffer_add_printf(buf, "[%s]", payment_data);
+    hdrs_out = evhttp_request_get_output_headers(req);
+    evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -153,6 +190,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
             (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, wc);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -172,6 +210,18 @@ process_request(struct evhttp_request *req, void *arg)
     if (strstr(url, "/workers") != NULL)
     {
         send_json_workers(req, arg);
+        return;
+    }
+
+    if (strstr(url, "/blocks") != NULL)
+    {
+        send_json_blocks(req, arg);
+        return;
+    }
+
+    if (strstr(url, "/payments") != NULL)
+    {
+        send_json_payments(req, arg);
         return;
     }
 

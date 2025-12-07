@@ -12,6 +12,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <!-- Chart.js for hashrate visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -26,6 +28,7 @@
             --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
             --success: #10b981;
             --warning: #f59e0b;
+            --danger: #ef4444;
             --glass-blur: blur(20px);
             --glass-border: 1px solid rgba(255, 255, 255, 0.08);
             --shadow-glow: 0 0 60px rgba(139, 92, 246, 0.15);
@@ -151,6 +154,41 @@
         .nav-link:hover {
             color: var(--text-primary);
             background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Live indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--success);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: livePulse 2s infinite;
+        }
+
+        @keyframes livePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            50% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            }
         }
 
         /* Hero */
@@ -302,6 +340,63 @@
             font-weight: 600;
         }
 
+        .stat-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Chart Section */
+        .chart-section {
+            padding: 40px 0;
+        }
+
+        .chart-card {
+            padding: 24px;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            margin-bottom: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+
         /* Round Progress */
         .round-card {
             padding: 24px;
@@ -309,6 +404,7 @@
             backdrop-filter: var(--glass-blur);
             border: var(--glass-border);
             border-radius: var(--border-radius);
+            margin-bottom: 24px;
         }
 
         .round-card h3 {
@@ -332,6 +428,28 @@
         .round-stat .value {
             font-family: 'JetBrains Mono', monospace;
             font-size: 1.125rem;
+        }
+
+        .luck-indicator {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .luck-good {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .luck-normal {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .luck-bad {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
         }
 
         .progress-bar {
@@ -417,8 +535,14 @@
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .miner-stats {
-            max-width: 700px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -428,8 +552,9 @@
 
         .miner-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
+            margin-bottom: 24px;
         }
 
         .miner-card {
@@ -457,6 +582,216 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .miner-card .sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Workers Table */
+        .workers-section {
+            margin-top: 32px;
+        }
+
+        .workers-card {
+            padding: 24px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .workers-card h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .workers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .workers-table th,
+        .workers-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .workers-table th {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .workers-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .workers-table tr:hover td {
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .worker-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .worker-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .no-workers {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+        }
+
+        /* Blocks Table */
+        .blocks-section {
+            margin-top: 24px;
+        }
+
+        .blocks-card {
+            padding: 24px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .blocks-card h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .blocks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .blocks-table th,
+        .blocks-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .blocks-table th {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .blocks-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .blocks-table tr:hover td {
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .block-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .block-status.locked {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .block-status.unlocked {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .block-status.orphaned {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .block-hash {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--accent-secondary);
+        }
+
+        /* Payments Table */
+        .payments-section {
+            margin-top: 24px;
+        }
+
+        .payments-card {
+            padding: 24px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+        }
+
+        .payments-card h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payments-table th,
+        .payments-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .payments-table th {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .payments-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .payments-table tr:hover td {
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .payment-amount {
+            color: var(--success);
+            font-weight: 600;
         }
 
         /* Start Section */
@@ -556,6 +891,12 @@
             padding: 10px 14px;
             border-radius: var(--border-radius-sm);
             word-break: break-all;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .conn-item code:hover {
+            background: rgba(6, 182, 212, 0.2);
         }
 
         /* Footer */
@@ -596,6 +937,27 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        .toast.success {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav {
@@ -614,6 +976,21 @@
                 padding: 24px 32px;
             }
 
+            .miner-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .workers-table {
+                font-size: 0.75rem;
+            }
+
+            .workers-table th,
+            .workers-table td {
+                padding: 8px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
             .miner-grid {
                 grid-template-columns: 1fr;
             }
@@ -634,6 +1011,28 @@
         ::-webkit-scrollbar-thumb {
             background: rgba(139, 92, 246, 0.3);
             border-radius: 4px;
+        }
+
+        /* Refresh indicator */
+        .refresh-indicator {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .refresh-indicator.active {
+            opacity: 1;
         }
     </style>
 </head>
@@ -667,9 +1066,18 @@
                     <a href="#start" class="nav-link">Get Started</a>
                     <a href="https://github.com/jtgrassie/monero-pool" class="nav-link" target="_blank">GitHub ↗</a>
                 </nav>
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span>Live <span id="refresh_countdown">10</span>s</span>
+                </div>
             </div>
         </div>
     </header>
+
+    <div class="refresh-indicator" id="refresh_indicator">
+        <div class="spinner"></div>
+        <span>Updating...</span>
+    </div>
 
     <section class="hero">
         <div class="container">
@@ -681,7 +1089,7 @@
             </div>
             <div class="pool-status">
                 <div class="status-dot"></div>
-                <span>Pool Online</span>
+                <span>Pool Online • <span id="connected_miners">--</span> miners connected</span>
             </div>
         </div>
     </section>
@@ -724,7 +1132,7 @@
                     </div>
                     <div class="stat-content">
                         <span class="stat-label">Miners Connected</span>
-                        <span class="stat-value" id="connected_miners">--</span>
+                        <span class="stat-value" id="connected_miners_card">--</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -792,12 +1200,45 @@
                 </div>
             </div>
 
+            <!-- Hashrate Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                        Pool Hashrate History
+                    </h3>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--accent-primary);"></div>
+                            <span>Pool Hashrate</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hashrateChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Round Progress -->
             <div class="round-card">
                 <h3>Current Round Progress</h3>
                 <div class="round-stats">
                     <div class="round-stat">
                         <span class="label">Round Hashes</span>
                         <span class="value" id="round_hashes">--</span>
+                    </div>
+                    <div class="round-stat">
+                        <span class="label">Round Luck</span>
+                        <span class="value">
+                            <span id="round_luck" class="luck-indicator luck-normal">--</span>
+                        </span>
+                    </div>
+                    <div class="round-stat">
+                        <span class="label">Est. Time to Block</span>
+                        <span class="value" id="est_block_time">--</span>
                     </div>
                     <div class="round-stat">
                         <span class="label">Last Template</span>
@@ -810,6 +1251,25 @@
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="round_progress"></div>
+                </div>
+            </div>
+
+            <!-- Blocks History -->
+            <div class="blocks-section">
+                <div class="blocks-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                        Blocks Found by Pool
+                    </h3>
+                    <div id="blocks_container">
+                        <div class="no-workers">Loading blocks...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -840,6 +1300,46 @@
                     <div class="miner-card">
                         <span class="label">Workers</span>
                         <span class="value" id="worker_count">--</span>
+                    </div>
+                    <div class="miner-card">
+                        <span class="label">Est. Daily Earnings</span>
+                        <span class="value" id="est_earnings">--</span>
+                        <span class="sub" id="est_earnings_usd"></span>
+                    </div>
+                </div>
+
+                <!-- Workers Table -->
+                <div class="workers-section">
+                    <div class="workers-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                            Your Workers
+                        </h3>
+                        <div id="workers_container">
+                            <div class="no-workers">Loading workers...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment History -->
+                <div class="payments-section">
+                    <div class="payments-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
+                            Payment History
+                        </h3>
+                        <div id="payments_container">
+                            <div class="no-workers">Loading payments...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -877,15 +1377,15 @@
                 <div class="conn-grid">
                     <div class="conn-item">
                         <div class="label">Stratum URL</div>
-                        <code id="stratum_url">stratum+tcp://euroxmr.eu:4242</code>
+                        <code id="stratum_url" onclick="copyToClipboard(this)">stratum+tcp://euroxmr.eu:4242</code>
                     </div>
                     <div class="conn-item">
                         <div class="label">Username</div>
-                        <code>YOUR_WALLET_ADDRESS</code>
+                        <code onclick="copyToClipboard(this)">YOUR_WALLET_ADDRESS</code>
                     </div>
                     <div class="conn-item">
                         <div class="label">Password</div>
-                        <code>x</code>
+                        <code onclick="copyToClipboard(this)">x</code>
                     </div>
                     <div class="conn-item">
                         <div class="label">Algorithm</div>
@@ -905,19 +1405,23 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // ========================================
         // Utility functions
+        // ========================================
         function formatHashrate(h) {
             if (h < 1e3) return h.toFixed(0) + ' H/s';
             if (h < 1e6) return (h / 1e3).toFixed(2) + ' KH/s';
             if (h < 1e9) return (h / 1e6).toFixed(2) + ' MH/s';
             return (h / 1e9).toFixed(2) + ' GH/s';
         }
+
         function formatHashes(h) {
             if (h < 1e6) return h.toLocaleString();
             if (h < 1e9) return (h / 1e6).toFixed(2) + ' MH';
             if (h < 1e12) return (h / 1e9).toFixed(2) + ' GH';
             return (h / 1e12).toFixed(2) + ' TH';
         }
+
         function formatTime(ts) {
             if (!ts || ts === 0) return 'Never';
             var diff = Date.now() / 1000 - ts;
@@ -926,69 +1430,407 @@
             if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
             return Math.floor(diff / 86400) + 'd ago';
         }
-        function showToast(msg) {
+
+        function formatDuration(seconds) {
+            if (seconds < 60) return Math.floor(seconds) + 's';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+            return Math.floor(seconds / 86400) + 'd ' + Math.floor((seconds % 86400) / 3600) + 'h';
+        }
+
+        function showToast(msg, type) {
             var t = document.getElementById('toast');
             t.textContent = msg;
-            t.classList.add('show');
+            t.className = 'toast show' + (type ? ' ' + type : '');
             setTimeout(function () { t.classList.remove('show'); }, 3000);
         }
+
         function getCookie(name) {
             var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
             return v ? v.pop() : '';
         }
+
         function setCookie(name, value) {
             var d = new Date();
             d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
             document.cookie = name + '=' + value + ';expires=' + d.toGMTString() + ';path=/';
         }
 
-        // Stats update
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            var s = JSON.parse(xhr.responseText);
+        function copyToClipboard(el) {
+            navigator.clipboard.writeText(el.textContent).then(function () {
+                showToast('Copied to clipboard!', 'success');
+            });
+        }
 
-            document.getElementById('pool_hashrate').innerHTML = formatHashrate(s.pool_hashrate);
-            document.getElementById('network_hashrate').innerHTML = formatHashrate(s.network_hashrate);
-            document.getElementById('network_height').innerHTML = s.network_height.toLocaleString();
-            document.getElementById('connected_miners').innerHTML = s.connected_miners;
-            document.getElementById('pool_blocks_found').innerHTML = s.pool_blocks_found;
-            document.getElementById('last_block_found').innerHTML = formatTime(s.last_block_found);
-            document.getElementById('pool_fee').innerHTML = (s.pool_fee * 100).toFixed(1) + '%';
-            document.getElementById('payment_threshold').innerHTML = s.payment_threshold + ' XMR';
-            document.getElementById('pool_port').innerHTML = s.pool_port;
-            document.getElementById('pool_ssl_port').innerHTML = s.pool_ssl_port || '--';
-            document.getElementById('last_template_fetched').innerHTML = formatTime(s.last_template_fetched);
+        // ========================================
+        // Chart setup
+        // ========================================
+        var hashrateHistory = [];
+        var maxHistoryPoints = 30;
+        var hashrateChart = null;
 
-            // Round progress
-            var pct = (s.round_hashes / s.network_difficulty) * 100;
-            document.getElementById('round_hashes').innerHTML = formatHashes(s.round_hashes) + ' (' + pct.toFixed(2) + '%)';
-            document.getElementById('round_progress').style.width = Math.min(pct, 100) + '%';
+        function initChart() {
+            var ctx = document.getElementById('hashrateChart').getContext('2d');
 
-            // Self-select
-            if (s.allow_self_select) {
-                document.getElementById('self_select_row').style.display = 'block';
-                document.getElementById('allow_self_select').innerHTML = 'Yes';
+            var gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+            hashrateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Pool Hashrate',
+                        data: [],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#8b5cf6',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20, 20, 30, 0.9)',
+                            titleColor: '#a0a0b0',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(139, 92, 246, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    return formatHashrate(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#606070',
+                                font: { size: 10 },
+                                maxTicksLimit: 6
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#606070',
+                                font: { size: 10 },
+                                callback: function (value) {
+                                    return formatHashrate(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(hashrate) {
+            var now = new Date();
+            var timeLabel = now.getHours().toString().padStart(2, '0') + ':' +
+                now.getMinutes().toString().padStart(2, '0') + ':' +
+                now.getSeconds().toString().padStart(2, '0');
+
+            hashrateHistory.push({ time: timeLabel, value: hashrate });
+
+            if (hashrateHistory.length > maxHistoryPoints) {
+                hashrateHistory.shift();
             }
 
-            // Stratum URL
-            var host = window.location.hostname || 'euroxmr.eu';
-            document.getElementById('stratum_url').innerHTML = 'stratum+tcp://' + host + ':' + s.pool_port;
+            hashrateChart.data.labels = hashrateHistory.map(function (d) { return d.time; });
+            hashrateChart.data.datasets[0].data = hashrateHistory.map(function (d) { return d.value; });
+            hashrateChart.update('none');
+        }
 
-            // Miner stats
-            if (s.miner_hashrate > 0 || s.miner_balance > 0) {
-                document.getElementById('miner_stats').classList.remove('hidden');
-                document.getElementById('miner_hashrate').innerHTML = formatHashrate(s.miner_hashrate);
-                document.getElementById('miner_balance').innerHTML = s.miner_balance.toFixed(8) + ' XMR';
-                document.getElementById('worker_count').innerHTML = s.worker_count || 0;
-            }
-        };
+        // ========================================
+        // Stats fetching
+        // ========================================
+        var lastStats = null;
+        var refreshInterval = 10000; // 10 seconds
+        var countdown = 10;
 
         function fetchStats() {
+            var indicator = document.getElementById('refresh_indicator');
+            indicator.classList.add('active');
+
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                indicator.classList.remove('active');
+
+                try {
+                    var s = JSON.parse(xhr.responseText);
+                    lastStats = s;
+
+                    // Pool hashrate
+                    document.getElementById('pool_hashrate').innerHTML = formatHashrate(s.pool_hashrate);
+
+                    // Network stats
+                    document.getElementById('network_hashrate').innerHTML = formatHashrate(s.network_hashrate);
+                    document.getElementById('network_height').innerHTML = s.network_height.toLocaleString();
+                    document.getElementById('connected_miners').innerHTML = s.connected_miners;
+                    document.getElementById('connected_miners_card').innerHTML = s.connected_miners;
+                    document.getElementById('pool_blocks_found').innerHTML = s.pool_blocks_found;
+                    document.getElementById('last_block_found').innerHTML = formatTime(s.last_block_found);
+                    document.getElementById('pool_fee').innerHTML = (s.pool_fee * 100).toFixed(1) + '%';
+                    document.getElementById('payment_threshold').innerHTML = s.payment_threshold + ' XMR';
+                    document.getElementById('pool_port').innerHTML = s.pool_port;
+                    document.getElementById('pool_ssl_port').innerHTML = s.pool_ssl_port || '--';
+                    document.getElementById('last_template_fetched').innerHTML = formatTime(s.last_template_fetched);
+
+                    // Round progress & luck
+                    var pct = (s.round_hashes / s.network_difficulty) * 100;
+                    document.getElementById('round_hashes').innerHTML = formatHashes(s.round_hashes) + ' (' + pct.toFixed(2) + '%)';
+                    document.getElementById('round_progress').style.width = Math.min(pct, 100) + '%';
+
+                    // Luck indicator
+                    var luckEl = document.getElementById('round_luck');
+                    var luckText = pct.toFixed(1) + '%';
+                    luckEl.textContent = luckText;
+                    luckEl.className = 'luck-indicator';
+                    if (pct < 80) {
+                        luckEl.classList.add('luck-good');
+                    } else if (pct < 150) {
+                        luckEl.classList.add('luck-normal');
+                    } else {
+                        luckEl.classList.add('luck-bad');
+                    }
+
+                    // Estimated time to block
+                    if (s.pool_hashrate > 0) {
+                        var remainingHashes = s.network_difficulty - s.round_hashes;
+                        if (remainingHashes < 0) remainingHashes = s.network_difficulty;
+                        var estSeconds = remainingHashes / s.pool_hashrate;
+                        document.getElementById('est_block_time').innerHTML = formatDuration(estSeconds);
+                    } else {
+                        document.getElementById('est_block_time').innerHTML = '--';
+                    }
+
+                    // Self-select
+                    if (s.allow_self_select) {
+                        document.getElementById('self_select_row').style.display = 'block';
+                        document.getElementById('allow_self_select').innerHTML = 'Yes';
+                    }
+
+                    // Stratum URL
+                    var host = window.location.hostname || 'euroxmr.eu';
+                    document.getElementById('stratum_url').innerHTML = 'stratum+tcp://' + host + ':' + s.pool_port;
+
+                    // Miner stats
+                    if (s.miner_hashrate > 0 || s.miner_balance > 0) {
+                        document.getElementById('miner_stats').classList.remove('hidden');
+                        document.getElementById('miner_hashrate').innerHTML = formatHashrate(s.miner_hashrate);
+                        document.getElementById('miner_balance').innerHTML = s.miner_balance.toFixed(8) + ' XMR';
+                        document.getElementById('worker_count').innerHTML = s.worker_count || 0;
+
+                        // Estimated daily earnings (simplified calculation)
+                        if (s.miner_hashrate > 0 && s.pool_hashrate > 0) {
+                            var blocksPerDay = 720; // ~120s per block = 720 blocks/day
+                            var blockReward = 0.6; // approximate current block reward
+                            var poolShare = s.miner_hashrate / s.pool_hashrate;
+                            var dailyXMR = poolShare * blocksPerDay * blockReward * (1 - s.pool_fee);
+                            document.getElementById('est_earnings').innerHTML = dailyXMR.toFixed(6) + ' XMR';
+                        } else {
+                            document.getElementById('est_earnings').innerHTML = '--';
+                        }
+
+                        // Fetch workers
+                        fetchWorkers();
+                    }
+
+                    // Update chart
+                    updateChart(s.pool_hashrate);
+
+                } catch (e) {
+                    console.error('Error parsing stats:', e);
+                }
+            };
+
+            xhr.onerror = function () {
+                indicator.classList.remove('active');
+                console.error('Error fetching stats');
+            };
+
             xhr.open('GET', '/stats');
             xhr.send();
         }
 
+        function fetchWorkers() {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                var container = document.getElementById('workers_container');
+                try {
+                    var workers = JSON.parse(xhr.responseText);
+
+                    if (workers.length === 0) {
+                        container.innerHTML = '<div class="no-workers">No active workers found</div>';
+                        return;
+                    }
+
+                    var html = '<table class="workers-table"><thead><tr>' +
+                        '<th>Rig ID</th>' +
+                        '<th>Hashrate (10m avg)</th>' +
+                        '<th>Status</th>' +
+                        '</tr></thead><tbody>';
+
+                    for (var i = 0; i < workers.length; i += 2) {
+                        var rigId = workers[i] || 'default';
+                        var hashrate = workers[i + 1] || 0;
+                        html += '<tr>' +
+                            '<td>' + rigId + '</td>' +
+                            '<td>' + formatHashrate(hashrate) + '</td>' +
+                            '<td><span class="worker-status">Online</span></td>' +
+                            '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    container.innerHTML = '<div class="no-workers">Error loading workers</div>';
+                }
+            };
+            xhr.open('GET', '/workers');
+            xhr.send();
+        }
+
+        // ========================================
+        // Countdown timer
+        // ========================================
+        function updateCountdown() {
+            countdown--;
+            if (countdown <= 0) {
+                countdown = 10;
+                fetchStats();
+            }
+            document.getElementById('refresh_countdown').textContent = countdown;
+        }
+
+        // ========================================
+        // Fetch blocks history
+        // ========================================
+        function fetchBlocks() {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                var container = document.getElementById('blocks_container');
+                try {
+                    var blocks = JSON.parse(xhr.responseText);
+
+                    if (blocks.length === 0) {
+                        container.innerHTML = '<div class="no-workers">No blocks found yet</div>';
+                        return;
+                    }
+
+                    var statusMap = {
+                        0: { text: 'Locked', class: 'locked' },
+                        1: { text: 'Unlocked', class: 'unlocked' },
+                        2: { text: 'Orphaned', class: 'orphaned' }
+                    };
+
+                    var html = '<table class="blocks-table"><thead><tr>' +
+                        '<th>Height</th>' +
+                        '<th>Hash</th>' +
+                        '<th>Status</th>' +
+                        '<th>Reward</th>' +
+                        '<th>Found</th>' +
+                        '</tr></thead><tbody>';
+
+                    for (var i = 0; i < blocks.length; i++) {
+                        var block = blocks[i];
+                        var status = statusMap[block.status] || { text: 'Unknown', class: 'locked' };
+                        var reward = (block.reward / 1e12).toFixed(4);
+                        html += '<tr>' +
+                            '<td>' + block.height.toLocaleString() + '</td>' +
+                            '<td><span class="block-hash" title="' + block.hash + '">' + block.hash.substring(0, 16) + '...</span></td>' +
+                            '<td><span class="block-status ' + status.class + '">' + status.text + '</span></td>' +
+                            '<td>' + reward + ' XMR</td>' +
+                            '<td>' + formatTime(block.timestamp) + '</td>' +
+                            '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    container.innerHTML = '<div class="no-workers">Error loading blocks</div>';
+                }
+            };
+            xhr.open('GET', '/blocks');
+            xhr.send();
+        }
+
+        // ========================================
+        // Fetch payments history
+        // ========================================
+        function fetchPayments() {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                var container = document.getElementById('payments_container');
+                try {
+                    var payments = JSON.parse(xhr.responseText);
+
+                    if (payments.length === 0) {
+                        container.innerHTML = '<div class="no-workers">No payments yet</div>';
+                        return;
+                    }
+
+                    var html = '<table class="payments-table"><thead><tr>' +
+                        '<th>Amount</th>' +
+                        '<th>Date</th>' +
+                        '</tr></thead><tbody>';
+
+                    for (var i = 0; i < payments.length; i++) {
+                        var payment = payments[i];
+                        var amount = (payment.amount / 1e12).toFixed(8);
+                        var date = new Date(payment.timestamp * 1000);
+                        var dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                        html += '<tr>' +
+                            '<td><span class="payment-amount">' + amount + ' XMR</span></td>' +
+                            '<td>' + dateStr + '</td>' +
+                            '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    container.innerHTML = '<div class="no-workers">Error loading payments</div>';
+                }
+            };
+            xhr.open('GET', '/payments');
+            xhr.send();
+        }
+
+        // ========================================
         // Wallet lookup
+        // ========================================
         var addressEl = document.getElementById('address');
         var lookupBtn = document.getElementById('lookup_btn');
 
@@ -997,13 +1839,19 @@
             if (wa && /^[48][1-9A-HJ-NP-Za-km-z]{94,105}$/.test(wa)) {
                 setCookie('wa', wa);
                 document.getElementById('miner_stats').classList.remove('hidden');
-                showToast('Wallet saved! Refreshing...');
-                setTimeout(fetchStats, 500);
+                showToast('Wallet saved! Refreshing...', 'success');
+                setTimeout(function () {
+                    fetchStats();
+                    fetchPayments();
+                }, 500);
             } else {
                 showToast('Invalid Monero address');
             }
         };
-        addressEl.onkeypress = function (e) { if (e.key === 'Enter') lookupBtn.onclick(); };
+
+        addressEl.onkeypress = function (e) {
+            if (e.key === 'Enter') lookupBtn.onclick();
+        };
 
         // Load saved wallet
         var savedWa = getCookie('wa');
@@ -1011,10 +1859,19 @@
             addressEl.value = savedWa;
         }
 
-        // Init
+        // ========================================
+        // Initialize
+        // ========================================
         window.onload = function () {
+            initChart();
             fetchStats();
-            setInterval(fetchStats, 30000);
+            fetchBlocks();
+            if (getCookie('wa')) {
+                fetchPayments();
+            }
+            setInterval(updateCountdown, 1000);
+            // Refresh blocks every 5 minutes
+            setInterval(fetchBlocks, 300000);
         };
     </script>
 </body>
