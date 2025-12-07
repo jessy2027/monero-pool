@@ -1990,14 +1990,13 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
         {
             log_trace("Using new template, height: %"PRIu64", txs: %"PRIu64,
                     cand.height, cand.tx_count);
-            /* Reset round hashes when new block height detected (new round) */
+            /* Backup reset for edge cases where template is called directly.
+               Primary reset is in rpc_on_last_block_header. */
             if (cand.height > top->height && !upstream_event)
             {
-                log_debug("New block height detected, resetting round hashes (was %"PRIu64")",
+                log_debug("Template height change detected, resetting round hashes (was %"PRIu64")",
                         pool_stats.round_hashes);
                 pool_stats.round_hashes = 0;
-                /* Note: last_block_found is only updated when pool finds a block,
-                   not on network height change. See rpc_on_block_submitted. */
             }
             bstack_push(bst, &cand);
         }
@@ -2194,6 +2193,15 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     if (top && bh > top->height)
     {
         height_changed = true;
+        /* Reset round_hashes when network height changes (new round).
+           This is the authoritative reset point - bsh tracks confirmed blocks.
+           The template stack (bst) may already have the new height. */
+        if (!upstream_event)
+        {
+            log_info("Network height changed %"PRIu64" -> %"PRIu64", resetting round hashes (was %"PRIu64")",
+                    top->height, bh, pool_stats.round_hashes);
+            pool_stats.round_hashes = 0;
+        }
         block_t *block = bstack_push(bsh, NULL);
         response_to_block(block_header, block);
     }
