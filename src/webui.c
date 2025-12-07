@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <pthread.h>
 
@@ -77,6 +78,27 @@ fetch_wa_cookie(struct evhttp_request *req)
     return wa;
 }
 
+static bool
+is_token_valid(struct evhttp_request *req, const wui_context_t *context)
+{
+    /* If no token configured, treat as public access */
+    if (!context->token[0])
+        return true;
+    struct evkeyvalq *hdrs_in = evhttp_request_get_input_headers(req);
+    const char *hdr = evhttp_find_header(hdrs_in, "X-WebUI-Token");
+    return (hdr && strcmp(hdr, context->token) == 0);
+}
+
+static void
+maybe_add_cors(struct evhttp_request *req, const wui_context_t *context)
+{
+    if (!context->allowed_origin[0])
+        return;
+    struct evkeyvalq *hdrs_out = evhttp_request_get_output_headers(req);
+    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin",
+            context->allowed_origin);
+}
+
 static void
 send_json_workers(struct evhttp_request *req, void *arg)
 {
@@ -85,14 +107,21 @@ send_json_workers(struct evhttp_request *req, void *arg)
     char rig_list[0x40000] = {0};
     char *end = rig_list + sizeof(rig_list);
     const char *wa = fetch_wa_cookie(req);
+    wui_context_t *context = (wui_context_t*) arg;
 
-    if (wa)
-        worker_list(rig_list, end, wa);
+    if (!is_token_valid(req, context) || !wa)
+    {
+        maybe_add_cors(req, context);
+        evhttp_send_reply(req, HTTP_FORBIDDEN, "Forbidden", buf);
+        return;
+    }
+
+    worker_list(rig_list, end, wa);
 
     evbuffer_add_printf(buf, "[%s]", rig_list);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
-    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    maybe_add_cors(req, context);
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -103,13 +132,21 @@ send_json_blocks(struct evhttp_request *req, void *arg)
     struct evkeyvalq *hdrs_out = NULL;
     char block_data[0x10000] = {0};
     char *end = block_data + sizeof(block_data);
+    wui_context_t *context = (wui_context_t*) arg;
+
+    if (!is_token_valid(req, context))
+    {
+        maybe_add_cors(req, context);
+        evhttp_send_reply(req, HTTP_FORBIDDEN, "Forbidden", buf);
+        return;
+    }
 
     block_list(block_data, end, 20);
 
     evbuffer_add_printf(buf, "[%s]", block_data);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
-    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    maybe_add_cors(req, (wui_context_t*)arg);
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -121,14 +158,21 @@ send_json_payments(struct evhttp_request *req, void *arg)
     char payment_data[0x10000] = {0};
     char *end = payment_data + sizeof(payment_data);
     const char *wa = fetch_wa_cookie(req);
+    wui_context_t *context = (wui_context_t*) arg;
 
-    if (wa)
-        payment_list(payment_data, end, wa, 50);
+    if (!is_token_valid(req, context) || !wa)
+    {
+        maybe_add_cors(req, context);
+        evhttp_send_reply(req, HTTP_FORBIDDEN, "Forbidden", buf);
+        return;
+    }
+
+    payment_list(payment_data, end, wa, 50);
 
     evbuffer_add_printf(buf, "[%s]", payment_data);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
-    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    maybe_add_cors(req, context);
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -151,8 +195,16 @@ send_json_stats(struct evhttp_request *req, void *arg)
     double mb = 0.0;
     uint64_t wc = 0;
     const char *wa = fetch_wa_cookie(req);
+    bool token_ok = is_token_valid(req, context);
 
-    if (wa)
+    if (!token_ok)
+    {
+        maybe_add_cors(req, context);
+        evhttp_send_reply(req, HTTP_FORBIDDEN, "Forbidden", buf);
+        return;
+    }
+
+    if (wa && token_ok)
     {
         account_hr(mh, wa);
         wc = worker_count(wa);
@@ -190,7 +242,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
             (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, wc);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
-    evhttp_add_header(hdrs_out, "Access-Control-Allow-Origin", "*");
+    maybe_add_cors(req, context);
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 
@@ -229,6 +281,7 @@ process_request(struct evhttp_request *req, void *arg)
     evbuffer_add(buf, webui_html, webui_html_len);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "text/html");
+    maybe_add_cors(req, (wui_context_t*)arg);
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
 

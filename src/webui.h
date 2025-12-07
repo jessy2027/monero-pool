@@ -55,6 +55,8 @@ typedef struct wui_context_t
     uint16_t pool_port;
     uint16_t pool_ssl_port;
     unsigned allow_self_select;
+    char allowed_origin[256];
+    char token[128];
 } wui_context_t;
 
 int start_web_ui(wui_context_t *context);

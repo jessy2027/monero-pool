@@ -66,6 +66,14 @@ MONERO_LIBS = \
 
 DIRS = src data rxi/log/src
 
+# Module headers for documentation
+MODULE_HEADERS = \
+  src/database.h \
+  src/stratum.h \
+  src/payout.h \
+  src/rpc.h \
+  src/compat.h
+
 OS := $(shell uname -s)
 
 CPPDEFS = _GNU_SOURCE AUTO_INITIALIZE_EASYLOGGINGPP LOG_USE_COLOR

@@ -29,6 +29,47 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/**
+ * @file pool.c
+ * @brief Main Monero Mining Pool Implementation
+ *
+ * This file implements a high-performance Monero mining pool server.
+ *
+ * Architecture Overview:
+ * =====================
+ * The pool uses an event-driven architecture with only 2 threads:
+ * - Main thread: Handles Stratum protocol for miners
+ * - Web UI thread: Serves the monitoring interface
+ *
+ * Key Components:
+ * - Stratum Protocol: Handles miner connections, job distribution, share submission
+ * - LMDB Database: Stores shares, blocks, balances, and payments
+ * - RPC Client: Communicates with monerod and monero-wallet-rpc
+ * - PPLNS Payout: Distributes rewards proportionally to miners
+ *
+ * Features:
+ * - RandomX support (first pool to support it)
+ * - Full-memory RandomX mode for maximum performance
+ * - Self-select mode for decentralized mining
+ * - Interconnected pools (upstream/downstream)
+ * - Block notification via SIGUSR1
+ * - Dynamic difficulty retargeting
+ * - NiceHash compatibility
+ *
+ * Thread Safety:
+ * All shared data structures are protected by appropriate locks:
+ * - rwlock_tx: Database transactions
+ * - rwlock_acc: Account hash table
+ * - rwlock_cfd: Client-by-fd hash table
+ * - mutex_clients: Client reading counter
+ * - mutex_log: Thread-safe logging
+ *
+ * @see database.h for database operations
+ * @see stratum.h for protocol details
+ * @see payout.h for reward distribution
+ * @see rpc.h for daemon/wallet communication
+ */
+
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -176,6 +217,8 @@ typedef struct config_t
     uint32_t log_level;
     char webui_listen[MAX_HOST];
     uint16_t webui_port;
+    char webui_allowed_origin[MAX_HOST];
+    char webui_token[128];
     char log_file[MAX_PATH];
     bool block_notified;
     bool disable_self_select;
@@ -2299,6 +2342,15 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
 static void
 rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
 {
+    /*
+     * Callback handler for wallet transfer completion.
+     *
+     * This function is called after the wallet RPC completes a transfer.
+     * It updates miner balances in the database and stores payment records.
+     *
+     * The pending_payments bag was created in send_payments() and passed
+     * here via callback->data.
+     */
     log_trace("Transfer response: \n%s", data);
     json_object *root = json_tokener_parse(data);
     JSON_GET_OR_WARN(result, root, json_type_object);
@@ -2313,14 +2365,19 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         log_error("Error (%d) with wallet transfer: %s", ec, em);
     }
     else
+    {
         log_info("Payout transfer successful");
+    }
 
     int rc = 0;
     char *err = NULL;
     MDB_txn *txn = NULL;
     MDB_cursor *cursor = NULL;
 
-    /* First, updated balance(s) */
+    /* Retrieve pending payments from callback data */
+    gbag_t *pending_payments = (gbag_t*) callback->data;
+
+    /* First, update balance(s) in the database */
     if ((rc = pdb_txn_begin(env, NULL, 0, &txn)))
     {
         err = mdb_strerror(rc);
@@ -2334,9 +2391,9 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         mdb_txn_abort(txn);
         goto cleanup;
     }
-    gbag_t *bag_pay = (gbag_t*) callback->data;
-    payment_t *p = (payment_t*) gbag_first(bag_pay);
-    while ((p = gbag_next(bag_pay, 0)))
+
+    payment_t *p = (payment_t*) gbag_first(pending_payments);
+    while ((p = gbag_next(pending_payments, 0)))
     {
         MDB_cursor_op op = MDB_SET;
         MDB_val key = {ADDRESS_MAX, (void*)p->address};
@@ -2385,7 +2442,7 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         goto cleanup;
     }
 
-    /* Now store payment info */
+    /* Now store payment records in the database */
     if ((rc = pdb_txn_begin(env, NULL, 0, &txn)))
     {
         err = mdb_strerror(rc);
@@ -2400,8 +2457,8 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         goto cleanup;
     }
     time_t now = time(NULL);
-    p = (payment_t*) gbag_first(bag_pay);
-    while ((p = gbag_next(bag_pay, 0)))
+    p = (payment_t*) gbag_first(pending_payments);
+    while ((p = gbag_next(pending_payments, 0)))
     {
         p->timestamp = now;
         MDB_val key = {ADDRESS_MAX, (void*)p->address};
@@ -2428,13 +2485,25 @@ cleanup:
 static int
 send_payments(void)
 {
+    /*
+     * Process pending payments to miners.
+     *
+     * This function iterates through all balances in the database,
+     * identifies miners who have reached the payment threshold,
+     * and initiates a batch transfer via the wallet RPC.
+     *
+     * The payment bag (pending_payments) is passed to the RPC callback
+     * which will update balances and store payment records upon completion.
+     */
     if (*config.upstream_host || config.disable_payouts)
         return 0;
-    uint64_t threshold = 1000000000000 * config.payment_threshold;
+
+    uint64_t threshold = (uint64_t)(1000000000000.0 * config.payment_threshold);
     int rc = 0;
     char *err = NULL;
     MDB_txn *txn = NULL;
     MDB_cursor *cursor = NULL;
+
     if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
     {
         err = mdb_strerror(rc);
@@ -2449,8 +2518,9 @@ send_payments(void)
         return rc;
     }
 
-    gbag_t *bag_pay = NULL;
-    gbag_new(&bag_pay, 25, sizeof(payment_t), 0, 0);
+    /* Create a bag to hold pending payments - passed to callback via RPC */
+    gbag_t *pending_payments = NULL;
+    gbag_new(&pending_payments, 25, sizeof(payment_t), 0, 0);
 
     MDB_cursor_op op = MDB_FIRST;
     while (1)
@@ -2469,42 +2539,48 @@ send_payments(void)
 
         log_info("Sending payment: %"PRIu64", %.8s", amount, address);
 
-        payment_t *p = (payment_t*) gbag_get(bag_pay);
+        payment_t *p = (payment_t*) gbag_get(pending_payments);
         strncpy(p->address, address, ADDRESS_MAX-1);
         p->amount = amount;
     }
     mdb_cursor_close(cursor);
     mdb_txn_abort(txn);
 
-    size_t proc = gbag_used(bag_pay);
-    if (proc)
+    size_t payment_count = gbag_used(pending_payments);
+    if (payment_count)
     {
-        size_t body_size = 160 * proc + 128;
+        /* Build the JSON-RPC transfer request body */
+        size_t body_size = 160 * payment_count + 128;
         char body[body_size];
         char *start = body;
         char *end = body + body_size;
         start = stecpy(start, "{\"id\":\"0\",\"jsonrpc\":\"2.0\",\"method\":"
                 "\"transfer_split\",\"params\":{\"destinations\":[", end);
-        payment_t *p = (payment_t*) gbag_first(bag_pay);
-        while ((p = gbag_next(bag_pay, 0)))
+        
+        payment_t *p = (payment_t*) gbag_first(pending_payments);
+        while ((p = gbag_next(pending_payments, 0)))
         {
             start = stecpy(start, "{\"address\":\"", end);
             start = stecpy(start, p->address, end);
             start = stecpy(start, "\",\"amount\":", end);
             sprintf(start, "%"PRIu64"}", p->amount);
             start = body + strlen(body);
-            if (--proc)
+            if (--payment_count)
                 start = stecpy(start, ",", end);
             else
                 start = stecpy(start, "]}}", end);
         }
         log_trace(body);
+        
+        /* Pass pending_payments to callback for balance updates */
         rpc_callback_t *cb = rpc_callback_new(
-                rpc_on_wallet_transferred, bag_pay, rpc_bag_free);
+                rpc_on_wallet_transferred, pending_payments, rpc_bag_free);
         rpc_wallet_request(pool_base, body, cb);
     }
     else
-        gbag_free(bag_pay);
+    {
+        gbag_free(pending_payments);
+    }
 
     return 0;
 }
@@ -3999,6 +4075,12 @@ listener_on_accept(evutil_socket_t listener, short event, void *arg)
         perror("accept");
         return;
     }
+    if (base == trusted_base && !*config.trusted_allowed[0])
+    {
+        close(fd);
+        log_error("Trusted listener has no allowed hosts configured; rejecting connection");
+        return;
+    }
     if (base == trusted_base && *config.trusted_allowed[0])
     {
         char *s = config.trusted_allowed[0];
@@ -4084,6 +4166,8 @@ read_config(const char *config_file)
     config.log_level = 5;
     strcpy(config.webui_listen, "0.0.0.0");
     config.webui_port = 4243;
+    config.webui_allowed_origin[0] = 0;
+    config.webui_token[0] = 0;
     config.block_notified = false;
     config.disable_self_select = false;
     config.disable_hash_check = false;
@@ -4159,6 +4243,15 @@ read_config(const char *config_file)
         else if (strcmp(key, "webui-port") == 0)
         {
             config.webui_port = atoi(val);
+        }
+        else if (strcmp(key, "webui-allowed-origin") == 0)
+        {
+            strncpy(config.webui_allowed_origin, val,
+                    sizeof(config.webui_allowed_origin)-1);
+        }
+        else if (strcmp(key, "webui-token") == 0)
+        {
+            strncpy(config.webui_token, val, sizeof(config.webui_token)-1);
         }
         else if (strcmp(key, "rpc-host") == 0)
         {
@@ -4354,6 +4447,11 @@ read_config(const char *config_file)
                 " work is less than retarget-ratio percentage of potential.");
         exit(-1);
     }
+    if (config.disable_hash_check)
+    {
+        log_warn("disable-hash-check is ignored; enforcing share hash validation");
+        config.disable_hash_check = false;
+    }
     if (config.template_timeout < config.retarget_time)
     {
         log_warn("Block template timeout below job retargeting time");
@@ -4400,6 +4498,8 @@ print_config(void)
         "  pool-syn-backlog = %u\n"
         "  webui-listen = %s\n"
         "  webui-port= %u\n"
+        "  webui-allowed-origin = %s\n"
+        "  webui-token-set = %u\n"
         "  rpc-host = %s\n"
         "  rpc-port = %u\n"
         "  wallet-rpc-host = %s\n"
@@ -4439,6 +4539,8 @@ print_config(void)
         config.pool_syn_backlog,
         config.webui_listen,
         config.webui_port,
+        *config.webui_allowed_origin ? config.webui_allowed_origin : "(none)",
+        *config.webui_token ? 1 : 0,
         config.rpc_host,
         config.rpc_port,
         config.wallet_rpc_host,
@@ -4919,6 +5021,9 @@ int main(int argc, char **argv)
     uic.pool_ssl_port = config.pool_ssl_port;
     uic.allow_self_select = !config.disable_self_select;
     uic.payment_threshold = config.payment_threshold;
+    strncpy(uic.allowed_origin, config.webui_allowed_origin,
+            sizeof(uic.allowed_origin)-1);
+    strncpy(uic.token, config.webui_token, sizeof(uic.token)-1);
     if (config.webui_port)
         start_web_ui(&uic);
 
