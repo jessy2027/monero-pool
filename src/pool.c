@@ -1988,6 +1988,12 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
         {
             log_trace("Using new template, height: %"PRIu64", txs: %"PRIu64,
                     cand.height, cand.tx_count);
+            /* Reset round hashes when new block height detected (new round) */
+            if (cand.height > top->height && !upstream_event)
+            {
+                log_debug("New block height detected, resetting round hashes");
+                pool_stats.round_hashes = 0;
+            }
             bstack_push(bst, &cand);
         }
         else
