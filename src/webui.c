@@ -49,6 +49,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pool.h"
 #include "webui.h"
 
+/* Some libevent builds omit HTTP_FORBIDDEN; define if missing */
+#ifndef HTTP_FORBIDDEN
+#define HTTP_FORBIDDEN 403
+#endif
+
 extern unsigned char webui_html[];
 extern unsigned int webui_html_len;
 
