@@ -2258,7 +2258,8 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
     if (!upstream_event)
     {
         pool_stats.last_block_found = b->timestamp;
-        pool_stats.round_hashes = 0;
+        /* round_hashes reset is handled in rpc_on_block_template_extended
+           when new block height is detected - no duplicate reset needed */
     }
     log_info("Block submitted at height: %"PRIu64, b->height);
     if ((rc = store_block(b->height, b)))
