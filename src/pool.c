@@ -316,6 +316,7 @@ static MDB_dbi db_properties;
 static BN_CTX *bn_ctx;
 static BIGNUM *base_diff;
 static pool_stats_t pool_stats;
+static uint64_t last_round_reset_height = 0;  /* Track last height where round was reset */
 static unsigned clients_reading;
 static pthread_cond_t cond_clients = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t mutex_clients = PTHREAD_MUTEX_INITIALIZER;
@@ -1992,11 +1993,13 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
                     cand.height, cand.tx_count);
             /* Backup reset for edge cases where template is called directly.
                Primary reset is in rpc_on_last_block_header. */
-            if (cand.height > top->height && !upstream_event)
+            if (cand.height > last_round_reset_height && !upstream_event)
             {
-                log_debug("Template height change detected, resetting round hashes (was %"PRIu64")",
-                        pool_stats.round_hashes);
+                log_debug("Template height change detected (height %"PRIu64" > last_reset %"PRIu64"), "
+                        "resetting round hashes (was %"PRIu64")",
+                        cand.height, last_round_reset_height, pool_stats.round_hashes);
                 pool_stats.round_hashes = 0;
+                last_round_reset_height = cand.height;
             }
             bstack_push(bst, &cand);
         }
@@ -2193,15 +2196,6 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     if (top && bh > top->height)
     {
         height_changed = true;
-        /* Reset round_hashes when network height changes (new round).
-           This is the authoritative reset point - bsh tracks confirmed blocks.
-           The template stack (bst) may already have the new height. */
-        if (!upstream_event)
-        {
-            log_info("Network height changed %"PRIu64" -> %"PRIu64", resetting round hashes (was %"PRIu64")",
-                    top->height, bh, pool_stats.round_hashes);
-            pool_stats.round_hashes = 0;
-        }
         block_t *block = bstack_push(bsh, NULL);
         response_to_block(block_header, block);
     }
@@ -2212,12 +2206,26 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
         response_to_block(block_header, block);
         startup_payout(block->height);
         startup_scan_round_shares();
+        last_round_reset_height = bh;  /* Initialize on startup */
     }
 
     top = bstack_top(bsh);
     pool_stats.network_difficulty = top->difficulty;
     pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
     pool_stats.network_height = top->height;
+    
+    /* Reset round_hashes if network height changed since last reset.
+       This uses last_round_reset_height to handle timing issues where
+       template updates before header, or heights jump by multiple blocks. */
+    if (!upstream_event && top->height > last_round_reset_height)
+    {
+        log_info("New round detected (height %"PRIu64" > last_reset %"PRIu64"), "
+                "resetting round hashes (was %"PRIu64")",
+                top->height, last_round_reset_height, pool_stats.round_hashes);
+        pool_stats.round_hashes = 0;
+        last_round_reset_height = top->height;
+    }
+    
     update_pool_hr();
 
     log_info("Fetching new block template");
@@ -2274,11 +2282,13 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
     if (!upstream_event)
     {
         pool_stats.last_block_found = b->timestamp;
-        /* Reset round_hashes immediately when pool finds a block.
-           The rpc_on_block_template reset is a backup for network blocks. */
-        log_info("Block found by pool, resetting round hashes (was %"PRIu64")",
-                pool_stats.round_hashes);
+        /* Reset round_hashes immediately when pool finds a block. */
+        log_info("Block found by pool at height %"PRIu64", resetting round hashes (was %"PRIu64")",
+                b->height, pool_stats.round_hashes);
         pool_stats.round_hashes = 0;
+        /* Update last_round_reset_height to prevent double-reset when
+           network height catches up in rpc_on_last_block_header */
+        last_round_reset_height = b->height;
     }
     log_info("Block submitted at height: %"PRIu64, b->height);
     if ((rc = store_block(b->height, b)))
@@ -2838,7 +2848,8 @@ trusted_on_client_block(client_t *client)
     pool_stats.pool_blocks_found++;
     pool_stats.last_block_found = b.timestamp;
     pool_stats.round_hashes = 0;
-    log_info("Block submitted by downstream: %.8s, %"PRIu64, b.hash, b.height);
+    last_round_reset_height = b.height;  /* Update to prevent double-reset */
+    log_info("Block submitted by downstream at height %"PRIu64": %.8s", b.height, b.hash);
     if ((rc = store_block(b.height, &b)))
         log_warn("Failed to store block: %s", mdb_strerror(rc));
     trusted_send_stats(client);
