@@ -859,7 +859,7 @@ block_list(char *list_start, char *list_end, int limit)
     {
         block_t *block = (block_t*)val.mv_data;
         char hash_hex[129] = {0};
-        bin_to_hex((unsigned char*)block->hash, 32, hash_hex, 65);
+        bin_to_hex((unsigned char*)block->hash, 32, hash_hex);
         
         if (body != list_start)
             *body++ = ',';
