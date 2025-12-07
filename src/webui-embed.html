@@ -1650,12 +1650,13 @@
                         document.getElementById('miner_balance').innerHTML = s.miner_balance.toFixed(8) + ' XMR';
                         document.getElementById('worker_count').innerHTML = s.worker_count || 0;
 
-                        // Estimated daily earnings (simplified calculation)
-                        if (s.miner_hashrate > 0 && s.pool_hashrate > 0) {
+                        // Estimated daily earnings (correct calculation based on network share)
+                        if (s.miner_hashrate > 0 && s.network_hashrate > 0) {
                             var blocksPerDay = 720; // ~120s per block = 720 blocks/day
                             var blockReward = 0.6; // approximate current block reward
-                            var poolShare = s.miner_hashrate / s.pool_hashrate;
-                            var dailyXMR = poolShare * blocksPerDay * blockReward * (1 - s.pool_fee);
+                            // Correct formula: miner's share of the NETWORK hashrate
+                            var networkShare = s.miner_hashrate / s.network_hashrate;
+                            var dailyXMR = networkShare * blocksPerDay * blockReward * (1 - s.pool_fee);
                             document.getElementById('est_earnings').innerHTML = dailyXMR.toFixed(6) + ' XMR';
                         } else {
                             document.getElementById('est_earnings').innerHTML = '--';
