@@ -5119,9 +5119,10 @@ int main(int argc, char **argv)
     uic.pool_ssl_port = config.pool_ssl_port;
     uic.allow_self_select = !config.disable_self_select;
     uic.payment_threshold = config.payment_threshold;
-    strncpy(uic.allowed_origin, config.webui_allowed_origin,
-            sizeof(uic.allowed_origin)-1);
-    strncpy(uic.token, config.webui_token, sizeof(uic.token)-1);
+    /* Use snprintf to guarantee null-termination without truncation warnings */
+    snprintf(uic.allowed_origin, sizeof(uic.allowed_origin), "%s",
+            config.webui_allowed_origin);
+    snprintf(uic.token, sizeof(uic.token), "%s", config.webui_token);
     if (config.webui_port)
         start_web_ui(&uic);
 
