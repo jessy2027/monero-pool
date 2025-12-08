@@ -463,6 +463,77 @@ hr_update(hr_stats_t *stats)
     stats->last_calc = now;
 }
 
+/*
+  JSON-escape a string into dst.
+  Returns number of bytes written (excluding terminator).
+*/
+static size_t
+json_escape(const char *src, char *dst, size_t dst_size)
+{
+    const unsigned char *p = (const unsigned char*)src;
+    char *d = dst;
+    char *end = dst + dst_size;
+    while (*p && d < end)
+    {
+        char c = (char)*p++;
+        switch (c)
+        {
+            case '"':
+            case '\\':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = c;
+                break;
+            case '\b':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = 'b';
+                break;
+            case '\f':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = 'f';
+                break;
+            case '\n':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = 'n';
+                break;
+            case '\r':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = 'r';
+                break;
+            case '\t':
+                if (d + 2 >= end)
+                    goto out;
+                *d++ = '\\';
+                *d++ = 't';
+                break;
+            default:
+                if ((unsigned char)c < 0x20)
+                    break; /* skip control chars */
+                *d++ = c;
+                break;
+        }
+    }
+out:
+    if (dst_size)
+    {
+        size_t written = (size_t)(d - dst);
+        if (written >= dst_size)
+            written = dst_size - 1;
+        dst[written] = '\0';
+        return written;
+    }
+    return 0;
+}
+
 static inline rpc_callback_t *
 rpc_callback_new(rpc_callback_fun cf, void *data, rpc_datafree_fun df)
 {
@@ -855,14 +926,17 @@ worker_list(char *list_start, char *list_end, const char *address)
         goto bail;
 
     client_t *c = (client_t*)gbag_first(bag_clients);
-    while ((c = gbag_next(bag_clients, 0)) && body < (end-MAX_RIG_ID-24))
+    while ((c = gbag_next(bag_clients, 0)) &&
+            body < (end - (int)(MAX_RIG_ID*2 + 32)))
     {
         if (!strncmp(c->address, address, ADDRESS_MAX))
         {
+            char rig_escaped[MAX_RIG_ID*2 + 4] = {0};
+            json_escape(c->rig_id, rig_escaped, sizeof(rig_escaped));
             if (body != list_start)
                 *body++ = ',';
             body += sprintf(body, "\"%s\",%"PRIu64,
-                    c->rig_id, (uint64_t)(c->hr_stats.avg[1]));
+                    rig_escaped, (uint64_t)(c->hr_stats.avg[1]));
         }
     }
 bail:
@@ -902,8 +976,9 @@ block_list(char *list_start, char *list_end, int limit)
     while (rc == 0 && count < limit && body < (end - 256))
     {
         block_t *block = (block_t*)val.mv_data;
-        char hash_hex[129] = {0};
-        bin_to_hex((unsigned char*)block->hash, 32, hash_hex);
+        char hash_hex[65] = {0};
+        memcpy(hash_hex, block->hash, MIN(sizeof(block->hash), 64));
+        hash_hex[64] = '\0';
         
         if (body != list_start)
             *body++ = ',';
@@ -3670,8 +3745,22 @@ miner_on_submit(json_object *message, client_t *client)
     }
     if (!fmod(job->submissions_count, 10))
     {
-        job->submissions = realloc((void*)submissions,
-                10*sizeof(uint128_t)+job->submissions_count*sizeof(uint128_t));
+        uint128_t *tmp = realloc((void*)submissions,
+                (10 + job->submissions_count) * sizeof(uint128_t));
+        if (!tmp)
+        {
+            log_error("Failed to grow submissions buffer");
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, "Internal error");
+            evbuffer_add(output, body, strlen(body));
+            free(block);
+            return;
+        }
+        else
+        {
+            job->submissions = tmp;
+            submissions = tmp;
+        }
     }
     job->submissions[job->submissions_count++] = sub;
 
