@@ -3269,12 +3269,25 @@ client_clear(struct bufferevent *bev)
             pool_stats.connected_accounts -= client->downstream_accounts;
         goto clear;
     }
-    pthread_rwlock_rdlock(&rwlock_acc);
+    bool removed_account = false;
+    pthread_rwlock_wrlock(&rwlock_acc);
     HASH_FIND_STR(accounts, client->address, account);
+    if (account)
+    {
+        if (account->worker_count <= 1)
+        {
+            HASH_DEL(accounts, account);
+            removed_account = true;
+        }
+        else
+        {
+            account->worker_count--;
+        }
+    }
     pthread_rwlock_unlock(&rwlock_acc);
     if (!account)
         goto clear;
-    if (account->worker_count == 1)
+    if (removed_account)
     {
         if (account_count)
             account_count--;
@@ -3282,13 +3295,8 @@ client_clear(struct bufferevent *bev)
             pool_stats.connected_accounts--;
         if (upstream_event)
             upstream_send_account_disconnect();
-        pthread_rwlock_wrlock(&rwlock_acc);
-        HASH_DEL(accounts, account);
-        pthread_rwlock_unlock(&rwlock_acc);
         gbag_put(bag_accounts, account);
     }
-    else if (account->worker_count > 1)
-        account->worker_count--;
 clear:
     client_clear_jobs(client);
     pthread_rwlock_wrlock(&rwlock_cfd);
@@ -3740,7 +3748,8 @@ post_hash:
 
     /* Process share */
     account_t *account = NULL;
-    pthread_rwlock_rdlock(&rwlock_acc);
+    /* writes to account stats need exclusive access */
+    pthread_rwlock_wrlock(&rwlock_acc);
     HASH_FIND_STR(accounts, client->address, account);
     client->hashes += job->target;
     client->hr_stats.diff_since += job->target;
