@@ -182,6 +182,27 @@ send_json_payments(struct evhttp_request *req, void *arg)
 }
 
 static void
+send_json_health(struct evhttp_request *req, void *arg)
+{
+    struct evbuffer *buf = evhttp_request_get_output_buffer(req);
+    struct evkeyvalq *hdrs_out = NULL;
+    wui_context_t *context = (wui_context_t*) arg;
+
+    if (!is_token_valid(req, context))
+    {
+        maybe_add_cors(req, context);
+        evhttp_send_reply(req, HTTP_FORBIDDEN, "Forbidden", buf);
+        return;
+    }
+
+    evbuffer_add_printf(buf, "{\"status\":\"ok\"}");
+    hdrs_out = evhttp_request_get_output_headers(req);
+    evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+    maybe_add_cors(req, context);
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+}
+
+static void
 send_json_stats(struct evhttp_request *req, void *arg)
 {
     struct evbuffer *buf = evhttp_request_get_output_buffer(req);
@@ -279,6 +300,12 @@ process_request(struct evhttp_request *req, void *arg)
     if (strstr(url, "/payments") != NULL)
     {
         send_json_payments(req, arg);
+        return;
+    }
+
+    if (strstr(url, "/health") != NULL)
+    {
+        send_json_health(req, arg);
         return;
     }
 

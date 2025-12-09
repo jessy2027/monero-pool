@@ -122,6 +122,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAINNET_ADDRESS_PREFIX 18
 #define TESTNET_ADDRESS_PREFIX 53
 #define BLOCK_HEADERS_RANGE 10
+#define SUBMISSIONS_MAX 1024
 #define DB_INIT_SIZE 0x140000000 /* 5G */
 #define DB_GROW_SIZE 0xA0000000 /* 2.5G */
 #define DB_COUNT_MAX 10
@@ -183,6 +184,7 @@ const unsigned char msgbin[] = {0x4D,0x4E,0x52,0x4F,0x50,0x4F,0x4F,0x4C};
 
 /* 2m, 10m, 30m, 1h, 1d, 1w */
 const unsigned hr_intervals[] = {120,600,1800,3600,86400,604800};
+#define HR_UPDATE_MIN_INTERVAL 5
 
 typedef struct hr_stats_t
 {
@@ -440,6 +442,8 @@ hr_update(hr_stats_t *stats)
     */
     time_t now = time(NULL);
     double t = difftime(now, stats->last_calc);
+    if (stats->last_calc != 0 && t < HR_UPDATE_MIN_INTERVAL)
+        return;
     if (t <= 0)
         return;
     double h = stats->diff_since;
@@ -3731,9 +3735,16 @@ miner_on_submit(json_object *message, client_t *client)
 
     /* Check not already submitted */
     uint128_t *submissions = job->submissions;
-    for (size_t i=0; i<job->submissions_count; i++)
+    size_t window = job->submissions_count;
+    size_t offset = 0;
+    if (window > SUBMISSIONS_MAX)
     {
-        if (submissions[i] == sub)
+        offset = window - SUBMISSIONS_MAX;
+        window = SUBMISSIONS_MAX;
+    }
+    for (size_t i=0; i<window; i++)
+    {
+        if (submissions[offset + i] == sub)
         {
             char body[ERROR_BODY_MAX] = {0};
             stratum_get_error_body(body, client->json_id, "Duplicate share");
@@ -3743,10 +3754,17 @@ miner_on_submit(json_object *message, client_t *client)
             return;
         }
     }
+    if (job->submissions_count >= SUBMISSIONS_MAX)
+    {
+        /* Keep bounded memory: drop oldest entry */
+        memmove(submissions, submissions + 1,
+                (SUBMISSIONS_MAX - 1) * sizeof(uint128_t));
+        job->submissions_count = SUBMISSIONS_MAX - 1;
+    }
     if (!fmod(job->submissions_count, 10))
     {
-        uint128_t *tmp = realloc((void*)submissions,
-                (10 + job->submissions_count) * sizeof(uint128_t));
+        size_t want = MIN(SUBMISSIONS_MAX, 10 + job->submissions_count);
+        uint128_t *tmp = realloc((void*)submissions, want * sizeof(uint128_t));
         if (!tmp)
         {
             log_error("Failed to grow submissions buffer");
