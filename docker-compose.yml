@@ -66,7 +66,6 @@ services:
       - "--daemon-host=monerod"
       - "--daemon-port=18081"
       - "--rpc-bind-port=28084"
-      - "--wallet-dir=/home/monero/wallet"
       - "--wallet-file=/home/monero/wallet/pool-wallet"
       - "--password-file=/config/wallet-password.txt"
       - "--disable-rpc-login"
