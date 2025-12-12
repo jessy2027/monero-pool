@@ -108,6 +108,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
     libsodium23 \
     libunbound8 \
+    libhidapi-libusb0 \
     libboost-system1.74.0 \
     libboost-filesystem1.74.0 \
     libboost-thread1.74.0 \
