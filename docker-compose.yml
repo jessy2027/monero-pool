@@ -1,0 +1,154 @@
+# =============================================================================
+# Monero Pool - Docker Compose Configuration
+# =============================================================================
+# This file orchestrates the complete mining pool infrastructure:
+# - monerod: Monero daemon (blockchain node)
+# - monero-wallet-rpc: Wallet RPC for payouts
+# - monero-pool: The mining pool server
+#
+# USAGE:
+#   Start:   docker-compose up -d
+#   Stop:    docker-compose down
+#   Logs:    docker-compose logs -f
+#   Update:  docker-compose build --no-cache && docker-compose up -d
+#
+# DATA LOCATIONS (on Windows host):
+#   C:\MoneroPool\blockchain  - Monero blockchain (~180 GB)
+#   C:\MoneroPool\wallet      - Wallet data
+#   C:\MoneroPool\pool-data   - Pool database (shares, payments, balances)
+#   C:\MoneroPool\config      - Configuration files
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Monero Daemon (monerod)
+  # ---------------------------------------------------------------------------
+  monerod:
+    image: ghcr.io/sethforprivacy/simple-monerod:latest
+    container_name: monerod
+    restart: always
+    ports:
+      - "18080:18080"  # P2P network
+      - "18081:18081"  # RPC (restricted)
+    volumes:
+      - C:\MoneroPool\blockchain:/home/monero/.bitmonero
+    command:
+      - "--rpc-bind-ip=0.0.0.0"
+      - "--rpc-bind-port=18081"
+      - "--confirm-external-bind"
+      - "--restricted-rpc"
+      - "--no-igd"
+      - "--enable-dns-blocklist"
+      - "--prune-blockchain"  # Use pruned blockchain (~70 GB instead of 180 GB)
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Monero Wallet RPC (for payouts)
+  # ---------------------------------------------------------------------------
+  monero-wallet-rpc:
+    image: ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest
+    container_name: monero-wallet-rpc
+    restart: always
+    depends_on:
+      - monerod
+    ports:
+      - "28084:28084"  # Wallet RPC
+    volumes:
+      - C:\MoneroPool\wallet:/home/monero/wallet
+      - C:\MoneroPool\config:/config:ro
+    command:
+      - "--daemon-host=monerod"
+      - "--daemon-port=18081"
+      - "--rpc-bind-ip=0.0.0.0"
+      - "--rpc-bind-port=28084"
+      - "--confirm-external-bind"
+      - "--wallet-dir=/home/monero/wallet"
+      - "--wallet-file=/home/monero/wallet/pool-wallet"
+      - "--password-file=/config/wallet-password.txt"
+      - "--disable-rpc-login"
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Monero Pool
+  # ---------------------------------------------------------------------------
+  monero-pool:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monero-pool
+    restart: always
+    depends_on:
+      - monerod
+      - monero-wallet-rpc
+    ports:
+      - "4242:4242"    # Stratum port (miners connect here)
+      - "8080:80"      # Web UI (mapped to 8080 on host to avoid conflicts)
+    volumes:
+      - C:\MoneroPool\pool-data:/app/data
+      - C:\MoneroPool\config\pool.conf:/app/config/pool.conf:ro
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    # Health check is defined in Dockerfile
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  monero-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# Notes:
+# =============================================================================
+# 
+# FIRST TIME SETUP:
+# 1. Create directories:
+#    mkdir C:\MoneroPool\blockchain
+#    mkdir C:\MoneroPool\wallet  
+#    mkdir C:\MoneroPool\pool-data
+#    mkdir C:\MoneroPool\config
+#
+# 2. Copy pool.conf to C:\MoneroPool\config\pool.conf and edit settings
+#
+# 3. Create wallet (run once):
+#    docker-compose run --rm monero-wallet-rpc \
+#      --daemon-host=monerod --generate-new-wallet=/home/monero/wallet/pool-wallet \
+#      --password=YOUR_SECURE_PASSWORD
+#
+# 4. Start everything:
+#    docker-compose up -d
+#
+# 5. Monitor logs:
+#    docker-compose logs -f monero-pool
+#
+# BACKUP:
+#   - C:\MoneroPool\pool-data contains all pool data (CRITICAL - backup daily)
+#   - C:\MoneroPool\wallet contains wallet files (CRITICAL - backup securely)
+#   - C:\MoneroPool\blockchain can be re-synced if lost
+#
+# UPDATE POOL:
+#   docker-compose build --no-cache monero-pool
+#   docker-compose up -d monero-pool
+# =============================================================================
