@@ -68,6 +68,18 @@ RUN apt-get update && apt-get install -y \
 # Copy Monero build artifacts from previous stage
 COPY --from=monero-builder /build/monero /monero
 
+# Find the actual build path and create symlink to expected location
+# The Makefile expects /monero/build/Linux/master/release but Monero builds to /monero/build/Linux/<branch>/release
+RUN mkdir -p /monero/build/Linux/master && \
+    BUILD_DIR=$(find /monero/build -type d -name "release" -path "*/Linux/*" | head -1) && \
+    if [ -n "$BUILD_DIR" ]; then \
+        ln -sf "$BUILD_DIR" /monero/build/Linux/master/release; \
+    else \
+        echo "Monero build directory not found, listing structure:" && \
+        find /monero/build -type d | head -50 && \
+        exit 1; \
+    fi
+
 # Set environment for pool build
 ENV MONERO_ROOT=/monero
 ENV MONERO_BUILD_ROOT=/monero/build/Linux/master/release
