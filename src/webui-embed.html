@@ -1906,8 +1906,10 @@
   "pools": [
     {
       "url": "euroxmr.eu:4242",
-      "user": "YOUR_WALLET_ADDRESS.rig1",
-      "pass": "x",
+      "user": "YOUR_WALLET_ADDRESS",
+      "pass": "rig1",
+      "rig-id": "rig1",
+      "coin": "monero",
       "keepalive": true,
       "tls": false
     }
@@ -2926,8 +2928,10 @@
                 pools: [
                     {
                         url: useSSL ? 'euroxmr.eu:4343' : 'euroxmr.eu:4242',
-                        user: wallet + '.' + worker,
-                        pass: 'x',
+                        user: wallet,
+                        pass: worker,
+                        "rig-id": worker,
+                        coin: "monero",
                         keepalive: true,
                         tls: useSSL
                     }
