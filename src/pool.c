@@ -1331,7 +1331,12 @@ update_pool_hr(void)
     uint64_t hr = 0;
     client_t *c = (client_t*)gbag_first(bag_clients);
     while ((c = gbag_next(bag_clients, 0)))
+    {
+        /* Update EMA for all clients, including inactive ones.
+           This makes hashrate decay when miners stop submitting shares. */
+        hr_update(&c->hr_stats);
         hr += (uint64_t) c->hr_stats.avg[0];
+    }
     log_debug("Pool hashrate: %"PRIu64, hr);
     if (upstream_event)
         return;
@@ -2155,6 +2160,14 @@ startup_scan_round_shares(void)
     /* Reset round_hashes before scanning to avoid accumulation on residual value */
     pool_stats.round_hashes = 0;
 
+    /* Get current network height to determine which shares belong to current round */
+    uint64_t current_height = pool_stats.network_height;
+    if (current_height == 0)
+    {
+        log_debug("Network height not known yet, skipping round share scan");
+        return 0;
+    }
+
     if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
     {
         err = mdb_strerror(rc);
@@ -2168,27 +2181,36 @@ startup_scan_round_shares(void)
         mdb_txn_abort(txn);
         return rc;
     }
-    MDB_cursor_op op = MDB_LAST;
-    while (1)
+    
+    /* Only count shares at current network height (current round).
+       Use height-based filtering instead of timestamp-based,
+       since last_block_found is 0 if pool never found a block. */
+    MDB_val key = { sizeof(current_height), (void*)&current_height };
+    MDB_val val;
+    
+    /* Position cursor at current height */
+    if ((rc = mdb_cursor_get(cursor, &key, &val, MDB_SET)))
     {
-        MDB_val key;
-        MDB_val val;
-        if ((rc = mdb_cursor_get(cursor, &key, &val, op)))
+        if (rc != MDB_NOTFOUND)
         {
-            if (rc != MDB_NOTFOUND)
-            {
-                err = mdb_strerror(rc);
-                log_error("%s", err);
-            }
-            break;
+            err = mdb_strerror(rc);
+            log_error("%s", err);
         }
-        op = MDB_PREV;
-        share_t *share = (share_t*)val.mv_data;
-        if (share->timestamp > pool_stats.last_block_found)
-            pool_stats.round_hashes += share->difficulty;
-        else
-            break;
+        /* No shares at current height, round_hashes stays 0 */
+        mdb_cursor_close(cursor);
+        mdb_txn_abort(txn);
+        return 0;
     }
+    
+    /* Sum all shares at current height */
+    do {
+        share_t *share = (share_t*)val.mv_data;
+        pool_stats.round_hashes += share->difficulty;
+    } while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_NEXT_DUP)) == 0);
+    
+    log_info("Startup: found %"PRIu64" round hashes at height %"PRIu64,
+            pool_stats.round_hashes, current_height);
+    
     mdb_cursor_close(cursor);
     mdb_txn_abort(txn);
     return 0;
