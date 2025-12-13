@@ -65,10 +65,51 @@ C:\MoneroPool\
 
 | Service | URL/Address |
 |---------|-------------|
-| **Web UI** | http://localhost:8080 |
-| **Stratum (miners)** | `stratum+tcp://YOUR_IP:4242` |
+| **Web UI** | http://localhost:80 ou http://euroxmr.eu |
+| **Stratum (miners)** | `stratum+tcp://euroxmr.eu:4242` |
+| **Stratum SSL** | `stratum+ssl://euroxmr.eu:4343` |
 | **Monerod RPC** | http://localhost:18081 |
 | **Wallet RPC** | http://localhost:28084 |
+
+---
+
+## 🔐 SSL/TLS Configuration (HAProxy)
+
+Le pool supporte les connexions SSL via HAProxy. Pour activer :
+
+### 1. Créer le certificat
+
+```bash
+# Option A: Let's Encrypt
+certbot certonly --standalone -d euroxmr.eu
+cat /etc/letsencrypt/live/euroxmr.eu/fullchain.pem \
+    /etc/letsencrypt/live/euroxmr.eu/privkey.pem > euroxmr.pem
+
+# Option B: Auto-signé (test)
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout euroxmr.key -out euroxmr.crt -subj "/CN=euroxmr.eu"
+cat euroxmr.crt euroxmr.key > euroxmr.pem
+```
+
+### 2. Placer les fichiers
+
+```cmd
+mkdir C:\MoneroPool\config\certs
+copy euroxmr.pem C:\MoneroPool\config\certs\
+copy haproxy.cfg C:\MoneroPool\config\
+```
+
+### 3. Démarrer avec SSL
+
+```cmd
+docker-compose --profile ssl up -d
+```
+
+### 4. Vérifier
+
+```cmd
+docker logs haproxy-ssl
+```
 
 ---
 
@@ -169,10 +210,15 @@ rmdir /S /Q C:\MoneroPool
 | File | Description |
 |------|-------------|
 | `Dockerfile` | Multi-stage build for the pool |
-| `docker-compose.yml` | Orchestration configuration |
+| `docker-compose.yml` | Orchestration configuration (inclut HAProxy) |
 | `pool.docker.conf` | Docker-optimized pool config template |
+| `pool.conf` | Configuration pool avec port SSL 4343 |
+| `haproxy.cfg` | Configuration HAProxy pour SSL/TLS termination |
 | `setup-windows.bat` | Initial setup script |
 | `backup.bat` | Backup automation script |
+| `og-image.png` | Image pour partage réseaux sociaux |
+| `EUROXMR-GUIDE.md` | Guide des personnalisations EuroXMR |
+| `src/webui-embed.html` | Interface web améliorée (5 langues, calculator, FAQ) |
 
 ---
 

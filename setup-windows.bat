@@ -21,18 +21,29 @@ if not exist "C:\MoneroPool\blockchain" mkdir "C:\MoneroPool\blockchain"
 if not exist "C:\MoneroPool\wallet" mkdir "C:\MoneroPool\wallet"
 if not exist "C:\MoneroPool\pool-data" mkdir "C:\MoneroPool\pool-data"
 if not exist "C:\MoneroPool\config" mkdir "C:\MoneroPool\config"
+if not exist "C:\MoneroPool\config\certs" mkdir "C:\MoneroPool\config\certs"
 if not exist "C:\MoneroPool\backups" mkdir "C:\MoneroPool\backups"
 echo    Done!
 echo.
 
 REM Copy configuration
-echo [2/5] Copying configuration file...
+echo [2/5] Copying configuration files...
 if not exist "C:\MoneroPool\config\pool.conf" (
     copy "%~dp0pool.docker.conf" "C:\MoneroPool\config\pool.conf"
     echo    Configuration copied to C:\MoneroPool\config\pool.conf
     echo    IMPORTANT: Edit this file and set your wallet address!
 ) else (
-    echo    Configuration already exists, skipping...
+    echo    Pool configuration already exists, skipping...
+)
+
+REM Copy HAProxy config
+if not exist "C:\MoneroPool\config\haproxy.cfg" (
+    if exist "%~dp0haproxy.cfg" (
+        copy "%~dp0haproxy.cfg" "C:\MoneroPool\config\haproxy.cfg"
+        echo    HAProxy config copied to C:\MoneroPool\config\haproxy.cfg
+    )
+) else (
+    echo    HAProxy configuration already exists, skipping...
 )
 
 REM Create wallet password file template
@@ -92,10 +103,20 @@ echo 4. View logs:
 echo    docker-compose logs -f
 echo.
 echo 5. Access Web UI:
-echo    http://localhost:8080
+echo    http://localhost:80 or http://euroxmr.eu
 echo.
 echo 6. Miners connect to:
-echo    stratum+tcp://YOUR_IP:4242
+echo    stratum+tcp://euroxmr.eu:4242
+echo    stratum+ssl://euroxmr.eu:4343 (SSL)
+echo.
+echo ============================================
+echo   SSL SETUP (Optional):
+echo ============================================
+echo    1. Place your certificate in:
+echo       C:\MoneroPool\config\certs\euroxmr.pem
+echo    2. Start with SSL:
+echo       docker-compose --profile ssl up -d
+echo ============================================
 echo.
 echo ============================================
 echo   DATA LOCATIONS (for backup):
@@ -104,6 +125,8 @@ echo    Pool Data:   C:\MoneroPool\pool-data
 echo    Wallet:      C:\MoneroPool\wallet
 echo    Blockchain:  C:\MoneroPool\blockchain
 echo    Config:      C:\MoneroPool\config
+echo    SSL Certs:   C:\MoneroPool\config\certs
 echo ============================================
 echo.
 pause
+
