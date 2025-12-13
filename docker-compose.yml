@@ -106,6 +106,28 @@ services:
         max-file: "5"
     # Health check is defined in Dockerfile
 
+  # ---------------------------------------------------------------------------
+  # HAProxy for SSL Stratum (TLS termination)
+  # ---------------------------------------------------------------------------
+  haproxy:
+    image: haproxy:2.8-alpine
+    container_name: haproxy-ssl
+    restart: always
+    depends_on:
+      - monero-pool
+    ports:
+      - "4343:4343"    # SSL Stratum port (miners connect here for TLS)
+    volumes:
+      - C:\MoneroPool\config\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - C:\MoneroPool\config\certs:/etc/ssl/certs:ro
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 # =============================================================================
 # Networks
 # =============================================================================
