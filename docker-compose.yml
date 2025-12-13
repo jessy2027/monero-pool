@@ -91,6 +91,7 @@ services:
       - monero-wallet-rpc
     ports:
       - "4242:4242"    # Stratum port (miners connect here)
+      - "4343:4343"    # Stratum port (miners connect here)
       - "80:80"      # Web UI (mapped to 8080 on host to avoid conflicts)
     volumes:
       - C:\MoneroPool\pool-data:/app/data
