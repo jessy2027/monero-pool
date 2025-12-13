@@ -109,10 +109,15 @@ services:
   # ---------------------------------------------------------------------------
   # HAProxy for SSL Stratum (TLS termination)
   # ---------------------------------------------------------------------------
+  # NOTE: This service requires a valid SSL certificate to work!
+  # Create the cert file first: C:\MoneroPool\config\certs\euroxmr.pem
+  # Then uncomment and start: docker-compose up -d haproxy
+  # ---------------------------------------------------------------------------
   haproxy:
     image: haproxy:2.8-alpine
     container_name: haproxy-ssl
-    restart: always
+    restart: unless-stopped
+    profiles: ["ssl"]  # Only starts with: docker-compose --profile ssl up -d
     depends_on:
       - monero-pool
     ports:
@@ -120,6 +125,7 @@ services:
     volumes:
       - C:\MoneroPool\config\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - C:\MoneroPool\config\certs:/etc/ssl/certs:ro
+    command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
     networks:
       - monero-network
     logging:
