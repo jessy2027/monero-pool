@@ -156,11 +156,13 @@ SOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.cpp))
 CSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.c))
 SSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.S))
 HTMLSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.html))
+PNGSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.png))
 HEADERS := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.h))
 OBJECTS := $(addprefix $(STORE)/, $(SOURCE:.cpp=.o))
 COBJECTS := $(addprefix $(STORE)/, $(CSOURCE:.c=.o))
 SOBJECTS := $(addprefix $(STORE)/, $(SSOURCE:.S=.o))
 HTMLOBJECTS := $(addprefix $(STORE)/, $(HTMLSOURCE:.html=.o))
+PNGOBJECTS := $(addprefix $(STORE)/, $(PNGSOURCE:.png=.o))
 DFILES := $(addprefix $(STORE)/,$(SOURCE:.cpp=.d))
 CDFILES := $(addprefix $(STORE)/,$(CSOURCE:.c=.d))
 SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
@@ -168,10 +170,10 @@ SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
 
 .PHONY: clean dirs debug release preflight
 
-$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS)
+$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(PNGOBJECTS)
 	@echo Linking $(OBJECTS)...
 	$(CXX) -o $(STORE)/$(TARGET) \
-	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) \
+	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(PNGOBJECTS) \
 	  $(LDPARAM) $(MONERO_LIBS) \
 	  $(foreach LIBRARY, $(LIBS),-l$(LIBRARY)) \
 	  $(foreach LIB,$(LIBPATH),-L$(LIB)) \
@@ -211,6 +213,12 @@ $(STORE)/%.o: %.S
 $(STORE)/%.o: %.html
 	@echo Creating object file for $*...
 	xxd -i $< | sed -e 's/src_//' -e 's/embed_//' > $(STORE)/$*.c
+	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
+	@rm -f $(STORE)/$*.c
+
+$(STORE)/%.o: %.png
+	@echo Creating object file for $*...
+	xxd -i $< | sed -e 's/src_//' -e 's/-/_/g' > $(STORE)/$*.c
 	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
 	@rm -f $(STORE)/$*.c
 

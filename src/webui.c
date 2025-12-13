@@ -57,6 +57,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern unsigned char webui_html[];
 extern unsigned int webui_html_len;
 
+extern unsigned char og_image_png[];
+extern unsigned int og_image_png_len;
+
 static pthread_t handle;
 static struct event_base *webui_base;
 static struct evhttp *webui_httpd;
@@ -306,6 +309,19 @@ process_request(struct evhttp_request *req, void *arg)
     if (strstr(url, "/health") != NULL)
     {
         send_json_health(req, arg);
+        return;
+    }
+
+    /* Serve OG image for social media sharing */
+    if (strcmp(url, "/og-image.png") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        evbuffer_add(buf, og_image_png, og_image_png_len);
+        hdrs_out = evhttp_request_get_output_headers(req);
+        evhttp_add_header(hdrs_out, "Content-Type", "image/png");
+        evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=86400");
+        maybe_add_cors(req, (wui_context_t*)arg);
+        evhttp_send_reply(req, HTTP_OK, "OK", buf);
         return;
     }
 
