@@ -1,6 +1,6 @@
 # Monero Mining Pool
 
-![Monero Pool](./og-image.png)
+![Monero Pool](./src/og-image.png)
 
 Pool de minage Monero haute performance basée sur [monero-pool](https://github.com/jtgrassie/monero-pool) de jtgrassie, optimisée pour le déploiement Docker.
 
