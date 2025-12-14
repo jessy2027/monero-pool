@@ -2354,13 +2354,10 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     }
 
     top = bstack_top(bsh);
-    pool_stats.network_difficulty = top->difficulty;
-    pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
-    pool_stats.network_height = top->height;
     
-    /* Reset round_hashes if network height changed since last reset.
-       This uses last_round_reset_height to handle timing issues where
-       template updates before header, or heights jump by multiple blocks. */
+    /* IMPORTANT: Reset round_hashes BEFORE updating network_height to prevent
+       race condition where WebUI sees new height but old round_hashes.
+       This ensures atomic-like consistency in the stats visible to clients. */
     if (!upstream_event && top->height > last_round_reset_height)
     {
         log_info("New round detected (height %"PRIu64" > last_reset %"PRIu64"), "
@@ -2369,6 +2366,11 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
         pool_stats.round_hashes = 0;
         last_round_reset_height = top->height;
     }
+    
+    /* Now update network stats - round_hashes is already reset if needed */
+    pool_stats.network_difficulty = top->difficulty;
+    pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
+    pool_stats.network_height = top->height;
     
     update_pool_hr();
 
