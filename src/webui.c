@@ -312,6 +312,36 @@ process_request(struct evhttp_request *req, void *arg)
         return;
     }
 
+    /* Serve lottery stats JSON file */
+    if (strcmp(url, "/lottery_stats.json") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        FILE *fp = fopen("/app/lottery/lottery_stats.json", "r");
+        if (fp)
+        {
+            char lottery_buf[0x10000];
+            size_t len = fread(lottery_buf, 1, sizeof(lottery_buf) - 1, fp);
+            lottery_buf[len] = '\0';
+            fclose(fp);
+            evbuffer_add(buf, lottery_buf, len);
+            hdrs_out = evhttp_request_get_output_headers(req);
+            evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+            evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=60");
+            maybe_add_cors(req, (wui_context_t*)arg);
+            evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        }
+        else
+        {
+            /* Return empty JSON if file not found */
+            evbuffer_add_printf(buf, "{\"error\":\"Lottery stats not available yet\"}");
+            hdrs_out = evhttp_request_get_output_headers(req);
+            evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+            maybe_add_cors(req, (wui_context_t*)arg);
+            evhttp_send_reply(req, 404, "Not Found", buf);
+        }
+        return;
+    }
+
     /* Serve OG image for social media sharing */
     if (strcmp(url, "/og-image.png") == 0)
     {

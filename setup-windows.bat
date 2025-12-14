@@ -23,8 +23,11 @@ if not exist "C:\MoneroPool\pool-data" mkdir "C:\MoneroPool\pool-data"
 if not exist "C:\MoneroPool\config" mkdir "C:\MoneroPool\config"
 if not exist "C:\MoneroPool\config\certs" mkdir "C:\MoneroPool\config\certs"
 if not exist "C:\MoneroPool\backups" mkdir "C:\MoneroPool\backups"
+if not exist "C:\MoneroPool\lottery-data" mkdir "C:\MoneroPool\lottery-data"
+if not exist "C:\MoneroPool\lottery-output" mkdir "C:\MoneroPool\lottery-output"
 echo    Done!
 echo.
+
 
 REM Copy configuration
 echo [2/5] Copying configuration files...
@@ -126,7 +129,16 @@ echo    Wallet:      C:\MoneroPool\wallet
 echo    Blockchain:  C:\MoneroPool\blockchain
 echo    Config:      C:\MoneroPool\config
 echo    SSL Certs:   C:\MoneroPool\config\certs
+echo    Lottery:     C:\MoneroPool\lottery-data
+echo ============================================
+echo.
+echo ============================================
+echo   LOTTERY (Optional):
+echo ============================================
+echo    To enable the weekly lottery:
+echo    docker-compose --profile lottery up -d lottery-cron
 echo ============================================
 echo.
 pause
+
 

@@ -2616,7 +2616,276 @@
         .config-copy-btn:hover {
             transform: scale(1.05);
         }
+
+        /* 
+         * ==========================================
+         * LOTTERY SECTION - PREMIUM STYLES
+         * ==========================================
+         */
+        .lottery-section {
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .lottery-main-card {
+            padding: 40px;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+        }
+
+        .lottery-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .lottery-stat-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+        }
+
+        .lottery-stat-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(242, 104, 34, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .lottery-stat-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .lottery-stat-content {
+            flex: 1;
+        }
+
+        .lottery-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .lottery-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        .lottery-countdown,
+        .lottery-user-shares,
+        .lottery-participants {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .lottery-countdown {
+            color: var(--accent-secondary);
+            animation: pulse-ring 2s ease-in-out infinite;
+        }
+
+        /* How It Works */
+        .lottery-how-it-works {
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(242, 104, 34, 0.05) 0%, rgba(255, 159, 67, 0.02) 100%);
+            border: 1px solid rgba(242, 104, 34, 0.15);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 40px;
+        }
+
+        .lottery-how-it-works h4 {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .lottery-rules {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .lottery-rule {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .lottery-rule-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        /* Winners Table */
+        .lottery-winners {
+            margin-bottom: 30px;
+        }
+
+        .lottery-winners h4 {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .lottery-winners-table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .lottery-winners-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .lottery-winners-table th,
+        .lottery-winners-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .lottery-winners-table th {
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .lottery-winners-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .lottery-winners-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .lottery-no-winners {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px !important;
+            font-style: italic;
+        }
+
+        .lottery-winner-address {
+            font-family: var(--font-mono);
+            color: var(--accent-secondary);
+        }
+
+        .lottery-winner-amount {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .lottery-txid {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .lottery-txid a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .lottery-txid a:hover {
+            text-decoration: underline;
+        }
+
+        /* Transparency Notice */
+        .lottery-transparency {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 20px 24px;
+            background: rgba(0, 214, 143, 0.05);
+            border: 1px solid rgba(0, 214, 143, 0.2);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .transparency-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--success);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .transparency-badge svg {
+            color: var(--success);
+        }
+
+        .lottery-github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .lottery-github-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(242, 104, 34, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .lottery-main-card {
+                padding: 24px;
+            }
+
+            .lottery-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lottery-rules {
+                flex-direction: column;
+            }
+
+            .lottery-transparency {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
     </style>
+
 </head>
 
 <body>
@@ -2648,9 +2917,11 @@
                 <nav class="nav">
                     <a href="#stats" class="nav-link" data-i18n="nav_dashboard">Dashboard</a>
                     <a href="#miner" class="nav-link" data-i18n="nav_miner">Miner Stats</a>
+                    <a href="#lottery" class="nav-link" data-i18n="nav_lottery">🎰 Lottery</a>
                     <a href="#start" class="nav-link" data-i18n="nav_start">Get Started</a>
                     <a href="https://github.com/jessy2027/monero-pool" class="nav-link" target="_blank">GitHub ↗</a>
                 </nav>
+
                 <div class="live-indicator">
                     <div class="live-dot"></div>
                     <span data-i18n="live">Live</span><span>&nbsp;<span id="refresh_countdown">10</span>s</span>
@@ -3242,7 +3513,118 @@
         </div>
     </section>
 
+    <!-- LOTTERY SECTION -->
+    <section id="lottery" class="lottery-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>🎰 <span data-i18n="lottery_title">Weekly Hashrate Lottery</span></h2>
+                <p data-i18n="lottery_subtitle">Mine with us and win bonuses, even without finding a block!</p>
+            </div>
+
+            <div class="lottery-main-card premium-border">
+                <!-- Lottery Stats Grid -->
+                <div class="lottery-stats-grid">
+                    <div class="lottery-stat-card">
+                        <div class="lottery-stat-icon">💰</div>
+                        <div class="lottery-stat-content">
+                            <div class="lottery-stat-label" data-i18n="lottery_prize">Current Prize</div>
+                            <div class="lottery-stat-value gradient-text" id="lottery_prize">0.05 XMR</div>
+                        </div>
+                    </div>
+                    <div class="lottery-stat-card">
+                        <div class="lottery-stat-icon">⏰</div>
+                        <div class="lottery-stat-content">
+                            <div class="lottery-stat-label" data-i18n="lottery_next_draw">Next Draw</div>
+                            <div class="lottery-stat-value" id="lottery_next_draw">Sunday 20:00</div>
+                            <div class="lottery-countdown" id="lottery_countdown"></div>
+                        </div>
+                    </div>
+                    <div class="lottery-stat-card">
+                        <div class="lottery-stat-icon">🎯</div>
+                        <div class="lottery-stat-content">
+                            <div class="lottery-stat-label" data-i18n="lottery_your_chances">Your Chances</div>
+                            <div class="lottery-stat-value" id="lottery_user_probability">--</div>
+                            <div class="lottery-user-shares" id="lottery_user_shares"></div>
+                        </div>
+                    </div>
+                    <div class="lottery-stat-card">
+                        <div class="lottery-stat-icon">🎟️</div>
+                        <div class="lottery-stat-content">
+                            <div class="lottery-stat-label" data-i18n="lottery_total_tickets">Total Tickets</div>
+                            <div class="lottery-stat-value" id="lottery_total_tickets">--</div>
+                            <div class="lottery-participants" id="lottery_participants"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div class="lottery-how-it-works">
+                    <h4>📋 <span data-i18n="lottery_how_title">How It Works</span></h4>
+                    <div class="lottery-rules">
+                        <div class="lottery-rule">
+                            <span class="lottery-rule-num">1</span>
+                            <span data-i18n="lottery_rule1">1 Valid Share = 1 Lottery Ticket</span>
+                        </div>
+                        <div class="lottery-rule">
+                            <span class="lottery-rule-num">2</span>
+                            <span data-i18n="lottery_rule2">Draw every Sunday at 20:00 CET</span>
+                        </div>
+                        <div class="lottery-rule">
+                            <span class="lottery-rule-num">3</span>
+                            <span data-i18n="lottery_rule3">More shares = Higher chances, but everyone can win!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Winners History -->
+                <div class="lottery-winners">
+                    <h4>🏆 <span data-i18n="lottery_winners_title">Recent Winners</span></h4>
+                    <div class="lottery-winners-table-wrapper">
+                        <table class="lottery-winners-table" id="lottery_winners_table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="lottery_date">Date</th>
+                                    <th data-i18n="lottery_winner">Winner</th>
+                                    <th data-i18n="lottery_amount">Amount</th>
+                                    <th>TxID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lottery_winners_body">
+                                <tr>
+                                    <td colspan="4" class="lottery-no-winners" data-i18n="lottery_no_winners">No winners
+                                        yet - Be the first!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transparency Notice -->
+                <div class="lottery-transparency">
+                    <div class="transparency-badge">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <polyline points="9 12 12 15 16 10" />
+                        </svg>
+                        <span data-i18n="lottery_transparent">100% Transparent - All transactions verified on
+                            blockchain</span>
+                    </div>
+                    <a href="https://github.com/jessy2027/monero-pool/blob/main/tools/lottery_bot.py" target="_blank"
+                        class="lottery-github-link">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        <span data-i18n="lottery_view_code">View Open Source Code</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer class="footer">
+
         <div class="container">
             <div class="footer-content">
                 <!-- Footer Logo -->
@@ -3423,8 +3805,28 @@
                 footer_tagline: "European Monero Mining Pool",
                 footer_trust_ssl: "SSL Encrypted",
                 footer_trust_auto: "Auto Payouts",
-                footer_trust_support: "24/7 Support"
+                footer_trust_support: "24/7 Support",
+                // Lottery
+                nav_lottery: "🎰 Lottery",
+                lottery_title: "Weekly Hashrate Lottery",
+                lottery_subtitle: "Mine with us and win bonuses, even without finding a block!",
+                lottery_prize: "Current Prize",
+                lottery_next_draw: "Next Draw",
+                lottery_your_chances: "Your Chances",
+                lottery_total_tickets: "Total Tickets",
+                lottery_how_title: "How It Works",
+                lottery_rule1: "1 Valid Share = 1 Lottery Ticket",
+                lottery_rule2: "Draw every Sunday at 20:00 CET",
+                lottery_rule3: "More shares = Higher chances, but everyone can win!",
+                lottery_winners_title: "Recent Winners",
+                lottery_date: "Date",
+                lottery_winner: "Winner",
+                lottery_amount: "Amount",
+                lottery_no_winners: "No winners yet - Be the first!",
+                lottery_transparent: "100% Transparent - All transactions verified on blockchain",
+                lottery_view_code: "View Open Source Code"
             },
+
             fr: {
                 tagline: "Pool de Minage Monero",
                 nav_dashboard: "Tableau de Bord",
@@ -3542,8 +3944,28 @@
                 footer_tagline: "Pool de Minage Monero Européenne",
                 footer_trust_ssl: "Chiffrement SSL",
                 footer_trust_auto: "Paiements Auto",
-                footer_trust_support: "Support 24/7"
+                footer_trust_support: "Support 24/7",
+                // Lottery
+                nav_lottery: "🎰 Loterie",
+                lottery_title: "Loterie Hebdomadaire",
+                lottery_subtitle: "Minez chez nous et gagnez des bonus, même sans trouver de bloc !",
+                lottery_prize: "Cagnotte Actuelle",
+                lottery_next_draw: "Prochain Tirage",
+                lottery_your_chances: "Vos Chances",
+                lottery_total_tickets: "Total Tickets",
+                lottery_how_title: "Comment ça marche",
+                lottery_rule1: "1 Share Valide = 1 Ticket de Loterie",
+                lottery_rule2: "Tirage chaque dimanche à 20h00 CET",
+                lottery_rule3: "Plus de shares = Plus de chances, mais tout le monde peut gagner !",
+                lottery_winners_title: "Derniers Gagnants",
+                lottery_date: "Date",
+                lottery_winner: "Gagnant",
+                lottery_amount: "Montant",
+                lottery_no_winners: "Aucun gagnant encore - Soyez le premier !",
+                lottery_transparent: "100% Transparent - Toutes les transactions vérifiées sur la blockchain",
+                lottery_view_code: "Voir le Code Source"
             },
+
             de: {
                 tagline: "Monero Mining Pool",
                 nav_dashboard: "Dashboard",
@@ -4159,7 +4581,10 @@
             initCalculator();
             // Initialize config generator
             initConfigGenerator();
+            // Initialize lottery
+            initLottery();
         };
+
 
         // ========================================
         // Calculator
@@ -4400,7 +4825,147 @@
                 retina_detect: true
             });
         }
+
+        // ========================================
+        // Lottery Functions
+        // ========================================
+        function initLottery() {
+            updateLotteryCountdown();
+            setInterval(updateLotteryCountdown, 1000);
+            fetchLotteryStats();
+            // Refresh lottery stats every 5 minutes
+            setInterval(fetchLotteryStats, 300000);
+        }
+
+        function getNextSundayDraw() {
+            const now = new Date();
+            const daysUntilSunday = (7 - now.getDay()) % 7;
+            const nextSunday = new Date(now);
+
+            if (daysUntilSunday === 0 && now.getHours() >= 20) {
+                // It's Sunday after 20:00, next draw is next week
+                nextSunday.setDate(now.getDate() + 7);
+            } else if (daysUntilSunday === 0) {
+                // It's Sunday before 20:00
+                // Keep the same date
+            } else {
+                nextSunday.setDate(now.getDate() + daysUntilSunday);
+            }
+
+            nextSunday.setHours(20, 0, 0, 0);
+            return nextSunday;
+        }
+
+        function updateLotteryCountdown() {
+            const nextDraw = getNextSundayDraw();
+            const now = new Date();
+            const diff = nextDraw - now;
+
+            if (diff <= 0) {
+                document.getElementById('lottery_countdown').textContent = t('lottery_drawing') || 'Drawing now!';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let countdownText = '';
+            if (days > 0) countdownText += days + 'd ';
+            countdownText += hours.toString().padStart(2, '0') + ':';
+            countdownText += minutes.toString().padStart(2, '0') + ':';
+            countdownText += seconds.toString().padStart(2, '0');
+
+            const countdownEl = document.getElementById('lottery_countdown');
+            if (countdownEl) {
+                countdownEl.textContent = countdownText;
+            }
+        }
+
+        function fetchLotteryStats() {
+            // Try to fetch lottery stats from the API
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    updateLotteryUI(data);
+                } catch (e) {
+                    console.log('Lottery stats not available yet');
+                }
+            };
+            xhr.onerror = function () {
+                console.log('Could not fetch lottery stats');
+            };
+            // API endpoint for lottery stats (generated by lottery_api.py)
+            xhr.open('GET', '/lottery_stats.json', true);
+            xhr.send();
+        }
+
+        function updateLotteryUI(data) {
+            if (!data) return;
+
+            // Update prize
+            if (data.prize_xmr) {
+                document.getElementById('lottery_prize').textContent = data.prize_xmr + ' XMR';
+            }
+
+            // Update total tickets
+            if (data.stats) {
+                document.getElementById('lottery_total_tickets').textContent =
+                    data.stats.total_tickets ? data.stats.total_tickets.toLocaleString() : '--';
+
+                const participantsEl = document.getElementById('lottery_participants');
+                if (participantsEl && data.stats.total_participants) {
+                    participantsEl.textContent = data.stats.total_participants + ' participants';
+                }
+            }
+
+            // Update user probability if wallet is saved
+            var savedWallet = getCookie('wa');
+            if (savedWallet && data.participants) {
+                var userStats = data.participants.find(p => p.address === savedWallet);
+                if (userStats) {
+                    document.getElementById('lottery_user_probability').textContent =
+                        userStats.probability.toFixed(2) + '%';
+                    document.getElementById('lottery_user_shares').textContent =
+                        userStats.shares.toLocaleString() + ' shares';
+                } else {
+                    document.getElementById('lottery_user_probability').textContent = '0%';
+                    document.getElementById('lottery_user_shares').textContent = 'Not participating';
+                }
+            } else {
+                document.getElementById('lottery_user_probability').textContent = '--';
+                document.getElementById('lottery_user_shares').textContent = t('enter_wallet') || 'Enter wallet above';
+            }
+
+            // Update winners history
+            if (data.history && data.history.length > 0) {
+                var tbody = document.getElementById('lottery_winners_body');
+                var html = '';
+
+                data.history.slice(0, 5).forEach(function (draw) {
+                    var date = new Date(draw.draw_date).toLocaleDateString();
+                    var winner = draw.winner ? draw.winner.address_short : '--';
+                    var amount = draw.prize_xmr + ' XMR';
+                    var txid = draw.txid ?
+                        '<a href="https://xmrchain.net/tx/' + draw.txid + '" target="_blank">' +
+                        draw.txid.substring(0, 8) + '...</a>' :
+                        '<span style="color: var(--text-muted)">Pending</span>';
+
+                    html += '<tr>' +
+                        '<td>' + date + '</td>' +
+                        '<td class="lottery-winner-address">' + winner + '</td>' +
+                        '<td class="lottery-winner-amount">' + amount + '</td>' +
+                        '<td class="lottery-txid">' + txid + '</td>' +
+                        '</tr>';
+                });
+
+                tbody.innerHTML = html;
+            }
+        }
     </script>
+
 </body>
 
 </html>

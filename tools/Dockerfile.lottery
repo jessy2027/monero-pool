@@ -1,0 +1,47 @@
+# =============================================================================
+# Dockerfile for Lottery Cron Service
+# =============================================================================
+FROM python:3.11-slim-bookworm
+
+LABEL maintainer="EuroXMR Pool"
+LABEL description="Lottery cron service for EuroXMR Monero Pool"
+
+# Install cron and required packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cron \
+    liblmdb-dev \
+    gcc \
+    python3-dev \
+    dos2unix \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set timezone
+ENV TZ=Europe/Paris
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Create app directory
+WORKDIR /app
+
+# Copy lottery scripts
+COPY tools/lottery_bot.py /app/lottery_bot.py
+COPY tools/lottery_api.py /app/lottery_api.py
+
+# Install Python dependencies
+RUN pip install --no-cache-dir lmdb
+
+# Create directories and log file
+RUN mkdir -p /app/data /app/output && touch /var/log/cron.log
+
+# Copy crontab, convert line endings, and install
+COPY tools/lottery-crontab /tmp/lottery-crontab
+RUN dos2unix /tmp/lottery-crontab && \
+    echo "" >> /tmp/lottery-crontab && \
+    crontab /tmp/lottery-crontab && \
+    rm /tmp/lottery-crontab
+
+# Entrypoint - print env vars for cron and start
+CMD printenv >> /etc/environment && \
+    echo "🎰 EuroXMR Lottery Cron Starting..." && \
+    echo "Current time: $(date)" && \
+    echo "Crontab:" && crontab -l && \
+    cron && tail -f /var/log/cron.log

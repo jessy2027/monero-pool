@@ -46,6 +46,14 @@ L'interface web (`src/webui-embed.html`) a été enrichie avec :
    - 🇪🇸 Espagnol (ES)
    - 🇷🇺 Russe (RU)
 
+7. **🎰 Loterie Hebdomadaire** - Gamification du minage :
+   - 1 Share valide = 1 Ticket de loterie
+   - Tirage automatique chaque dimanche à 20h CET
+   - Affichage en temps réel des chances de gain
+   - Historique des gagnants avec TxID vérifiable
+   - 100% transparent (code open source)
+
+
 ### SEO Optimisé
 
 Balises meta ajoutées dans `<head>` :
