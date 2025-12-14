@@ -122,6 +122,7 @@ services:
       - monero-pool
     ports:
       - "4343:4343"    # SSL Stratum port (miners connect here for TLS)
+      - "443:443"      # HTTPS Web UI (SSL)
     volumes:
       - C:\MoneroPool\config\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - C:\MoneroPool\config\certs:/etc/ssl/certs:ro
