@@ -1331,7 +1331,12 @@ update_pool_hr(void)
     uint64_t hr = 0;
     client_t *c = (client_t*)gbag_first(bag_clients);
     while ((c = gbag_next(bag_clients, 0)))
+    {
+        /* Update EMA for all clients, including inactive ones.
+           This makes hashrate decay when miners stop submitting shares. */
+        hr_update(&c->hr_stats);
         hr += (uint64_t) c->hr_stats.avg[0];
+    }
     log_debug("Pool hashrate: %"PRIu64, hr);
     if (upstream_event)
         return;
@@ -2155,6 +2160,14 @@ startup_scan_round_shares(void)
     /* Reset round_hashes before scanning to avoid accumulation on residual value */
     pool_stats.round_hashes = 0;
 
+    /* Get current network height to determine which shares belong to current round */
+    uint64_t current_height = pool_stats.network_height;
+    if (current_height == 0)
+    {
+        log_debug("Network height not known yet, skipping round share scan");
+        return 0;
+    }
+
     if ((rc = pdb_txn_begin(env, NULL, MDB_RDONLY, &txn)))
     {
         err = mdb_strerror(rc);
@@ -2168,27 +2181,36 @@ startup_scan_round_shares(void)
         mdb_txn_abort(txn);
         return rc;
     }
-    MDB_cursor_op op = MDB_LAST;
-    while (1)
+    
+    /* Only count shares at current network height (current round).
+       Use height-based filtering instead of timestamp-based,
+       since last_block_found is 0 if pool never found a block. */
+    MDB_val key = { sizeof(current_height), (void*)&current_height };
+    MDB_val val;
+    
+    /* Position cursor at current height */
+    if ((rc = mdb_cursor_get(cursor, &key, &val, MDB_SET)))
     {
-        MDB_val key;
-        MDB_val val;
-        if ((rc = mdb_cursor_get(cursor, &key, &val, op)))
+        if (rc != MDB_NOTFOUND)
         {
-            if (rc != MDB_NOTFOUND)
-            {
-                err = mdb_strerror(rc);
-                log_error("%s", err);
-            }
-            break;
+            err = mdb_strerror(rc);
+            log_error("%s", err);
         }
-        op = MDB_PREV;
-        share_t *share = (share_t*)val.mv_data;
-        if (share->timestamp > pool_stats.last_block_found)
-            pool_stats.round_hashes += share->difficulty;
-        else
-            break;
+        /* No shares at current height, round_hashes stays 0 */
+        mdb_cursor_close(cursor);
+        mdb_txn_abort(txn);
+        return 0;
     }
+    
+    /* Sum all shares at current height */
+    do {
+        share_t *share = (share_t*)val.mv_data;
+        pool_stats.round_hashes += share->difficulty;
+    } while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_NEXT_DUP)) == 0);
+    
+    log_info("Startup: found %"PRIu64" round hashes at height %"PRIu64,
+            pool_stats.round_hashes, current_height);
+    
     mdb_cursor_close(cursor);
     mdb_txn_abort(txn);
     return 0;
@@ -2332,13 +2354,10 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     }
 
     top = bstack_top(bsh);
-    pool_stats.network_difficulty = top->difficulty;
-    pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
-    pool_stats.network_height = top->height;
     
-    /* Reset round_hashes if network height changed since last reset.
-       This uses last_round_reset_height to handle timing issues where
-       template updates before header, or heights jump by multiple blocks. */
+    /* IMPORTANT: Reset round_hashes BEFORE updating network_height to prevent
+       race condition where WebUI sees new height but old round_hashes.
+       This ensures atomic-like consistency in the stats visible to clients. */
     if (!upstream_event && top->height > last_round_reset_height)
     {
         log_info("New round detected (height %"PRIu64" > last_reset %"PRIu64"), "
@@ -2347,6 +2366,11 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
         pool_stats.round_hashes = 0;
         last_round_reset_height = top->height;
     }
+    
+    /* Now update network stats - round_hashes is already reset if needed */
+    pool_stats.network_difficulty = top->difficulty;
+    pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
+    pool_stats.network_height = top->height;
     
     update_pool_hr();
 
