@@ -1335,7 +1335,7 @@ update_pool_hr(void)
         /* Update EMA for all clients, including inactive ones.
            This makes hashrate decay when miners stop submitting shares. */
         hr_update(&c->hr_stats);
-        hr += (uint64_t) c->hr_stats.avg[0];
+        hr += (uint64_t) c->hr_stats.avg[1];
     }
     log_debug("Pool hashrate: %"PRIu64, hr);
     if (upstream_event)
