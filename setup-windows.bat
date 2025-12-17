@@ -32,7 +32,7 @@ echo.
 REM Copy configuration
 echo [2/5] Copying configuration files...
 if not exist "C:\MoneroPool\config\pool.conf" (
-    copy "%~dp0pool.docker.conf" "C:\MoneroPool\config\pool.conf"
+    copy "%~dp0pool.conf" "C:\MoneroPool\config\pool.conf"
     echo    Configuration copied to C:\MoneroPool\config\pool.conf
     echo    IMPORTANT: Edit this file and set your wallet address!
 ) else (
