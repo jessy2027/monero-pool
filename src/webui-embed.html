@@ -4589,20 +4589,62 @@
         // ========================================
         // Calculator
         // ========================================
-        let xmrPrice = 150; // Default, will be updated
+        let xmrPrice = 150; // Default EUR, will be updated
+        let xmrPriceUsd = 160; // Default USD, will be updated
         let networkDifficulty = 400000000000; // Default
 
         async function fetchXMRPrice() {
+            // Try CoinGecko first
             try {
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=eur,usd');
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=eur,usd', {
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-cache'
+                });
+                if (!res.ok) {
+                    throw new Error('CoinGecko API error: ' + res.status);
+                }
                 const data = await res.json();
-                if (data.monero) {
-                    xmrPrice = data.monero.eur || 150;
+                if (data.monero && data.monero.eur) {
+                    xmrPrice = data.monero.eur;
+                    xmrPriceUsd = data.monero.usd || xmrPrice * 1.07;
+                    console.log('XMR price updated from CoinGecko: €' + xmrPrice.toFixed(2));
+                    // Recalculate profitability with new price
+                    if (typeof calculateProfitability === 'function') {
+                        calculateProfitability();
+                    }
+                    return;
                 }
             } catch (e) {
-                console.log('Could not fetch XMR price, using default');
+                console.log('CoinGecko failed:', e.message, '- trying fallback');
             }
+
+            // Fallback to CryptoCompare
+            try {
+                const res = await fetch('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=EUR,USD', {
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-cache'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.EUR) {
+                        xmrPrice = data.EUR;
+                        xmrPriceUsd = data.USD || xmrPrice * 1.07;
+                        console.log('XMR price updated from CryptoCompare: €' + xmrPrice.toFixed(2));
+                        if (typeof calculateProfitability === 'function') {
+                            calculateProfitability();
+                        }
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('CryptoCompare also failed:', e.message);
+            }
+
+            console.log('Using default XMR price: €' + xmrPrice);
         }
+
+        // Refresh price every 5 minutes
+        setInterval(fetchXMRPrice, 300000);
 
         function calculateProfitability() {
             const hashrate = parseFloat(document.getElementById('calc_hashrate_input').value) || 0;
