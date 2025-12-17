@@ -1,0 +1,7 @@
+# EuroXMR Lottery Cron
+# Generate lottery stats every hour
+0 * * * * /usr/local/bin/python /app/lottery_api.py /app/data /app/output --period 7 --prize 0.05 >> /var/log/cron.log 2>&1
+
+# Run the lottery draw every Sunday at 20:00 CET (results saved to /app/lottery-data)
+0 20 * * 0 /usr/local/bin/python /app/lottery_bot.py /app/data --run --prize 0.05 --output /app/lottery-data >> /var/log/cron.log 2>&1
+

@@ -13,7 +13,10 @@ set BACKUP_DIR=C:\MoneroPool\backups
 set POOL_DATA=C:\MoneroPool\pool-data
 set WALLET_DATA=C:\MoneroPool\wallet
 set CONFIG_DATA=C:\MoneroPool\config
+set LOTTERY_DATA=C:\MoneroPool\lottery-data
+set LOTTERY_OUTPUT=C:\MoneroPool\lottery-output
 set KEEP_DAYS=7
+
 
 REM Create timestamp
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
@@ -53,12 +56,24 @@ if exist "%WALLET_DATA%" (
 )
 
 REM Backup config
-echo [3/3] Backing up configuration...
+echo [3/4] Backing up configuration...
 if exist "%CONFIG_DATA%" (
     xcopy "%CONFIG_DATA%\*" "%CURRENT_BACKUP%\config\" /E /I /H /Y >nul
     echo    Configuration backed up successfully.
 ) else (
     echo    WARNING: Config directory not found!
+)
+
+REM Backup lottery data
+echo [4/4] Backing up lottery data...
+if exist "%LOTTERY_DATA%" (
+    xcopy "%LOTTERY_DATA%\*" "%CURRENT_BACKUP%\lottery-data\" /E /I /H /Y >nul
+    echo    Lottery data backed up successfully.
+) else (
+    echo    INFO: Lottery data directory not found (lottery may not be enabled).
+)
+if exist "%LOTTERY_OUTPUT%" (
+    xcopy "%LOTTERY_OUTPUT%\*" "%CURRENT_BACKUP%\lottery-output\" /E /I /H /Y >nul
 )
 
 REM Restart pool if it was stopped

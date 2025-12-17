@@ -95,6 +95,7 @@ services:
     volumes:
       - C:\MoneroPool\pool-data:/app/data
       - C:\MoneroPool\config\pool.conf:/app/config/pool.conf:ro
+      - C:\MoneroPool\lottery-output:/app/lottery:ro
     environment:
       - TZ=Europe/Paris
     networks:
@@ -127,6 +128,38 @@ services:
       - C:\MoneroPool\config\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - C:\MoneroPool\config\certs:/etc/ssl/certs:ro
     command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Lottery Cron Service
+  # ---------------------------------------------------------------------------
+  # Runs scheduled tasks for the lottery system:
+  # - Generates lottery_stats.json every hour (for web UI)
+  # - Runs the lottery draw every Sunday at 20:00 CET
+  # ---------------------------------------------------------------------------
+  lottery-cron:
+    build:
+      context: .
+      dockerfile: tools/Dockerfile.lottery
+    container_name: lottery-cron
+    restart: unless-stopped
+    profiles: ["lottery"]  # Only starts with: docker-compose --profile lottery up -d
+    volumes:
+      # Pool database (read-only access to shares)
+      - C:\MoneroPool\pool-data:/app/data:ro
+      # Output directory for lottery_stats.json (served by web UI)
+      - C:\MoneroPool\lottery-output:/app/output
+      # Lottery results persistent storage
+      - C:\MoneroPool\lottery-data:/app/lottery-data
+    environment:
+      - TZ=Europe/Paris
+      - LOTTERY_PRIZE=0.05
     networks:
       - monero-network
     logging:
@@ -177,4 +210,24 @@ networks:
 # UPDATE POOL:
 #   docker-compose build --no-cache monero-pool
 #   docker-compose up -d monero-pool
+#
+# LOTTERY SYSTEM:
+#   1. Create directories:
+#      mkdir C:\MoneroPool\lottery-output
+#      mkdir C:\MoneroPool\lottery-data
+#
+#   2. Build and start lottery service:
+#      docker-compose --profile lottery build lottery-cron
+#      docker-compose --profile lottery up -d lottery-cron
+#
+#   3. View lottery logs:
+#      docker-compose logs -f lottery-cron
+#
+#   4. Run manual lottery draw (for testing):
+#      docker-compose exec lottery-cron python /app/lottery_bot.py /app/data --stats
+#      docker-compose exec lottery-cron python /app/lottery_bot.py /app/data --run --dry-run
+#
+#   5. The lottery_stats.json is generated in C:\MoneroPool\lottery-output
+#      Copy it to your web server or configure nginx/haproxy to serve it
 # =============================================================================
+

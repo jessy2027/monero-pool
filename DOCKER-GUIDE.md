@@ -137,6 +137,45 @@ docker-compose up -d
 
 ---
 
+## 🎰 Loterie Hebdomadaire
+
+Le pool inclut un système de loterie hebdomadaire pour gamifier l'expérience de minage.
+
+### Activer la Loterie
+
+```cmd
+# 1. Créer les dossiers
+mkdir C:\MoneroPool\lottery-output
+mkdir C:\MoneroPool\lottery-data
+
+# 2. Build et démarrer le service cron
+docker-compose --profile lottery build lottery-cron
+docker-compose --profile lottery up -d lottery-cron
+```
+
+### Commandes Utiles
+
+| Action | Commande |
+|--------|----------|
+| Voir les logs | `docker-compose logs -f lottery-cron` |
+| Stats actuelles | `docker-compose exec lottery-cron python /app/lottery_bot.py /app/data --stats` |
+| Tirage test | `docker-compose exec lottery-cron python /app/lottery_bot.py /app/data --run --dry-run` |
+| Générer JSON | `docker-compose exec lottery-cron python /app/lottery_api.py /app/data /app/output` |
+
+### Tâches Automatiques
+
+| Fréquence | Tâche |
+|-----------|-------|
+| Toutes les heures | Génère `lottery_stats.json` |
+| Dimanche 20h CET | Exécute le tirage |
+
+### Fichiers
+
+- `C:\MoneroPool\lottery-output\lottery_stats.json` - Stats pour le frontend
+- `C:\MoneroPool\lottery-data\lottery_results.json` - Historique des tirages
+
+
+
 ## 🔄 Auto-Start with Windows
 
 Docker Desktop automatically starts with Windows by default.
@@ -210,7 +249,7 @@ rmdir /S /Q C:\MoneroPool
 | File | Description |
 |------|-------------|
 | `Dockerfile` | Multi-stage build for the pool |
-| `docker-compose.yml` | Orchestration configuration (inclut HAProxy) |
+| `docker-compose.yml` | Orchestration configuration (inclut HAProxy + Lottery) |
 | `pool.docker.conf` | Docker-optimized pool config template |
 | `pool.conf` | Configuration pool avec port SSL 4343 |
 | `haproxy.cfg` | Configuration HAProxy pour SSL/TLS termination |
@@ -218,7 +257,12 @@ rmdir /S /Q C:\MoneroPool
 | `backup.bat` | Backup automation script |
 | `og-image.png` | Image pour partage réseaux sociaux |
 | `EUROXMR-GUIDE.md` | Guide des personnalisations EuroXMR |
-| `src/webui-embed.html` | Interface web améliorée (5 langues, calculator, FAQ) |
+| `src/webui-embed.html` | Interface web améliorée (5 langues, calculator, FAQ, Loterie) |
+| `tools/lottery_bot.py` | Script principal de tirage loterie |
+| `tools/lottery_api.py` | Générateur JSON pour le frontend loterie |
+| `tools/Dockerfile.lottery` | Docker image pour le service cron loterie |
+| `tools/lottery-crontab` | Configuration des tâches cron loterie |
+
 
 ---
 
