@@ -64,7 +64,7 @@ MONERO_LIBS = \
   ${MONERO_BUILD_ROOT}/src/libversion.a \
   ${MONERO_BUILD_ROOT}/external/randomx/librandomx.a
 
-DIRS = src data rxi/log/src
+DIRS = src data rxi/log/src src/web_ui
 
 # Module headers for documentation
 MODULE_HEADERS = \
@@ -156,12 +156,16 @@ SOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.cpp))
 CSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.c))
 SSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.S))
 HTMLSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.html))
+CSSSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.css))
+JSSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.js))
 PNGSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.png))
 HEADERS := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.h))
 OBJECTS := $(addprefix $(STORE)/, $(SOURCE:.cpp=.o))
 COBJECTS := $(addprefix $(STORE)/, $(CSOURCE:.c=.o))
 SOBJECTS := $(addprefix $(STORE)/, $(SSOURCE:.S=.o))
 HTMLOBJECTS := $(addprefix $(STORE)/, $(HTMLSOURCE:.html=.o))
+CSSOBJECTS := $(addprefix $(STORE)/, $(CSSSOURCE:.css=.o))
+JSOBJECTS := $(addprefix $(STORE)/, $(JSSOURCE:.js=.o))
 PNGOBJECTS := $(addprefix $(STORE)/, $(PNGSOURCE:.png=.o))
 DFILES := $(addprefix $(STORE)/,$(SOURCE:.cpp=.d))
 CDFILES := $(addprefix $(STORE)/,$(CSOURCE:.c=.d))
@@ -170,10 +174,10 @@ SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
 
 .PHONY: clean dirs debug release preflight
 
-$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(PNGOBJECTS)
+$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS)
 	@echo Linking $(OBJECTS)...
 	$(CXX) -o $(STORE)/$(TARGET) \
-	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(PNGOBJECTS) \
+	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS) \
 	  $(LDPARAM) $(MONERO_LIBS) \
 	  $(foreach LIBRARY, $(LIBS),-l$(LIBRARY)) \
 	  $(foreach LIB,$(LIBPATH),-L$(LIB)) \
@@ -213,6 +217,18 @@ $(STORE)/%.o: %.S
 $(STORE)/%.o: %.html
 	@echo Creating object file for $*...
 	xxd -i $< | sed -e 's/src_//' -e 's/embed_//' > $(STORE)/$*.c
+	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
+	@rm -f $(STORE)/$*.c
+
+$(STORE)/%.o: %.css
+	@echo Creating object file for $*...
+	xxd -i $< | sed -e 's/src_//' > $(STORE)/$*.c
+	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
+	@rm -f $(STORE)/$*.c
+
+$(STORE)/%.o: %.js
+	@echo Creating object file for $*...
+	xxd -i $< | sed -e 's/src_//' > $(STORE)/$*.c
 	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
 	@rm -f $(STORE)/$*.c
 

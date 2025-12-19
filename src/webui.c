@@ -54,8 +54,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTTP_FORBIDDEN 403
 #endif
 
-extern unsigned char webui_html[];
-extern unsigned int webui_html_len;
+extern const unsigned char web_ui_index_html[];
+extern const unsigned int web_ui_index_html_len;
+
+extern const unsigned char web_ui_style_css[];
+extern const unsigned int web_ui_style_css_len;
+
+extern const unsigned char web_ui_script_js[];
+extern const unsigned int web_ui_script_js_len;
 
 extern unsigned char og_image_png[];
 extern unsigned int og_image_png_len;
@@ -355,8 +361,34 @@ process_request(struct evhttp_request *req, void *arg)
         return;
     }
 
+    /* Serve style.css */
+    if (strcmp(url, "/style.css") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        evbuffer_add(buf, web_ui_style_css, web_ui_style_css_len);
+        hdrs_out = evhttp_request_get_output_headers(req);
+        evhttp_add_header(hdrs_out, "Content-Type", "text/css");
+        evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=86400");
+        maybe_add_cors(req, (wui_context_t*)arg);
+        evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        return;
+    }
+
+    /* Serve script.js */
+    if (strcmp(url, "/script.js") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        evbuffer_add(buf, web_ui_script_js, web_ui_script_js_len);
+        hdrs_out = evhttp_request_get_output_headers(req);
+        evhttp_add_header(hdrs_out, "Content-Type", "text/javascript");
+        evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=86400");
+        maybe_add_cors(req, (wui_context_t*)arg);
+        evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        return;
+    }
+
     buf = evhttp_request_get_output_buffer(req);
-    evbuffer_add(buf, webui_html, webui_html_len);
+    evbuffer_add(buf, web_ui_index_html, web_ui_index_html_len);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "text/html");
     maybe_add_cors(req, (wui_context_t*)arg);

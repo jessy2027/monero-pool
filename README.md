@@ -4,6 +4,13 @@
 
 Pool de minage Monero haute performance basée sur [monero-pool](https://github.com/jtgrassie/monero-pool) de jtgrassie, optimisée pour le déploiement Docker.
 
+> [!CAUTION]
+> **USAGE RESTRICTIONS / RESTRICTIONS D'UTILISATION**
+>
+> 1.  **LOTTERY SYSTEM / SYSTÈME DE LOTERIE**: Strictly reserved for the owner's use. / Strictement réservé à l'usage du propriétaire.
+> 2.  **PRIVATE USE ONLY / USAGE PRIVÉ UNIQUEMENT**: This pool is for private, non-commercial use only. / Ce pool est destiné à un usage privé et non commercial uniquement.
+
+
 ## ✨ Caractéristiques
 
 - **Performance** : Architecture légère en C avec libevent et LMDB
