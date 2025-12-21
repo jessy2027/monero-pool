@@ -96,6 +96,7 @@ services:
       - C:\MoneroPool\pool-data:/app/data
       - C:\MoneroPool\config\pool.conf:/app/config/pool.conf:ro
       - C:\MoneroPool\lottery-output:/app/lottery:ro
+      - C:\MoneroPool\lottery-data:/app/lottery-data:ro
     environment:
       - TZ=Europe/Paris
     networks:

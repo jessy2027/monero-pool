@@ -352,7 +352,7 @@ process_request(struct evhttp_request *req, void *arg)
     if (strcmp(url, "/lottery_results.json") == 0)
     {
         buf = evhttp_request_get_output_buffer(req);
-        FILE *fp = fopen("/app/lottery/lottery_results.json", "r");
+        FILE *fp = fopen("/app/lottery-data/lottery_results.json", "r");
         if (fp)
         {
             char lottery_buf[0x10000];
