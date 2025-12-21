@@ -348,6 +348,36 @@ process_request(struct evhttp_request *req, void *arg)
         return;
     }
 
+    /* Serve lottery results JSON file (winners history) */
+    if (strcmp(url, "/lottery_results.json") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        FILE *fp = fopen("/app/lottery/lottery_results.json", "r");
+        if (fp)
+        {
+            char lottery_buf[0x10000];
+            size_t len = fread(lottery_buf, 1, sizeof(lottery_buf) - 1, fp);
+            lottery_buf[len] = '\0';
+            fclose(fp);
+            evbuffer_add(buf, lottery_buf, len);
+            hdrs_out = evhttp_request_get_output_headers(req);
+            evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+            evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=60");
+            maybe_add_cors(req, (wui_context_t*)arg);
+            evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        }
+        else
+        {
+            /* Return empty JSON if file not found */
+            evbuffer_add_printf(buf, "{\"history\":[],\"last_draw\":null}");
+            hdrs_out = evhttp_request_get_output_headers(req);
+            evhttp_add_header(hdrs_out, "Content-Type", "application/json");
+            maybe_add_cors(req, (wui_context_t*)arg);
+            evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        }
+        return;
+    }
+
     /* Serve OG image for social media sharing */
     if (strcmp(url, "/og-image.png") == 0)
     {
