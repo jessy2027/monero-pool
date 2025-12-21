@@ -18,9 +18,8 @@ set LOTTERY_OUTPUT=C:\MoneroPool\lottery-output
 set KEEP_DAYS=7
 
 
-REM Create timestamp
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
-set TIMESTAMP=%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%_%datetime:~8,2%-%datetime:~10,2%
+REM Create timestamp (using PowerShell for reliability)
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd_HH-mm'"') do set TIMESTAMP=%%I
 
 echo.
 echo ============================================
@@ -38,7 +37,7 @@ REM echo Stopping pool for backup...
 REM docker-compose -f "%~dp0docker-compose.yml" stop monero-pool
 
 REM Backup pool data
-echo [1/3] Backing up pool database...
+echo [1/4] Backing up pool database...
 if exist "%POOL_DATA%" (
     xcopy "%POOL_DATA%\*" "%CURRENT_BACKUP%\pool-data\" /E /I /H /Y >nul
     echo    Pool data backed up successfully.
@@ -47,7 +46,7 @@ if exist "%POOL_DATA%" (
 )
 
 REM Backup wallet
-echo [2/3] Backing up wallet...
+echo [2/4] Backing up wallet...
 if exist "%WALLET_DATA%" (
     xcopy "%WALLET_DATA%\*" "%CURRENT_BACKUP%\wallet\" /E /I /H /Y >nul
     echo    Wallet backed up successfully.
