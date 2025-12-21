@@ -1480,16 +1480,20 @@ function fetchLotteryStats() {
 
     // Also fetch lottery results (winners history)
     var xhrResults = new XMLHttpRequest();
-    xhrResults.onload = function () {
-        try {
-            var data = JSON.parse(xhrResults.responseText);
-            updateLotteryWinners(data);
-        } catch (e) {
-            console.log('Lottery results not available yet');
+    xhrResults.onreadystatechange = function () {
+        if (xhrResults.readyState === 4) {
+            if (xhrResults.status === 200) {
+                try {
+                    var data = JSON.parse(xhrResults.responseText);
+                    console.log('Lottery results loaded:', data);
+                    updateLotteryWinners(data);
+                } catch (e) {
+                    console.error('Error parsing lottery results:', e);
+                }
+            } else {
+                console.log('Lottery results HTTP status:', xhrResults.status);
+            }
         }
-    };
-    xhrResults.onerror = function () {
-        console.log('Could not fetch lottery results');
     };
     xhrResults.open('GET', '/lottery_results.json', true);
     xhrResults.send();
@@ -1539,11 +1543,21 @@ function updateLotteryUI(data) {
 }
 
 function updateLotteryWinners(data) {
-    if (!data) return;
+    if (!data) {
+        console.log('updateLotteryWinners: no data');
+        return;
+    }
+
+    console.log('updateLotteryWinners called with history length:', data.history ? data.history.length : 0);
 
     // Update winners history from lottery_results.json
     if (data.history && data.history.length > 0) {
         var tbody = document.getElementById('lottery_winners_body');
+        if (!tbody) {
+            console.error('lottery_winners_body element not found!');
+            return;
+        }
+
         var html = '';
 
         data.history.slice(0, 5).forEach(function (draw) {
@@ -1563,6 +1577,9 @@ function updateLotteryWinners(data) {
                 '</tr>';
         });
 
+        console.log('Setting winners HTML:', html);
         tbody.innerHTML = html;
+    } else {
+        console.log('No history to display');
     }
 }
