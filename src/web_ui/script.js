@@ -1502,14 +1502,19 @@ function fetchLotteryStats() {
 function updateLotteryUI(data) {
     if (!data) return;
 
-    // Update prize
-    if (data.prize_xmr) {
-        document.getElementById('lottery_prize').textContent = data.prize_xmr + ' XMR';
+    // Update prize dynamically from lottery_stats.json
+    if (data.prize_xmr !== undefined) {
+        var prizeText = data.prize_xmr + ' XMR';
+        var prizeEl = document.getElementById('lottery_prize');
+        if (prizeEl) {
+            prizeEl.textContent = prizeText;
+        }
         // Also update hero teaser
         var teaserPrize = document.getElementById('lottery_teaser_prize');
         if (teaserPrize) {
-            teaserPrize.textContent = data.prize_xmr + ' XMR';
+            teaserPrize.textContent = prizeText;
         }
+        console.log('Lottery prize updated dynamically:', prizeText);
     }
 
     // Update total tickets

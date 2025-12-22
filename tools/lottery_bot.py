@@ -250,6 +250,7 @@ class HashrateLottery:
                 'probability': winner_probability
             },
             'prize_xmr': self.prize_xmr,
+            'txid': None,  # À remplir manuellement après le paiement
             'top_participants': [
                 {
                     'address': wallet,

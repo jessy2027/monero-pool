@@ -161,6 +161,7 @@ services:
     environment:
       - TZ=Europe/Paris
       - LOTTERY_PRIZE=0.02
+      - LOTTERY_PERIOD=7
     networks:
       - monero-network
     logging:

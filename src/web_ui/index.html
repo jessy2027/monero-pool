@@ -159,7 +159,7 @@
                     <div class="lottery-teaser-icon">🎰</div>
                     <div class="lottery-teaser-content">
                         <span class="lottery-teaser-title" data-i18n="lottery_teaser_title">Weekly Lottery</span>
-                        <span class="lottery-teaser-prize" id="lottery_teaser_prize">0.05 XMR</span>
+                        <span class="lottery-teaser-prize" id="lottery_teaser_prize">-- XMR</span>
                     </div>
                     <div class="lottery-teaser-countdown">
                         <span class="lottery-teaser-label" data-i18n="lottery_teaser_next">Next Draw</span>
@@ -393,519 +393,511 @@
                             <div class="sub" id="calc_power_cost">Power: €0.00</div>
                         </div>
                     </div>
-                    </div>
-                </div>
-
-        <!-- STATS SECTION -->
-                        <!-- STATS SECTION (Moved up for priority) -->
-                        <section id="stats" class="stats-section reveal-on-scroll">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon cyan">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path
-                            d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="network_hashrate">Network
-                        Hashrate</span>
-                    <span class="stat-value skeleton skeleton-text" id="network_hashrate"
-                        style="width: 100px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <path d="M3 9h18M9 21V9" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="block_height">Block Height</span>
-                    <span class="stat-value skeleton skeleton-text" id="network_height"
-                        style="width: 100px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="miners_connected_cap">Miners
-                        Connected</span>
-                    <span class="stat-value skeleton skeleton-text" id="connected_miners_card"
-                        style="width: 50px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7" />
-                        <rect x="14" y="3" width="7" height="7" />
-                        <rect x="14" y="14" width="7" height="7" />
-                        <rect x="3" y="14" width="7" height="7" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="blocks_found">Blocks Found</span>
-                    <span class="stat-value skeleton skeleton-text" id="pool_blocks_found"
-                        style="width: 50px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="last_block_found">Last Block
-                        Found</span>
-                    <span class="stat-value skeleton skeleton-text" id="last_block_found"
-                        style="width: 120px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="1" x2="12" y2="23" />
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="pool_fee">Pool Fee</span>
-                    <span class="stat-value skeleton skeleton-text" id="pool_fee"
-                        style="width: 60px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-                        <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="min_payout">Min. Payout</span>
-                    <span class="stat-value skeleton skeleton-text" id="payment_threshold"
-                        style="width: 80px;"></span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <span class="stat-label" data-i18n="port_ssl">Port / SSL</span>
-                    <span class="stat-value"><span id="pool_port" class="skeleton skeleton-text"
-                            style="width: 40px; display:inline-block;"></span> / <span
-                            id="pool_ssl_port" class="skeleton skeleton-text"
-                            style="width: 40px; display:inline-block;"></span></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hashrate Chart -->
-        <div class="chart-card reveal-on-scroll">
-            <div class="chart-header">
-                <h3>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                    </svg>
-                    <span data-i18n="chart_title">Pool Hashrate History</span>
-                </h3>
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: var(--accent-primary);">
-                        </div>
-                        <span data-i18n="pool_hashrate">Pool Hashrate</span>
-                    </div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="hashrateChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Round Progress -->
-        <div class="round-card reveal-on-scroll">
-            <h3 data-i18n="round_progress">Current Round Progress</h3>
-            <div class="round-stats">
-                <div class="round-stat">
-                    <span class="label" data-i18n="round_hashes">Round Hashes</span>
-                    <span class="value skeleton skeleton-text" id="round_hashes"
-                        style="width: 100px;"></span>
-                </div>
-                <div class="round-stat">
-                    <span class="label" data-i18n="round_luck">Round Luck</span>
-                    <span class="value">
-                        <span id="round_luck" class="luck-indicator luck-normal">--</span>
-                    </span>
-                </div>
-                <div class="round-stat">
-                    <span class="label" data-i18n="est_time">Est. Time to Block</span>
-                    <span class="value skeleton skeleton-text" id="est_block_time"
-                        style="width: 80px;"></span>
-                </div>
-                <div class="round-stat">
-                    <span class="label" data-i18n="last_template">Last Template</span>
-                    <span class="value skeleton skeleton-text" id="last_template_fetched"
-                        style="width: 60px;"></span>
-                </div>
-                <div class="round-stat" id="self_select_row" style="display:none;">
-                    <span class="label" data-i18n="self_select">Self-Select</span>
-                    <span class="value" id="allow_self_select">--</span>
-                </div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="round_progress"></div>
-            </div>
-        </div>
-
-        <!-- Blocks History -->
-        <div class="blocks-section reveal-on-scroll">
-            <div class="blocks-card">
-                <h3>
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7" />
-                        <rect x="14" y="3" width="7" height="7" />
-                        <rect x="14" y="14" width="7" height="7" />
-                        <rect x="3" y="14" width="7" height="7" />
-                    </svg>
-                    <span data-i18n="blocks_found_title">Blocks Found by Pool</span>
-                </h3>
-                <div id="blocks_container">
-                    <div class="no-workers" data-i18n="loading_blocks">Loading blocks...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-                        </section>
-
-        <!-- LOTTERY SECTION -->
-                        <!-- LOTTERY SECTION (Moved up as USP) -->
-
-                        <section id="lottery" class="lottery-section reveal-on-scroll">
-    <div class="container">
-        <div class="section-header">
-            <h2>
-                <svg viewBox="0 0 24 24" width="32" height="32" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round"
-                    style="display:inline-block; vertical-align:middle; margin-right:12px; color:var(--accent-primary);">
-                    <path
-                        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z">
-                    </path>
-                    <path d="M12 12l2.3 2.3"></path>
-                    <path d="M12 6v6"></path>
-                </svg>
-                <span data-i18n="lottery_title">Weekly Hashrate Lottery</span>
-            </h2>
-            <p data-i18n="lottery_subtitle">Mine with us and win bonuses, even without finding a
-                block!</p>
-        </div>
-
-        <div class="lottery-main-card premium-border">
-            <!-- Lottery Stats Grid -->
-            <div class="lottery-stats-grid">
-                <div class="lottery-stat-card">
-                    <div class="lottery-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                    </div>
-                    <div class="lottery-stat-content">
-                        <div class="lottery-stat-label" data-i18n="lottery_prize">Current Prize
-                        </div>
-                        <div class="lottery-stat-value gradient-text" id="lottery_prize">0.05
-                            XMR</div>
-                    </div>
-                </div>
-                <div class="lottery-stat-card">
-                    <div class="lottery-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                    </div>
-                    <div class="lottery-stat-content">
-                        <div class="lottery-stat-label" data-i18n="lottery_next_draw">Next Draw
-                        </div>
-                        <div class="lottery-stat-value" id="lottery_next_draw">Sunday 20:00
-                        </div>
-                        <div class="lottery-countdown" id="lottery_countdown"></div>
-                    </div>
-                </div>
-                <div class="lottery-stat-card">
-                    <div class="lottery-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="12" r="6"></circle>
-                            <circle cx="12" cy="12" r="2"></circle>
-                        </svg>
-                    </div>
-                    <div class="lottery-stat-content">
-                        <div class="lottery-stat-label" data-i18n="lottery_your_chances">Your
-                            Chances</div>
-                        <div class="lottery-stat-value" id="lottery_user_probability">--</div>
-                        <div class="lottery-user-shares" id="lottery_user_shares"></div>
-                    </div>
-                </div>
-                <div class="lottery-stat-card">
-                    <div class="lottery-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z">
-                            </path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                        </svg>
-                    </div>
-                    <div class="lottery-stat-content">
-                        <div class="lottery-stat-label" data-i18n="lottery_total_tickets">Total
-                            Tickets</div>
-                        <div class="lottery-stat-value" id="lottery_total_tickets">--</div>
-                        <div class="lottery-participants" id="lottery_participants"></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- How It Works -->
-            <div class="lottery-how-it-works">
-                <h4>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="display:inline-block; vertical-align:middle; margin-right:8px;">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
-                        </path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <span data-i18n="lottery_how_title">How It Works</span>
-                </h4>
-                <div class="lottery-rules">
-                    <div class="lottery-rule">
-                        <span class="lottery-rule-num">1</span>
-                        <span data-i18n="lottery_rule1">1 Valid Share = 1 Lottery Ticket</span>
-                    </div>
-                    <div class="lottery-rule">
-                        <span class="lottery-rule-num">2</span>
-                        <span data-i18n="lottery_rule2">Draw every Sunday at 20:00 CET</span>
-                    </div>
-                    <div class="lottery-rule">
-                        <span class="lottery-rule-num">3</span>
-                        <span data-i18n="lottery_rule3">More shares = Higher chances, but
-                            everyone can
-                            win!</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Winners History -->
-            <div class="lottery-winners">
-                <h4>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="display:inline-block; vertical-align:middle; margin-right:8px;">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                        <path d="M4 22h16"></path>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22">
-                        </path>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22">
-                        </path>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
-                    </svg>
-                    <span data-i18n="lottery_winners_title">Recent Winners</span>
-                </h4>
-                <div class="lottery-winners-table-wrapper">
-                    <table class="lottery-winners-table" id="lottery_winners_table">
-                        <thead>
-                            <tr>
-                                <th data-i18n="lottery_date">Date</th>
-                                <th data-i18n="lottery_winner">Winner</th>
-                                <th data-i18n="lottery_amount">Amount</th>
-                                <th>TxID</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lottery_winners_body">
-                            <tr>
-                                <td colspan="4" class="lottery-no-winners"
-                                    data-i18n="lottery_no_winners">No
-                                    winners
-                                    yet - Be the first!</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Transparency Notice -->
-            <div class="lottery-transparency">
-                <div class="transparency-badge">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        <polyline points="9 12 12 15 16 10" />
-                    </svg>
-                    <span data-i18n="lottery_transparent">100% Transparent - All transactions
-                        verified on
-                        blockchain</span>
-                </div>
-                <a href="https://github.com/jessy2027/monero-pool/blob/master/tools/lottery_bot.py"
-                    target="_blank" class="lottery-github-link">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path
-                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                    </svg>
-                    <span data-i18n="lottery_view_code">View Open Source Code</span>
-                </a>
-            </div>
-        </div>
-    </div>
-                        </section>
-
-                        <!-- WHY EUROXMR SECTION (Secondary USP) -->
-
-                        <!-- MINER SECTION (Utility) -->
-                        <section id="miner" class="miner-section reveal-on-scroll">
-    <div class="container">
-        <div class="section-header">
-            <h2 data-i18n="miner_stats_title">Miner Statistics</h2>
-            <p data-i18n="enter_wallet">Enter your wallet address to view your mining stats</p>
-        </div>
-        <div class="miner-lookup">
-            <div class="input-wrapper">
-                <input type="text" id="address"
-                    placeholder="Enter your Monero wallet address..."
-                    data-i18n="placeholder_wallet">
-                <button class="btn-primary" id="lookup_btn" data-i18n="lookup">Lookup</button>
-            </div>
-        </div>
-        <div class="miner-stats hidden" id="miner_stats">
-            <div class="miner-grid">
-                <div class="miner-card">
-                    <span class="label" data-i18n="your_hashrate">Your Hashrate</span>
-                    <span class="value" id="miner_hashrate">--</span>
-                </div>
-                <div class="miner-card">
-                    <span class="label" data-i18n="balance_due">Balance Due</span>
-                    <span class="value" id="miner_balance">--</span>
-                </div>
-                <div class="miner-card">
-                    <span class="label" data-i18n="workers">Workers</span>
-                    <span class="value" id="worker_count">--</span>
-                </div>
-                <div class="miner-card">
-                    <span class="label" data-i18n="est_earnings">Est. Daily Earnings</span>
-                    <span class="value" id="est_earnings">--</span>
-                    <span class="sub" id="est_earnings_usd"></span>
-                </div>
-            </div>
-
-            <!-- Workers Table -->
-            <div class="workers-section">
-                <div class="workers-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" />
-                            <line x1="8" y1="21" x2="16" y2="21" />
-                            <line x1="12" y1="17" x2="12" y2="21" />
-                        </svg>
-                        <span data-i18n="your_workers">Your Workers</span>
-                    </h3>
-                    <div id="workers_container">
-                        <div class="no-workers" data-i18n="loading_workers">Loading workers...
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment History -->
-            <div class="payments-section">
-                <div class="payments-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                        <span data-i18n="payment_history">Payment History</span>
-                    </h3>
-                    <div id="payments_container">
-                        <div class="no-workers" data-i18n="loading_payments">Loading payments...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-                        </section>
-
-                </div>
-
-                <!-- XMRIG CONFIG GENERATOR -->
-                <div class="config-generator reveal-on-scroll" style="margin-top: 40px;">
-                    <h4>
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="display:inline-block; vertical-align:middle; margin-right:8px;">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                            </path>
-                        </svg> <span data-i18n="config_title">XMRig Config Generator</span>
-                    </h4>
-                    <div class="config-inputs">
-                        <div class="calc-input">
-                            <label data-i18n="config_wallet">Wallet Address</label>
-                            <div class="input-validation-wrapper">
-                                <input type="text" id="config_wallet" placeholder="4..." class="validatable">
-                                <span class="validation-icon" id="wallet_validation_icon"></span>
+            <!-- STATS SECTION -->
+            <!-- STATS SECTION (Moved up for priority) -->
+            <section id="stats" class="stats-section reveal-on-scroll">
+                <div class="container">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon cyan">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path
+                                        d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                </svg>
                             </div>
-                            <span class="validation-message" id="wallet_validation_msg"></span>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="network_hashrate">Network
+                                    Hashrate</span>
+                                <span class="stat-value skeleton skeleton-text" id="network_hashrate"
+                                    style="width: 100px;"></span>
+                            </div>
                         </div>
-                        <div class="calc-input">
-                            <label data-i18n="config_worker">Worker Name</label>
-                            <input type="text" id="config_worker" placeholder="rig1" value="rig1">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <path d="M3 9h18M9 21V9" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="block_height">Block Height</span>
+                                <span class="stat-value skeleton skeleton-text" id="network_height"
+                                    style="width: 100px;"></span>
+                            </div>
                         </div>
-                        <div class="calc-input">
-                            <label data-i18n="config_ssl">Use SSL</label>
-                            <select id="config_ssl">
-                                <option value="false">No (Port 4242)</option>
-                                <option value="true">Yes (Port 4343)</option>
-                            </select>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="miners_connected_cap">Miners
+                                    Connected</span>
+                                <span class="stat-value skeleton skeleton-text" id="connected_miners_card"
+                                    style="width: 50px;"></span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="blocks_found">Blocks Found</span>
+                                <span class="stat-value skeleton skeleton-text" id="pool_blocks_found"
+                                    style="width: 50px;"></span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="last_block_found">Last Block
+                                    Found</span>
+                                <span class="stat-value skeleton skeleton-text" id="last_block_found"
+                                    style="width: 120px;"></span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23" />
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="pool_fee">Pool Fee</span>
+                                <span class="stat-value skeleton skeleton-text" id="pool_fee"
+                                    style="width: 60px;"></span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                    <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="min_payout">Min. Payout</span>
+                                <span class="stat-value skeleton skeleton-text" id="payment_threshold"
+                                    style="width: 80px;"></span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label" data-i18n="port_ssl">Port / SSL</span>
+                                <span class="stat-value"><span id="pool_port" class="skeleton skeleton-text"
+                                        style="width: 40px; display:inline-block;"></span> / <span id="pool_ssl_port"
+                                        class="skeleton skeleton-text"
+                                        style="width: 40px; display:inline-block;"></span></span>
+                            </div>
                         </div>
                     </div>
-                    <div class="config-output">
-                        <div class="config-actions">
-                            <button class="config-copy-btn" onclick="copyConfig()" data-i18n="copy">Copy</button>
-                            <button class="config-download-btn" onclick="downloadConfig()"
-                                data-i18n="download">Download</button>
+
+                    <!-- Hashrate Chart -->
+                    <div class="chart-card reveal-on-scroll">
+                        <div class="chart-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                </svg>
+                                <span data-i18n="chart_title">Pool Hashrate History</span>
+                            </h3>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-dot" style="background: var(--accent-primary);">
+                                    </div>
+                                    <span data-i18n="pool_hashrate">Pool Hashrate</span>
+                                </div>
+                            </div>
                         </div>
-                        <pre id="config_output">{
+                        <div class="chart-container">
+                            <canvas id="hashrateChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Round Progress -->
+                    <div class="round-card reveal-on-scroll">
+                        <h3 data-i18n="round_progress">Current Round Progress</h3>
+                        <div class="round-stats">
+                            <div class="round-stat">
+                                <span class="label" data-i18n="round_hashes">Round Hashes</span>
+                                <span class="value skeleton skeleton-text" id="round_hashes"
+                                    style="width: 100px;"></span>
+                            </div>
+                            <div class="round-stat">
+                                <span class="label" data-i18n="round_luck">Round Luck</span>
+                                <span class="value">
+                                    <span id="round_luck" class="luck-indicator luck-normal">--</span>
+                                </span>
+                            </div>
+                            <div class="round-stat">
+                                <span class="label" data-i18n="est_time">Est. Time to Block</span>
+                                <span class="value skeleton skeleton-text" id="est_block_time"
+                                    style="width: 80px;"></span>
+                            </div>
+                            <div class="round-stat">
+                                <span class="label" data-i18n="last_template">Last Template</span>
+                                <span class="value skeleton skeleton-text" id="last_template_fetched"
+                                    style="width: 60px;"></span>
+                            </div>
+                            <div class="round-stat" id="self_select_row" style="display:none;">
+                                <span class="label" data-i18n="self_select">Self-Select</span>
+                                <span class="value" id="allow_self_select">--</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="round_progress"></div>
+                        </div>
+                    </div>
+
+                    <!-- Blocks History -->
+                    <div class="blocks-section reveal-on-scroll">
+                        <div class="blocks-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                </svg>
+                                <span data-i18n="blocks_found_title">Blocks Found by Pool</span>
+                            </h3>
+                            <div id="blocks_container">
+                                <div class="no-workers" data-i18n="loading_blocks">Loading blocks...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOTTERY SECTION -->
+            <!-- LOTTERY SECTION (Moved up as USP) -->
+
+            <section id="lottery" class="lottery-section reveal-on-scroll">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="display:inline-block; vertical-align:middle; margin-right:12px; color:var(--accent-primary);">
+                                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z">
+                                </path>
+                                <path d="M12 12l2.3 2.3"></path>
+                                <path d="M12 6v6"></path>
+                            </svg>
+                            <span data-i18n="lottery_title">Weekly Hashrate Lottery</span>
+                        </h2>
+                        <p data-i18n="lottery_subtitle">Mine with us and win bonuses, even without finding a
+                            block!</p>
+                    </div>
+
+                    <div class="lottery-main-card premium-border">
+                        <!-- Lottery Stats Grid -->
+                        <div class="lottery-stats-grid">
+                            <div class="lottery-stat-card">
+                                <div class="lottery-stat-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                    </svg>
+                                </div>
+                                <div class="lottery-stat-content">
+                                    <div class="lottery-stat-label" data-i18n="lottery_prize">Current Prize
+                                    </div>
+                                    <div class="lottery-stat-value gradient-text" id="lottery_prize">-- XMR</div>
+                                </div>
+                            </div>
+                            <div class="lottery-stat-card">
+                                <div class="lottery-stat-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="lottery-stat-content">
+                                    <div class="lottery-stat-label" data-i18n="lottery_next_draw">Next Draw
+                                    </div>
+                                    <div class="lottery-stat-value" id="lottery_next_draw">Sunday 20:00
+                                    </div>
+                                    <div class="lottery-countdown" id="lottery_countdown"></div>
+                                </div>
+                            </div>
+                            <div class="lottery-stat-card">
+                                <div class="lottery-stat-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="6"></circle>
+                                        <circle cx="12" cy="12" r="2"></circle>
+                                    </svg>
+                                </div>
+                                <div class="lottery-stat-content">
+                                    <div class="lottery-stat-label" data-i18n="lottery_your_chances">Your
+                                        Chances</div>
+                                    <div class="lottery-stat-value" id="lottery_user_probability">--</div>
+                                    <div class="lottery-user-shares" id="lottery_user_shares"></div>
+                                </div>
+                            </div>
+                            <div class="lottery-stat-card">
+                                <div class="lottery-stat-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z">
+                                        </path>
+                                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                    </svg>
+                                </div>
+                                <div class="lottery-stat-content">
+                                    <div class="lottery-stat-label" data-i18n="lottery_total_tickets">Total
+                                        Tickets</div>
+                                    <div class="lottery-stat-value" id="lottery_total_tickets">--</div>
+                                    <div class="lottery-participants" id="lottery_participants"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- How It Works -->
+                        <div class="lottery-how-it-works">
+                            <h4>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    style="display:inline-block; vertical-align:middle; margin-right:8px;">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                    </path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <span data-i18n="lottery_how_title">How It Works</span>
+                            </h4>
+                            <div class="lottery-rules">
+                                <div class="lottery-rule">
+                                    <span class="lottery-rule-num">1</span>
+                                    <span data-i18n="lottery_rule1">1 Valid Share = 1 Lottery Ticket</span>
+                                </div>
+                                <div class="lottery-rule">
+                                    <span class="lottery-rule-num">2</span>
+                                    <span data-i18n="lottery_rule2">Draw every Sunday at 20:00 CET</span>
+                                </div>
+                                <div class="lottery-rule">
+                                    <span class="lottery-rule-num">3</span>
+                                    <span data-i18n="lottery_rule3">More shares = Higher chances, but
+                                        everyone can
+                                        win!</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Winners History -->
+                        <div class="lottery-winners">
+                            <h4>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    style="display:inline-block; vertical-align:middle; margin-right:8px;">
+                                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                                    <path d="M4 22h16"></path>
+                                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22">
+                                    </path>
+                                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22">
+                                    </path>
+                                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+                                </svg>
+                                <span data-i18n="lottery_winners_title">Recent Winners</span>
+                            </h4>
+                            <div class="lottery-winners-table-wrapper">
+                                <table class="lottery-winners-table" id="lottery_winners_table">
+                                    <thead>
+                                        <tr>
+                                            <th data-i18n="lottery_date">Date</th>
+                                            <th data-i18n="lottery_winner">Winner</th>
+                                            <th data-i18n="lottery_amount">Amount</th>
+                                            <th>TxID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lottery_winners_body">
+                                        <tr>
+                                            <td colspan="4" class="lottery-no-winners" data-i18n="lottery_no_winners">No
+                                                winners
+                                                yet - Be the first!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Transparency Notice -->
+                        <div class="lottery-transparency">
+                            <div class="transparency-badge">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    <polyline points="9 12 12 15 16 10" />
+                                </svg>
+                                <span data-i18n="lottery_transparent">100% Transparent - All transactions
+                                    verified on
+                                    blockchain</span>
+                            </div>
+                            <a href="https://github.com/jessy2027/monero-pool/blob/master/tools/lottery_bot.py"
+                                target="_blank" class="lottery-github-link">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path
+                                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                </svg>
+                                <span data-i18n="lottery_view_code">View Open Source Code</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHY EUROXMR SECTION (Secondary USP) -->
+
+            <!-- MINER SECTION (Utility) -->
+            <section id="miner" class="miner-section reveal-on-scroll">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 data-i18n="miner_stats_title">Miner Statistics</h2>
+                        <p data-i18n="enter_wallet">Enter your wallet address to view your mining stats</p>
+                    </div>
+                    <div class="miner-lookup">
+                        <div class="input-wrapper">
+                            <input type="text" id="address" placeholder="Enter your Monero wallet address..."
+                                data-i18n="placeholder_wallet">
+                            <button class="btn-primary" id="lookup_btn" data-i18n="lookup">Lookup</button>
+                        </div>
+                    </div>
+                    <div class="miner-stats hidden" id="miner_stats">
+                        <div class="miner-grid">
+                            <div class="miner-card">
+                                <span class="label" data-i18n="your_hashrate">Your Hashrate</span>
+                                <span class="value" id="miner_hashrate">--</span>
+                            </div>
+                            <div class="miner-card">
+                                <span class="label" data-i18n="balance_due">Balance Due</span>
+                                <span class="value" id="miner_balance">--</span>
+                            </div>
+                            <div class="miner-card">
+                                <span class="label" data-i18n="workers">Workers</span>
+                                <span class="value" id="worker_count">--</span>
+                            </div>
+                            <div class="miner-card">
+                                <span class="label" data-i18n="est_earnings">Est. Daily Earnings</span>
+                                <span class="value" id="est_earnings">--</span>
+                                <span class="sub" id="est_earnings_usd"></span>
+                            </div>
+                        </div>
+
+                        <!-- Workers Table -->
+                        <div class="workers-section">
+                            <div class="workers-card">
+                                <h3>
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                                        <line x1="8" y1="21" x2="16" y2="21" />
+                                        <line x1="12" y1="17" x2="12" y2="21" />
+                                    </svg>
+                                    <span data-i18n="your_workers">Your Workers</span>
+                                </h3>
+                                <div id="workers_container">
+                                    <div class="no-workers" data-i18n="loading_workers">Loading workers...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment History -->
+                        <div class="payments-section">
+                            <div class="payments-card">
+                                <h3>
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <line x1="12" y1="1" x2="12" y2="23" />
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                    </svg>
+                                    <span data-i18n="payment_history">Payment History</span>
+                                </h3>
+                                <div id="payments_container">
+                                    <div class="no-workers" data-i18n="loading_payments">Loading payments...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            </div>
+
+            <!-- XMRIG CONFIG GENERATOR -->
+            <div class="config-generator reveal-on-scroll" style="margin-top: 40px;">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        style="display:inline-block; vertical-align:middle; margin-right:8px;">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg> <span data-i18n="config_title">XMRig Config Generator</span>
+                </h4>
+                <div class="config-inputs">
+                    <div class="calc-input">
+                        <label data-i18n="config_wallet">Wallet Address</label>
+                        <div class="input-validation-wrapper">
+                            <input type="text" id="config_wallet" placeholder="4..." class="validatable">
+                            <span class="validation-icon" id="wallet_validation_icon"></span>
+                        </div>
+                        <span class="validation-message" id="wallet_validation_msg"></span>
+                    </div>
+                    <div class="calc-input">
+                        <label data-i18n="config_worker">Worker Name</label>
+                        <input type="text" id="config_worker" placeholder="rig1" value="rig1">
+                    </div>
+                    <div class="calc-input">
+                        <label data-i18n="config_ssl">Use SSL</label>
+                        <select id="config_ssl">
+                            <option value="false">No (Port 4242)</option>
+                            <option value="true">Yes (Port 4343)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config-output">
+                    <div class="config-actions">
+                        <button class="config-copy-btn" onclick="copyConfig()" data-i18n="copy">Copy</button>
+                        <button class="config-download-btn" onclick="downloadConfig()"
+                            data-i18n="download">Download</button>
+                    </div>
+                    <pre id="config_output">{
   "autosave": true,
   "cpu": true,
   "opencl": false,
@@ -922,8 +914,8 @@
     }
   ]
 }</pre>
-                    </div>
                 </div>
+            </div>
             </div>
         </section>
 
