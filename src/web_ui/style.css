@@ -657,7 +657,7 @@
          * ==========================================
          */
         .hero {
-            padding: 140px 0 80px;
+            padding: 120px 0 60px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -671,9 +671,8 @@
             left: 20%;
             width: 500px;
             height: 500px;
-            background: radial-gradient(circle, rgba(242, 104, 34, 0.15) 0%, transparent 60%);
-            filter: blur(80px);
-            animation: float 8s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(242, 104, 34, 0.08) 0%, transparent 60%);
+            filter: blur(100px);
             pointer-events: none;
         }
 
@@ -684,15 +683,14 @@
             right: 15%;
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, rgba(255, 159, 67, 0.1) 0%, transparent 60%);
-            filter: blur(60px);
-            animation: floatReverse 10s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(255, 159, 67, 0.05) 0%, transparent 60%);
+            filter: blur(80px);
             pointer-events: none;
         }
 
         /* Hero Hierarchy */
         .hero-content {
-            margin-bottom: 48px;
+            margin-bottom: 40px;
             position: relative;
             z-index: 2;
         }
@@ -722,7 +720,7 @@
             display: flex;
             gap: 16px;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
 
         .hero-btn {
@@ -1129,7 +1127,7 @@
          * ==========================================
          */
         .miner-section {
-            padding: 100px 0;
+            padding: 80px 0;
             background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-body) 100%);
             border-top: 1px solid var(--border-color);
             position: relative;
@@ -1571,12 +1569,13 @@
         .connection-box {
             padding: 48px;
             margin-top: 48px;
-            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 15, 0.9) 100%);
+            background: linear-gradient(145deg, #141419 0%, #0a0a0f 100%);
             border: 1px solid rgba(242, 104, 34, 0.15);
             border-radius: var(--border-radius);
             position: relative;
             overflow: hidden;
             box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            z-index: 1;
         }
 
         .connection-box::before {
@@ -2250,7 +2249,7 @@
          * ==========================================
          */
         .why-section {
-            padding: 100px 0;
+            padding: 80px 0;
             background: linear-gradient(180deg, var(--bg-body) 0%, var(--bg-secondary) 100%);
             position: relative;
         }
@@ -2402,8 +2401,6 @@
         }
 
         .calc-card {
-            max-width: 750px;
-            margin: 0 auto;
             background: var(--bg-card);
             backdrop-filter: var(--glass-blur);
             border: 1px solid var(--border-color);
@@ -2671,65 +2668,7 @@
          * XMRIG CONFIG GENERATOR
          * ==========================================
          */
-        .config-generator {
-            margin-top: 40px;
-            padding: 30px;
-            background: var(--bg-card);
-            border: var(--glass-border);
-            border-radius: var(--border-radius);
-        }
 
-        .config-generator h4 {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .config-inputs {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .config-output {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-        }
-
-        .config-output pre {
-            margin: 0;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--accent-secondary);
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .config-copy-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 8px 16px;
-            background: var(--accent-gradient);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .config-copy-btn:hover {
-            transform: scale(1.05);
-        }
 
         /* 
          * ==========================================
@@ -3027,18 +2966,17 @@
         .lottery-teaser {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 16px 28px;
-            margin: 32px auto;
-            max-width: 520px;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(242, 104, 34, 0.12) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.25);
-            border-radius: 60px;
+            gap: 16px;
+            padding: 12px 24px;
+            margin: 24px auto;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
             text-decoration: none;
             position: relative;
             z-index: 2;
             transition: var(--transition);
-            animation: lottery-glow 3s ease-in-out infinite;
         }
 
         @keyframes lottery-glow {
@@ -3054,14 +2992,13 @@
         }
 
         .lottery-teaser:hover {
-            transform: translateY(-3px) scale(1.02);
-            border-color: rgba(255, 215, 0, 0.5);
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(242, 104, 34, 0.18) 100%);
+            transform: translateY(-2px);
+            border-color: rgba(242, 104, 34, 0.4);
+            background: rgba(242, 104, 34, 0.08);
         }
 
         .lottery-teaser-icon {
-            font-size: 2rem;
-            animation: bounce 2s ease-in-out infinite;
+            font-size: 1.5rem;
         }
 
         @keyframes bounce {
@@ -3428,4 +3365,330 @@
             .config-actions {
                 flex-direction: column;
             }
+        }
+
+        /* ===========================================
+         * REDESIGN: Decentralization Section
+         * =========================================== */
+        .decentralization-section {
+            padding: 60px 0;
+        }
+
+        .decentralization-card {
+            background: var(--bg-card);
+            padding: 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Removed decentralization-card::before to avoid double bar with trust-stats border */
+
+        .decentralization-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--accent-gradient-subtle);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .decentralization-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--accent-primary);
+        }
+
+        .decentralization-card h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .decentralization-intro {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+
+        .decentralization-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            text-align: left;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .benefit-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .benefit-item strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .benefit-item p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .decentralization-note {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            background: rgba(242, 104, 34, 0.05);
+            padding: 16px 24px;
+            border-radius: var(--border-radius-sm);
+            border-left: 3px solid var(--accent-primary);
+            display: inline-block;
+        }
+
+        /* Why Card Highlight */
+        .why-card-highlight {
+            border: 1px solid var(--accent-primary);
+            background: rgba(242, 104, 34, 0.05);
+        }
+
+        .why-card-highlight .why-icon {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .why-card-highlight .why-icon svg {
+            color: white;
+        }
+
+        /* ===========================================
+         * REDESIGN: Lottery Terms
+         * =========================================== */
+        .lottery-terms {
+            margin-top: 24px;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .lottery-terms h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lottery-terms ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .lottery-terms li {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            padding: 6px 0 6px 20px;
+            position: relative;
+        }
+
+        .lottery-terms li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+        }
+
+        /* ===========================================
+         * REDESIGN: Footer Email Link
+         * =========================================== */
+        .footer-email-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .footer-email-link:hover {
+            color: var(--accent-secondary);
+            text-decoration: underline;
+        }
+
+        /* ===========================================
+         * REDESIGN: Footer Disclaimer
+         * =========================================== */
+        .footer-disclaimer {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--border-radius-xs);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-disclaimer strong {
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+         * REDESIGN: Hide empty hashrate
+         * =========================================== */
+        .pool-hashrate.hidden {
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .decentralization-card {
+                padding: 32px 20px;
+            }
+
+            .decentralization-card h3 {
+                font-size: 1.4rem;
+            }
+
+            .decentralization-intro {
+                font-size: 1rem;
+            }
+
+            .decentralization-benefits {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===========================================
+         * DECORATIVE SVG PATTERNS - Visual Richness
+         * =========================================== */
+        .why-section::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            width: 300px;
+            height: 300px;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='%23F26822' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            transform: translateY(-50%);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+
+
+        /* Config Generator - Premium */
+        .config-generator {
+            margin-top: 60px;
+            padding: 30px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: var(--border-radius);
+            position: relative;
+            z-index: 1;
+        }
+
+        .config-generator h4 {
+            font-size: 1.5rem;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+
+        .config-generator h4 svg {
+            color: var(--accent-primary);
+        }
+
+        .config-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .config-output {
+            background: #1e1e24;
+            /* Darker background for code block */
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .config-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .config-copy-btn,
+        .config-download-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+
+        .config-copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .config-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .config-download-btn {
+            background: rgba(242, 104, 34, 0.1);
+            color: var(--accent-primary);
+            border-color: rgba(242, 104, 34, 0.2);
+        }
+
+        .config-download-btn:hover {
+            background: rgba(242, 104, 34, 0.2);
+            transform: translateY(-1px);
+        }
+
+        #config_output {
+            margin: 0;
+            padding: 24px;
+            color: #a9b7c6;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre;
         }

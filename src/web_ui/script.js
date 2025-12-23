@@ -72,8 +72,8 @@ const translations = {
         ago: "ago",
         ago: "ago",
         // Hero
-        hero_title: "High Performance Monero Mining",
-        hero_subtitle: "Fee-free, secure, and reliable PPLNS pool in Europe.",
+        hero_title: "Decentralize Monero",
+        hero_subtitle: "Your Hash. Your Privacy. Zero Fees. European servers for privacy-conscious miners.",
         btn_start_mining: "Start Mining",
         btn_view_stats: "View Stats",
         // New features
@@ -125,7 +125,7 @@ const translations = {
         footer_tagline: "European Monero Mining Pool",
         footer_trust_ssl: "SSL Encrypted",
         footer_trust_auto: "Auto Payouts",
-        footer_trust_support: "24/7 Support",
+        footer_trust_support: "Email Support",
         // Lottery
         nav_lottery: "🎰 Lottery",
         lottery_title: "Weekly Hashrate Lottery",
@@ -163,7 +163,26 @@ const translations = {
         invalid_address_format: "Invalid address format",
         // Config Actions
         download: "Download",
-        config_downloaded: "config.json downloaded!"
+        config_downloaded: "config.json downloaded!",
+        // New redesign translations
+        why_decentralization: "Protect Monero",
+        why_decentralization_desc: "Support network decentralization - avoid 51% attacks from mega-pools",
+        decentralization_title: "Why Choose a Small Pool?",
+        decentralization_intro: "When you mine on massive pools, you're handing control of Monero's network to a few entities. If just 2-3 pools control over 51% of hashrate, they could censor transactions or undermine the privacy that makes Monero valuable.",
+        benefit1_title: "Protect Decentralization",
+        benefit1_desc: "Every miner on a small pool strengthens the network against 51% attacks",
+        benefit2_title: "Personal Support",
+        benefit2_desc: "Get real help from real humans, not automated ticket systems",
+        benefit3_title: "Exclusive Perks",
+        benefit3_desc: "Weekly lottery and bonus features unavailable on mega-pools",
+        decentralization_note: "💡 Block rewards follow the same math regardless of pool size. The only difference is frequency vs. size of payouts.",
+        lottery_terms_title: "Terms & Conditions",
+        lottery_term1: "Open to all active miners on EuroXMR.eu",
+        lottery_term2: "No purchase necessary - mining activity is the only requirement",
+        lottery_term3: "Winner selection uses cryptographically verifiable randomness",
+        lottery_term4: "All draws and payments are publicly verifiable on Monero blockchain",
+        lottery_term5: "Pool operator reserves the right to modify or discontinue the lottery",
+        footer_disclaimer: "Mining involves inherent risks including hardware costs, electricity expenses, and market volatility. EuroXMR.eu operates pool infrastructure on a best-effort basis. We are not responsible for network issues, orphaned blocks, or fluctuations in cryptocurrency value. Users must comply with all applicable laws in their jurisdiction."
     },
 
     fr: {
@@ -236,8 +255,8 @@ const translations = {
         ago: "il y a",
         ago: "il y a",
         // Hero
-        hero_title: "Minage Monero Haute Performance",
-        hero_subtitle: "Pool PPLNS européen, sécurisé et sans frais.",
+        hero_title: "Décentralisez Monero",
+        hero_subtitle: "Votre Hash. Votre Vie Privée. Zéro Frais. Serveurs européens pour mineurs soucieux de leur confidentialité.",
         btn_start_mining: "Démarrer",
         btn_view_stats: "Voir Stats",
         // New features
@@ -289,7 +308,7 @@ const translations = {
         footer_tagline: "Pool de Minage Monero Européenne",
         footer_trust_ssl: "Chiffrement SSL",
         footer_trust_auto: "Paiements Auto",
-        footer_trust_support: "Support 24/7",
+        footer_trust_support: "Support Email",
         // Lottery
         nav_lottery: "🎰 Loterie",
         lottery_title: "Loterie Hebdomadaire",
@@ -315,7 +334,26 @@ const translations = {
         // Social Proof Bar
         proof_total_paid: "XMR Payés",
         proof_blocks: "Blocs Trouvés",
-        proof_last_block: "Dernier Bloc"
+        proof_last_block: "Dernier Bloc",
+        // New redesign translations
+        why_decentralization: "Protégez Monero",
+        why_decentralization_desc: "Soutenez la décentralisation du réseau - évitez les attaques 51% des méga-pools",
+        decentralization_title: "Pourquoi choisir une petite pool ?",
+        decentralization_intro: "Quand vous minez sur des pools massives, vous confiez le contrôle du réseau Monero à quelques entités. Si 2-3 pools contrôlent plus de 51% du hashrate, elles pourraient censurer des transactions ou compromettre la confidentialité de Monero.",
+        benefit1_title: "Protégez la Décentralisation",
+        benefit1_desc: "Chaque mineur sur une petite pool renforce le réseau contre les attaques 51%",
+        benefit2_title: "Support Personnel",
+        benefit2_desc: "Obtenez de l'aide vraie de vraies personnes, pas des systèmes automatisés",
+        benefit3_title: "Avantages Exclusifs",
+        benefit3_desc: "Loterie hebdomadaire et bonus indisponibles sur les méga-pools",
+        decentralization_note: "💡 Les récompenses de blocs suivent les mêmes mathématiques quelle que soit la taille de la pool. La seule différence est la fréquence vs. la taille des paiements.",
+        lottery_terms_title: "Conditions Générales",
+        lottery_term1: "Ouvert à tous les mineurs actifs sur EuroXMR.eu",
+        lottery_term2: "Aucun achat requis - l'activité de minage est la seule condition",
+        lottery_term3: "La sélection du gagnant utilise un aléa cryptographiquement vérifiable",
+        lottery_term4: "Tous les tirages et paiements sont publiquement vérifiables sur la blockchain Monero",
+        lottery_term5: "L'opérateur de la pool se réserve le droit de modifier ou d'arrêter la loterie",
+        footer_disclaimer: "Le minage comporte des risques inhérents incluant les coûts de matériel, les dépenses d'électricité et la volatilité du marché. EuroXMR.eu opère l'infrastructure de pool au mieux. Nous ne sommes pas responsables des problèmes réseau, blocs orphelins ou fluctuations de valeur. Les utilisateurs doivent respecter les lois applicables dans leur juridiction."
     },
 
     de: {
@@ -520,8 +558,16 @@ function setCookie(name, value) {
 }
 
 function copyToClipboard(el) {
-    navigator.clipboard.writeText(el.textContent).then(function () {
+    var copiedText = el.textContent;
+    navigator.clipboard.writeText(copiedText).then(function () {
         showToast(t('copied'), 'success');
+        // GA4: Track stratum URL/port copy
+        if (typeof gtag === 'function') {
+            gtag('event', 'copy_stratum', {
+                'event_category': 'engagement',
+                'event_label': copiedText
+            });
+        }
     });
 }
 
@@ -671,8 +717,17 @@ function safelyUpdateText(id, text, isHTML) {
 }
 
 function updatePage(s) {
-    // Pool hashrate
+    // Pool hashrate - hide if empty or very low
+    var hashrateContainer = document.getElementById('pool_hashrate_container');
+    if (hashrateContainer) {
+        if (s.pool_hashrate < 100) {
+            hashrateContainer.classList.add('hidden');
+        } else {
+            hashrateContainer.classList.remove('hidden');
+        }
+    }
     safelyUpdateText('pool_hashrate', formatHashrate(s.pool_hashrate), true);
+
 
     // Network stats
     safelyUpdateText('network_hashrate', formatHashrate(s.network_hashrate), true);
@@ -936,6 +991,12 @@ lookupBtn.onclick = function () {
         setCookie('wa', wa);
         document.getElementById('miner_stats').classList.remove('hidden');
         showToast(t('wallet_saved'), 'success');
+        // GA4: Track wallet lookup (miner checking stats)
+        if (typeof gtag === 'function') {
+            gtag('event', 'wallet_lookup', {
+                'event_category': 'engagement'
+            });
+        }
         setTimeout(function () {
             fetchStats();
             fetchPayments();
@@ -1150,6 +1211,12 @@ function copyConfig() {
     const configText = document.getElementById('config_output').textContent;
     navigator.clipboard.writeText(configText).then(() => {
         showToast(t('copied'), 'success');
+        // GA4: Track config copy (conversion event)
+        if (typeof gtag === 'function') {
+            gtag('event', 'copy_config', {
+                'event_category': 'conversion'
+            });
+        }
     });
 }
 
@@ -1263,6 +1330,12 @@ function downloadConfig() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    // GA4: Track config download (conversion event)
+    if (typeof gtag === 'function') {
+        gtag('event', 'download_config', {
+            'event_category': 'conversion'
+        });
+    }
     showToast(t('config_downloaded') || 'config.json downloaded!', 'success');
 }
 

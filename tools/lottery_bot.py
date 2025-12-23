@@ -11,7 +11,7 @@ Règles:
   - Tirage tous les dimanches à 20h00
   - Prix: 0.05 XMR (ou % des frais de pool)
 
-Copyright (c) 2024, EuroXMR Pool
+Copyright (c) 2025, EuroXMR Pool
 License: MIT
 
 Usage:

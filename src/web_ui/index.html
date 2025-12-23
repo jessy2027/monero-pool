@@ -125,10 +125,9 @@
         <section class="hero reveal-on-scroll">
             <div class="container">
                 <div class="hero-content reveal-on-scroll">
-                    <h1 class="hero-title" data-i18n="hero_title">High Performance Monero Mining</h1>
-                    <p class="hero-subtitle" data-i18n="hero_subtitle">Fee-free, secure, and reliable PPLNS pool in
-                        Europe.
-                    </p>
+                    <h1 class="hero-title" data-i18n="hero_title">Decentralize Monero</h1>
+                    <p class="hero-subtitle" data-i18n="hero_subtitle">Your Hash. Your Privacy. Zero Fees. European
+                        servers for privacy-conscious miners.</p>
 
                     <div class="hero-actions">
                         <a href="#start" class="btn-primary hero-btn">
@@ -151,7 +150,7 @@
                     </div>
                 </div>
 
-                <div class="pool-hashrate reveal-on-scroll">
+                <div class="pool-hashrate reveal-on-scroll" id="pool_hashrate_container">
                     <span class="label" data-i18n="pool_hashrate">Pool Hashrate</span>
                     <div class="hashrate-value">
                         <span id="pool_hashrate" class="skeleton skeleton-text"
@@ -283,6 +282,22 @@
                         <h4 data-i18n="why_randomx">RandomX Full</h4>
                         <p data-i18n="why_randomx_desc">First pool with full RandomX fast-mode support</p>
                     </div>
+                    <div class="why-card why-card-highlight">
+                        <div class="why-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                                <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                                <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                                <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+                            </svg>
+                        </div>
+                        <h4 data-i18n="why_decentralization">Protect Monero</h4>
+                        <p data-i18n="why_decentralization_desc">Support network decentralization - avoid 51% attacks
+                            from mega-pools</p>
+                    </div>
                 </div>
                 <!-- Trust Stats -->
                 <div class="trust-stats">
@@ -303,10 +318,64 @@
                         <div class="label" data-i18n="trust_miners">Active Miners</div>
                     </div>
                 </div>
+        </section>
+
+        <!-- Why Small Pool Section - Decentralization Argument -->
+        <section class="decentralization-section reveal-on-scroll">
+            <div class="container">
+                <div class="decentralization-card premium-border">
+                    <div class="decentralization-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                            <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                            <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                            <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+                        </svg>
+                    </div>
+                    <h3 data-i18n="decentralization_title">Why Choose a Small Pool?</h3>
+                    <p class="decentralization-intro" data-i18n="decentralization_intro">
+                        When you mine on massive pools, you're handing control of Monero's network to a few entities.
+                        If just 2-3 pools control over 51% of hashrate, they could censor transactions or undermine
+                        the privacy that makes Monero valuable.
+                    </p>
+                    <div class="decentralization-benefits">
+                        <div class="benefit-item">
+                            <span class="benefit-icon">🛡️</span>
+                            <div>
+                                <strong data-i18n="benefit1_title">Protect Decentralization</strong>
+                                <p data-i18n="benefit1_desc">Every miner on a small pool strengthens the network against
+                                    51% attacks</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">👤</span>
+                            <div>
+                                <strong data-i18n="benefit2_title">Personal Support</strong>
+                                <p data-i18n="benefit2_desc">Get real help from real humans, not automated ticket
+                                    systems</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">🎰</span>
+                            <div>
+                                <strong data-i18n="benefit3_title">Exclusive Perks</strong>
+                                <p data-i18n="benefit3_desc">Weekly lottery and bonus features unavailable on mega-pools
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="decentralization-note" data-i18n="decentralization_note">
+                        💡 <em>Block rewards follow the same math regardless of pool size. The only difference is
+                            frequency vs. size of payouts.</em>
+                    </p>
+                </div>
             </div>
         </section>
 
         <section id="start" class="start-section reveal-on-scroll">
+
             <div class="container">
                 <div class="section-header">
                     <h2 data-i18n="start_title">Get Started Mining</h2>
@@ -374,7 +443,7 @@
                     <div class="calc-input-group">
                         <div class="calc-input">
                             <label data-i18n="calc_hashrate">Your Hashrate (H/s)</label>
-                            <input type="number" id="calc_hashrate_input" value="1000" min="1">
+                            <input type="number" id="calc_hashrate_input" value="42000" min="1">
                         </div>
                         <div class="calc-input">
                             <label data-i18n="calc_power">Power (W)</label>
@@ -784,6 +853,22 @@
                                 <span data-i18n="lottery_view_code">View Open Source Code</span>
                             </a>
                         </div>
+
+                        <!-- Lottery Terms -->
+                        <div class="lottery-terms">
+                            <h5 data-i18n="lottery_terms_title">Terms & Conditions</h5>
+                            <ul>
+                                <li data-i18n="lottery_term1">Open to all active miners on EuroXMR.eu</li>
+                                <li data-i18n="lottery_term2">No purchase necessary - mining activity is the only
+                                    requirement</li>
+                                <li data-i18n="lottery_term3">Winner selection uses cryptographically verifiable
+                                    randomness</li>
+                                <li data-i18n="lottery_term4">All draws and payments are publicly verifiable on Monero
+                                    blockchain</li>
+                                <li data-i18n="lottery_term5">Pool operator reserves the right to modify or discontinue
+                                    the lottery</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -867,46 +952,47 @@
 
             </div>
 
-            <!-- XMRIG CONFIG GENERATOR -->
-            <div class="config-generator reveal-on-scroll" style="margin-top: 40px;">
-                <h4>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round"
-                        style="display:inline-block; vertical-align:middle; margin-right:8px;">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                        </path>
-                    </svg> <span data-i18n="config_title">XMRig Config Generator</span>
-                </h4>
-                <div class="config-inputs">
-                    <div class="calc-input">
-                        <label data-i18n="config_wallet">Wallet Address</label>
-                        <div class="input-validation-wrapper">
-                            <input type="text" id="config_wallet" placeholder="4..." class="validatable">
-                            <span class="validation-icon" id="wallet_validation_icon"></span>
+            <!-- XMRig CONFIG GENERATOR -->
+            <div class="container">
+                <div class="config-generator reveal-on-scroll">
+                    <h4>
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                        <span data-i18n="config_title">XMRig Config Generator</span>
+                    </h4>
+                    <div class="config-inputs">
+                        <div class="calc-input">
+                            <label data-i18n="config_wallet">Wallet Address</label>
+                            <div class="input-validation-wrapper">
+                                <input type="text" id="config_wallet" placeholder="4..." class="validatable">
+                                <span class="validation-icon" id="wallet_validation_icon"></span>
+                            </div>
+                            <span class="validation-message" id="wallet_validation_msg"></span>
                         </div>
-                        <span class="validation-message" id="wallet_validation_msg"></span>
+                        <div class="calc-input">
+                            <label data-i18n="config_worker">Worker Name</label>
+                            <input type="text" id="config_worker" placeholder="rig1" value="rig1">
+                        </div>
+                        <div class="calc-input">
+                            <label data-i18n="config_ssl">Use SSL</label>
+                            <select id="config_ssl">
+                                <option value="false">No (Port 4242)</option>
+                                <option value="true">Yes (Port 4343)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="calc-input">
-                        <label data-i18n="config_worker">Worker Name</label>
-                        <input type="text" id="config_worker" placeholder="rig1" value="rig1">
-                    </div>
-                    <div class="calc-input">
-                        <label data-i18n="config_ssl">Use SSL</label>
-                        <select id="config_ssl">
-                            <option value="false">No (Port 4242)</option>
-                            <option value="true">Yes (Port 4343)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="config-output">
-                    <div class="config-actions">
-                        <button class="config-copy-btn" onclick="copyConfig()" data-i18n="copy">Copy</button>
-                        <button class="config-download-btn" onclick="downloadConfig()"
-                            data-i18n="download">Download</button>
-                    </div>
-                    <pre id="config_output">{
+                    <div class="config-output">
+                        <div class="config-actions">
+                            <button class="config-copy-btn" onclick="copyConfig()" data-i18n="copy">Copy</button>
+                            <button class="config-download-btn" onclick="downloadConfig()"
+                                data-i18n="download">Download</button>
+                        </div>
+                        <pre id="config_output">{
   "autosave": true,
   "cpu": true,
   "opencl": false,
@@ -923,8 +1009,8 @@
     }
   ]
 }</pre>
+                    </div>
                 </div>
-            </div>
             </div>
         </section>
 
@@ -1050,10 +1136,11 @@
                     </div>
                     <div class="footer-trust-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
                         </svg>
-                        <span data-i18n="footer_trust_support">24/7 Support</span>
+                        <a href="mailto:contact@euroxmr.eu" class="footer-email-link"
+                            data-i18n="footer_trust_support">Email Support</a>
                     </div>
                 </div>
 
@@ -1062,18 +1149,22 @@
                     <a href="#stats" data-i18n="nav_dashboard">Dashboard</a>
                     <a href="#miner" data-i18n="nav_miner">Miner Stats</a>
                     <a href="#start" data-i18n="nav_start">Get Started</a>
+                    <a href="mailto:contact@euroxmr.eu">✉️ Contact</a>
                     <a href="https://github.com/jessy2027/monero-pool" target="_blank">GitHub ↗</a>
                 </div>
 
                 <!-- Footer Bottom -->
 
                 <div class="footer-bottom">
-                    <p style="margin-bottom: 10px; font-size: 0.8em; opacity: 0.7;">
-                        <strong>LEGAL NOTICE:</strong> The lottery system is strictly reserved for the owner's use.
-                        This pool is for private, non-commercial use only. Public access is prohibited.
+                    <p class="footer-disclaimer" data-i18n="footer_disclaimer">
+                        <strong>Disclaimer:</strong> Mining involves inherent risks including hardware costs,
+                        electricity expenses, and market volatility. EuroXMR.eu operates pool infrastructure on a
+                        best-effort basis. We are not responsible for network issues, orphaned blocks, or fluctuations
+                        in cryptocurrency value. Users must comply with all applicable laws in their jurisdiction
+                        regarding cryptocurrency activities.
                     </p>
                     <p><span data-i18n="powered_by">Powered by</span> <a href="https://github.com/jtgrassie/monero-pool"
-                            target="_blank">JT-Pool</a> • © 2024 EuroXMR</p>
+                            target="_blank">JT-Pool</a> • © 2025 EuroXMR</p>
                 </div>
 
             </div>
