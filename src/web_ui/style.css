@@ -3692,3 +3692,114 @@
             overflow-x: auto;
             white-space: pre;
         }
+
+        /* ===========================================
+         * DISCORD FLOATING BUBBLE
+         * =========================================== */
+        .discord-bubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4),
+                        0 0 40px rgba(88, 101, 242, 0.2);
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-decoration: none;
+            animation: discord-pulse 2s ease-in-out infinite;
+        }
+
+        .discord-bubble svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .discord-bubble:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 32px rgba(88, 101, 242, 0.6),
+                        0 0 60px rgba(88, 101, 242, 0.3);
+        }
+
+        .discord-bubble:hover svg {
+            transform: scale(1.1);
+        }
+
+        .discord-bubble:active {
+            transform: scale(0.95);
+        }
+
+        /* Discord Bubble Tooltip */
+        .discord-bubble-tooltip {
+            position: absolute;
+            right: 70px;
+            background: rgba(20, 20, 25, 0.95);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .discord-bubble-tooltip::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: rgba(20, 20, 25, 0.95);
+        }
+
+        .discord-bubble:hover .discord-bubble-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        /* Discord Pulse Animation */
+        @keyframes discord-pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4),
+                            0 0 40px rgba(88, 101, 242, 0.2);
+            }
+            50% {
+                box-shadow: 0 4px 30px rgba(88, 101, 242, 0.6),
+                            0 0 60px rgba(88, 101, 242, 0.3);
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .discord-bubble {
+                width: 52px;
+                height: 52px;
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .discord-bubble svg {
+                width: 26px;
+                height: 26px;
+            }
+
+            .discord-bubble-tooltip {
+                display: none;
+            }
+        }
