@@ -3803,3 +3803,34 @@
                 display: none;
             }
         }
+
+        /* Pool Launch Notice */
+        .pool-launch-notice {
+            background: linear-gradient(135deg, rgba(242, 104, 34, 0.1) 0%, rgba(255, 159, 67, 0.05) 100%);
+            border: 1px solid rgba(242, 104, 34, 0.2);
+            border-radius: var(--border-radius-sm);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .launch-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-secondary);
+            margin-bottom: 8px;
+        }
+
+        .launch-badge svg {
+            color: var(--accent-primary);
+        }
+
+        .launch-message {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }

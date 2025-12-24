@@ -183,7 +183,9 @@ const translations = {
         lottery_term4: "All draws and payments are publicly verifiable on Monero blockchain",
         lottery_term5: "Pool operator reserves the right to modify or discontinue the lottery",
         footer_disclaimer: "Mining involves inherent risks including hardware costs, electricity expenses, and market volatility. EuroXMR.eu operates pool infrastructure on a best-effort basis. We are not responsible for network issues, orphaned blocks, or fluctuations in cryptocurrency value. Users must comply with all applicable laws in their jurisdiction.",
-        discord_join: "Join Discord"
+        discord_join: "Join Discord",
+        pool_launch_date: "🚀 Pool launched December 2024",
+        pool_launch_message: "We're a new pool growing our hashrate. Join our early miners and help decentralize Monero!"
     },
 
     fr: {
@@ -355,7 +357,9 @@ const translations = {
         lottery_term4: "Tous les tirages et paiements sont publiquement vérifiables sur la blockchain Monero",
         lottery_term5: "L'opérateur de la pool se réserve le droit de modifier ou d'arrêter la loterie",
         footer_disclaimer: "Le minage comporte des risques inhérents incluant les coûts de matériel, les dépenses d'électricité et la volatilité du marché. EuroXMR.eu opère l'infrastructure de pool au mieux. Nous ne sommes pas responsables des problèmes réseau, blocs orphelins ou fluctuations de valeur. Les utilisateurs doivent respecter les lois applicables dans leur juridiction.",
-        discord_join: "Rejoindre Discord"
+        discord_join: "Rejoindre Discord",
+        pool_launch_date: "🚀 Pool lancé en Décembre 2024",
+        pool_launch_message: "Nous sommes un nouveau pool en pleine croissance. Rejoignez nos premiers mineurs et aidez à décentraliser Monero !"
     },
 
     de: {
@@ -394,7 +398,9 @@ const translations = {
         calc_profit: "Nettogewinn/Monat",
         faq_title: "Häufig gestellte Fragen",
         copied: "In Zwischenablage kopiert!",
-        discord_join: "Discord beitreten"
+        discord_join: "Discord beitreten",
+        pool_launch_date: "🚀 Pool gestartet im Dezember 2024",
+        pool_launch_message: "Wir sind ein neuer Pool, der seine Hashrate aufbaut. Schließen Sie sich unseren Early Miners an und helfen Sie, Monero zu dezentralisieren!"
     },
     es: {
         tagline: "Pool de Minería Monero",
@@ -432,7 +438,9 @@ const translations = {
         calc_profit: "Ganancia Neta/Mes",
         faq_title: "Preguntas Frecuentes",
         copied: "¡Copiado al portapapeles!",
-        discord_join: "Unirse a Discord"
+        discord_join: "Unirse a Discord",
+        pool_launch_date: "🚀 Pool lanzado en Diciembre 2024",
+        pool_launch_message: "Somos un nuevo pool que está creciendo. ¡Únete a nuestros primeros mineros y ayuda a descentralizar Monero!"
     },
     ru: {
         tagline: "Пул для майнинга Monero",
@@ -470,7 +478,9 @@ const translations = {
         calc_profit: "Чистая прибыль/месяц",
         faq_title: "Часто задаваемые вопросы",
         copied: "Скопировано в буфер обмена!",
-        discord_join: "Присоединиться к Discord"
+        discord_join: "Присоединиться к Discord",
+        pool_launch_date: "🚀 Пул запущен в Декабре 2024",
+        pool_launch_message: "Мы новый пул, наращивающий хешрейт. Присоединяйтесь к нашим первым майнерам и помогите децентрализовать Monero!"
     }
 };
 

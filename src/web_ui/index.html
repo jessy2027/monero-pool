@@ -46,16 +46,69 @@
         gtag('js', new Date());
         gtag('config', 'G-XE3D1CVVB7');
     </script>
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "EuroXMR",
+        "url": "https://euroxmr.eu",
+        "logo": "https://euroxmr.eu/og-image.png",
+        "description": "European Monero Mining Pool with 0% fees, PPLNS payouts, and SSL support",
+        "foundingDate": "2025-12",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "contact@euroxmr.eu",
+            "contactType": "customer support"
+        },
+        "sameAs": [
+            "https://github.com/jessy2027/monero-pool"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is PPLNS and how does it work?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "PPLNS (Pay Per Last N Shares) is a payout system that rewards miners based on their contribution to the last N shares before a block is found. This system discourages pool hopping and rewards loyal miners."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "When will I receive my payment?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Payments are processed automatically when your balance reaches the minimum threshold of 0.005 XMR."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is SSL/TLS connection recommended?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes! SSL/TLS encrypts your connection and prevents ISP throttling. Use port 4343 with stratum+ssl:// for encrypted mining."
+                }
+            }
+        ]
+    }
+    </script>
     <meta name="msapplication-TileColor" content="#F26822">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <!-- Chart.js for hashrate visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- Particles.js for animated background -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <!-- Chart.js for hashrate visualization (deferred for performance) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Particles.js for animated background (deferred for performance) -->
+    <script defer src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="./style.css">
 
 </head>
@@ -665,6 +718,23 @@
                                 </svg>
                                 <span data-i18n="blocks_found_title">Blocks Found by Pool</span>
                             </h3>
+                            <!-- Pool Launch Context -->
+                            <div class="pool-launch-notice" id="pool_launch_notice">
+                                <div class="launch-badge">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                                        </path>
+                                        <path
+                                            d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                                        </path>
+                                    </svg>
+                                    <span data-i18n="pool_launch_date">🚀 Pool launched December 2025</span>
+                                </div>
+                                <p class="launch-message" data-i18n="pool_launch_message">We're a new pool growing our
+                                    hashrate. Join our early miners and help decentralize Monero!</p>
+                            </div>
                             <div id="blocks_container">
                                 <div class="no-workers" data-i18n="loading_blocks">Loading blocks...</div>
                             </div>
