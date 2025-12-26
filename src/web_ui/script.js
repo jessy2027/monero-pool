@@ -7,6 +7,8 @@ const translations = {
         nav_dashboard: "Dashboard",
         nav_miner: "Miner Stats",
         nav_start: "Get Started",
+        nav_privacy: "Privacy Policy",
+        footer_cookies: "(No cookies used)",
         live: "Live",
         pool_hashrate: "Pool Hashrate",
         pool_online: "Pool Online",
@@ -69,11 +71,16 @@ const translations = {
         invalid_addr: "Invalid Monero address",
         copied: "Copied to clipboard!",
         never: "Never",
+        awaiting_first_block: "Awaiting First Block (New Pool)",
         ago: "ago",
-        ago: "ago",
-        // Hero
-        hero_title: "Decentralize Monero",
-        hero_subtitle: "Your Hash. Your Privacy. Zero Fees. European servers for privacy-conscious miners.",
+        // Hero - Updated for Quick Connect
+        hero_title: "Mine Monero Now",
+        hero_subtitle: "0% Fee • European Servers • SSL • PPLNS",
+        security_phrase: "No KYC – No tracking – No JavaScript mining",
+        new_to_mining: "New to Monero mining? Start here",
+        connect_miner: "Connect your miner:",
+        replace_wallet: "Replace YOUR_WALLET with your Monero address",
+        generate_config: "Generate config.json with your wallet",
         btn_start_mining: "Start Mining",
         btn_view_stats: "View Stats",
         // New features
@@ -127,7 +134,7 @@ const translations = {
         footer_trust_auto: "Auto Payouts",
         footer_trust_support: "Email Support",
         // Lottery
-        nav_lottery: "🎰 Lottery",
+        nav_lottery: "Lottery",
         lottery_title: "Weekly Hashrate Lottery",
         lottery_subtitle: "Mine with us and win bonuses, even without finding a block!",
         lottery_prize: "Current Prize",
@@ -145,6 +152,15 @@ const translations = {
         lottery_no_winners: "No winners yet - Be the first!",
         lottery_transparent: "100% Transparent - All transactions verified on blockchain",
         lottery_view_code: "View Open Source Code",
+        // Trust & Contact
+        about_title: "Who runs this pool?",
+        about_text: "EuroXMR is operated by an independent European miner dedicated to decentralization. We prioritize transparency, stability, and zero fees to support the Monero network.",
+        independent_miner: "Pool operated by an independent European miner",
+        contact_title: "Contact & Support",
+        contact_discord: "Discord Community",
+        discord_join_action: "Join Server",
+        privacy_title: "Privacy & Security",
+        privacy_text: "We respect your anonymity. EuroXMR does not require account registration or KYC. We do not store personal data or IP addresses permanently. No tracking cookies are used on this site.",
         // Hero Lottery Teaser
         lottery_teaser_title: "Weekly Lottery",
         lottery_teaser_next: "Next Draw",
@@ -184,7 +200,7 @@ const translations = {
         lottery_term5: "Pool operator reserves the right to modify or discontinue the lottery",
         footer_disclaimer: "Mining involves inherent risks including hardware costs, electricity expenses, and market volatility. EuroXMR.eu operates pool infrastructure on a best-effort basis. We are not responsible for network issues, orphaned blocks, or fluctuations in cryptocurrency value. Users must comply with all applicable laws in their jurisdiction.",
         discord_join: "Join Discord",
-        pool_launch_date: "🚀 Pool launched December 2024",
+        pool_launch_date: "Pool launched December 2025",
         pool_launch_message: "We're a new pool growing our hashrate. Join our early miners and help decentralize Monero!"
     },
 
@@ -192,7 +208,9 @@ const translations = {
         tagline: "Pool de Minage Monero",
         nav_dashboard: "Tableau de Bord",
         nav_miner: "Statistiques",
-        nav_start: "Démarrer",
+        nav_start: "Commencer",
+        nav_privacy: "Politique de Confidentialité",
+        footer_cookies: "(Aucun cookie utilisé)",
         live: "En Direct",
         pool_hashrate: "Hashrate du Pool",
         pool_online: "Pool En Ligne",
@@ -255,11 +273,17 @@ const translations = {
         invalid_addr: "Adresse Monero invalide",
         copied: "Copié dans le presse-papier !",
         never: "Jamais",
+        awaiting_first_block: "En attente du 1er bloc (Nouveau Pool)",
         ago: "il y a",
         ago: "il y a",
-        // Hero
-        hero_title: "Décentralisez Monero",
-        hero_subtitle: "Votre Hash. Votre Vie Privée. Zéro Frais. Serveurs européens pour mineurs soucieux de leur confidentialité.",
+        // Hero - Updated for Quick Connect
+        hero_title: "Minez Monero Maintenant",
+        hero_subtitle: "0% Frais • Serveurs Européens • SSL • PPLNS",
+        security_phrase: "Sans KYC – Sans tracking – Sans minage JavaScript",
+        new_to_mining: "Nouveau dans le minage ? Commencez ici",
+        connect_miner: "Connectez votre mineur :",
+        replace_wallet: "Remplacez YOUR_WALLET par votre adresse Monero",
+        generate_config: "Générer config.json avec votre portefeuille",
         btn_start_mining: "Démarrer",
         btn_view_stats: "Voir Stats",
         // New features
@@ -291,6 +315,15 @@ const translations = {
         config_worker: "Nom du Worker",
         config_ssl: "Utiliser SSL",
         copy: "Copier",
+        // Trust & Contact
+        about_title: "Qui gère cette pool ?",
+        about_text: "EuroXMR est gérée par un mineur indépendant européen dédié à la décentralisation. Nous privilégions la transparence, la stabilité et le zéro frais pour soutenir le réseau Monero.",
+        independent_miner: "Pool opérée par un mineur indépendant européen",
+        contact_title: "Contact & Support",
+        contact_discord: "Communauté Discord",
+        discord_join_action: "Rejoindre le serveur",
+        privacy_title: "Confidentialité & Sécurité",
+        privacy_text: "Nous respectons votre anonymat. EuroXMR ne demande aucune inscription ni KYC. Nous ne stockons pas de données personnelles ni d'adresses IP de manière permanente. Aucun cookie de suivi n'est utilisé.",
         faq_title: "Questions Fréquentes",
         faq_q1: "Qu'est-ce que PPLNS et comment ça fonctionne ?",
         faq_a1: "PPLNS (Pay Per Last N Shares) est un système de paiement qui récompense les mineurs selon leur contribution aux N derniers shares avant qu'un bloc soit trouvé. Ce système décourage le pool-hopping et récompense les mineurs fidèles.",
@@ -313,7 +346,7 @@ const translations = {
         footer_trust_auto: "Paiements Auto",
         footer_trust_support: "Support Email",
         // Lottery
-        nav_lottery: "🎰 Loterie",
+        nav_lottery: "Loterie",
         lottery_title: "Loterie Hebdomadaire",
         lottery_subtitle: "Minez chez nous et gagnez des bonus, même sans trouver de bloc !",
         lottery_prize: "Cagnotte Actuelle",
@@ -358,7 +391,7 @@ const translations = {
         lottery_term5: "L'opérateur de la pool se réserve le droit de modifier ou d'arrêter la loterie",
         footer_disclaimer: "Le minage comporte des risques inhérents incluant les coûts de matériel, les dépenses d'électricité et la volatilité du marché. EuroXMR.eu opère l'infrastructure de pool au mieux. Nous ne sommes pas responsables des problèmes réseau, blocs orphelins ou fluctuations de valeur. Les utilisateurs doivent respecter les lois applicables dans leur juridiction.",
         discord_join: "Rejoindre Discord",
-        pool_launch_date: "🚀 Pool lancé en Décembre 2024",
+        pool_launch_date: "Pool lancé en Décembre 2025",
         pool_launch_message: "Nous sommes un nouveau pool en pleine croissance. Rejoignez nos premiers mineurs et aidez à décentraliser Monero !"
     },
 
@@ -398,8 +431,10 @@ const translations = {
         calc_profit: "Nettogewinn/Monat",
         faq_title: "Häufig gestellte Fragen",
         copied: "In Zwischenablage kopiert!",
+        never: "Nie",
+        awaiting_first_block: "Warten auf ersten Block (Neuer Pool)",
         discord_join: "Discord beitreten",
-        pool_launch_date: "🚀 Pool gestartet im Dezember 2024",
+        pool_launch_date: "Pool gestartet im Dezember 2025",
         pool_launch_message: "Wir sind ein neuer Pool, der seine Hashrate aufbaut. Schließen Sie sich unseren Early Miners an und helfen Sie, Monero zu dezentralisieren!"
     },
     es: {
@@ -438,8 +473,10 @@ const translations = {
         calc_profit: "Ganancia Neta/Mes",
         faq_title: "Preguntas Frecuentes",
         copied: "¡Copiado al portapapeles!",
+        never: "Nunca",
+        awaiting_first_block: "Esperando primer bloque (Nuevo Pool)",
         discord_join: "Unirse a Discord",
-        pool_launch_date: "🚀 Pool lanzado en Diciembre 2024",
+        pool_launch_date: "Pool lanzado en Diciembre 2025",
         pool_launch_message: "Somos un nuevo pool que está creciendo. ¡Únete a nuestros primeros mineros y ayuda a descentralizar Monero!"
     },
     ru: {
@@ -478,8 +515,10 @@ const translations = {
         calc_profit: "Чистая прибыль/месяц",
         faq_title: "Часто задаваемые вопросы",
         copied: "Скопировано в буфер обмена!",
+        never: "Никогда",
+        awaiting_first_block: "Ожидание первого блока (Новый пул)",
         discord_join: "Присоединиться к Discord",
-        pool_launch_date: "🚀 Пул запущен в Декабре 2024",
+        pool_launch_date: "Пул запущен в Декабре 2025",
         pool_launch_message: "Мы новый пул, наращивающий хешрейт. Присоединяйтесь к нашим первым майнерам и помогите децентрализовать Monero!"
     }
 };
@@ -538,7 +577,7 @@ function formatHashes(h) {
 }
 
 function formatTime(ts) {
-    if (!ts || ts === 0) return t('never');
+    if (!ts || ts === 0) return t('awaiting_first_block');
     var diff = Date.now() / 1000 - ts;
     var suffix = ' ' + t('ago');
     if (diff < 60) return Math.floor(diff) + 's' + suffix;
@@ -587,6 +626,87 @@ function copyToClipboard(el) {
 }
 
 // ========================================
+// Quick Connect Box Functions
+// ========================================
+var currentOS = 'linux';
+
+function copyStratum() {
+    var stratum = document.getElementById('main_stratum').textContent;
+    var btn = document.getElementById('copy_stratum_btn');
+
+    navigator.clipboard.writeText(stratum).then(function () {
+        showToast(t('copied'), 'success');
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = '✓';
+
+        setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.querySelector('span').textContent = t('copy');
+        }, 2000);
+
+        // GA4: Track stratum copy from hero
+        if (typeof gtag === 'function') {
+            gtag('event', 'copy_stratum_hero', {
+                'event_category': 'conversion',
+                'event_label': stratum
+            });
+        }
+    });
+}
+
+function switchOS(os) {
+    currentOS = os;
+
+    // Update tabs
+    document.querySelectorAll('.os-tab').forEach(function (tab) {
+        tab.classList.remove('active');
+    });
+    document.getElementById('os_' + os).classList.add('active');
+
+    // Update command
+    updateQuickCommand();
+}
+
+function initHeroOS() {
+    // Simple auto-detect for Hero tabs
+    if (navigator.userAgent.toLowerCase().includes('win')) {
+        switchOS('windows');
+    } else {
+        switchOS('linux');
+    }
+}
+
+function updateQuickCommand() {
+    var prefix = currentOS === 'linux' ? './' : '';
+    var command = prefix + 'xmrig -o euroxmr.eu:4343 --tls -u YOUR_WALLET -p rig1';
+    document.getElementById('quick_command').textContent = command;
+}
+
+function copyQuickCommand() {
+    var command = document.getElementById('quick_command').textContent;
+    var btn = document.getElementById('copy_cmd_btn');
+
+    navigator.clipboard.writeText(command).then(function () {
+        showToast(t('copied'), 'success');
+        btn.classList.add('copied');
+        btn.textContent = '✓';
+
+        setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = t('copy');
+        }, 2000);
+
+        // GA4: Track command copy
+        if (typeof gtag === 'function') {
+            gtag('event', 'copy_quick_command', {
+                'event_category': 'conversion',
+                'event_label': currentOS
+            });
+        }
+    });
+}
+
+// ========================================
 // Chart setup
 // ========================================
 var hashrateHistory = [];
@@ -594,6 +714,26 @@ var maxHistoryPoints = 30;
 var hashrateChart = null;
 
 function initChart() {
+    var chartCanvas = document.getElementById('hashrateChart');
+    if (!chartCanvas) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+            loadChartLibrary();
+            observer.disconnect();
+        }
+    });
+    observer.observe(chartCanvas);
+}
+
+function loadChartLibrary() {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+    script.onload = createChartInternal;
+    document.body.appendChild(script);
+}
+
+function createChartInternal() {
     var ctx = document.getElementById('hashrateChart').getContext('2d');
 
     // Create gradient
@@ -669,6 +809,7 @@ function initChart() {
 }
 
 function updateChart(hashrate) {
+    if (!hashrateChart) return;
     var now = new Date();
     var timeLabel = now.getHours().toString().padStart(2, '0') + ':' +
         now.getMinutes().toString().padStart(2, '0') + ':' +
@@ -1061,6 +1202,9 @@ window.onload = function () {
 
     // Initialize Scroll Reveal
     initScrollReveal();
+
+    // Auto-detect OS for Hero
+    initHeroOS();
 };
 
 // ========================================

@@ -159,6 +159,7 @@ HTMLSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.html))
 CSSSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.css))
 JSSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.js))
 PNGSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.png))
+ICOSOURCE := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.ico))
 HEADERS := $(foreach DIR,$(DIRS),$(wildcard $(DIR)/*.h))
 OBJECTS := $(addprefix $(STORE)/, $(SOURCE:.cpp=.o))
 COBJECTS := $(addprefix $(STORE)/, $(CSOURCE:.c=.o))
@@ -167,6 +168,7 @@ HTMLOBJECTS := $(addprefix $(STORE)/, $(HTMLSOURCE:.html=.o))
 CSSOBJECTS := $(addprefix $(STORE)/, $(CSSSOURCE:.css=.o))
 JSOBJECTS := $(addprefix $(STORE)/, $(JSSOURCE:.js=.o))
 PNGOBJECTS := $(addprefix $(STORE)/, $(PNGSOURCE:.png=.o))
+ICOOBJECTS := $(addprefix $(STORE)/, $(ICOSOURCE:.ico=.o))
 DFILES := $(addprefix $(STORE)/,$(SOURCE:.cpp=.d))
 CDFILES := $(addprefix $(STORE)/,$(CSOURCE:.c=.d))
 SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
@@ -174,10 +176,10 @@ SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
 
 .PHONY: clean dirs debug release preflight
 
-$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS)
+$(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS) $(ICOOBJECTS)
 	@echo Linking $(OBJECTS)...
 	$(CXX) -o $(STORE)/$(TARGET) \
-	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS) \
+	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) $(CSSOBJECTS) $(JSOBJECTS) $(PNGOBJECTS) $(ICOOBJECTS) \
 	  $(LDPARAM) $(MONERO_LIBS) \
 	  $(foreach LIBRARY, $(LIBS),-l$(LIBRARY)) \
 	  $(foreach LIB,$(LIBPATH),-L$(LIB)) \
@@ -233,6 +235,12 @@ $(STORE)/%.o: %.js
 	@rm -f $(STORE)/$*.c
 
 $(STORE)/%.o: %.png
+	@echo Creating object file for $*...
+	xxd -i $< | sed -e 's/src_//' -e 's/-/_/g' > $(STORE)/$*.c
+	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@
+	@rm -f $(STORE)/$*.c
+
+$(STORE)/%.o: %.ico
 	@echo Creating object file for $*...
 	xxd -i $< | sed -e 's/src_//' -e 's/-/_/g' > $(STORE)/$*.c
 	$(CC) $(CFLAGS)  -c $(STORE)/$*.c -o $@

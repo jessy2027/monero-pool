@@ -66,6 +66,9 @@ extern const unsigned int web_ui_script_js_len;
 extern unsigned char og_image_png[];
 extern unsigned int og_image_png_len;
 
+extern unsigned char web_ui_logo_ico[];
+extern unsigned int web_ui_logo_ico_len;
+
 static pthread_t handle;
 static struct event_base *webui_base;
 static struct evhttp *webui_httpd;
@@ -284,9 +287,15 @@ send_json_stats(struct evhttp_request *req, void *arg)
 static void
 process_request(struct evhttp_request *req, void *arg)
 {
-    const char *url = evhttp_request_get_uri(req);
+    const char *uri = evhttp_request_get_uri(req);
+    char url[2048];
     struct evbuffer *buf = NULL;
     struct evkeyvalq *hdrs_out = NULL;
+
+    /* Safe copy of URI to local buffer so we can strip query string */
+    snprintf(url, sizeof(url), "%s", uri);
+    char *q = strchr(url, '?');
+    if (q) *q = '\0';
 
     if (strstr(url, "/stats") != NULL)
     {
@@ -385,6 +394,19 @@ process_request(struct evhttp_request *req, void *arg)
         evbuffer_add(buf, og_image_png, og_image_png_len);
         hdrs_out = evhttp_request_get_output_headers(req);
         evhttp_add_header(hdrs_out, "Content-Type", "image/png");
+        evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=86400");
+        maybe_add_cors(req, (wui_context_t*)arg);
+        evhttp_send_reply(req, HTTP_OK, "OK", buf);
+        return;
+    }
+
+    /* Serve logo.ico */
+    if (strcmp(url, "/logo.ico") == 0)
+    {
+        buf = evhttp_request_get_output_buffer(req);
+        evbuffer_add(buf, web_ui_logo_ico, web_ui_logo_ico_len);
+        hdrs_out = evhttp_request_get_output_headers(req);
+        evhttp_add_header(hdrs_out, "Content-Type", "image/x-icon");
         evhttp_add_header(hdrs_out, "Cache-Control", "public, max-age=86400");
         maybe_add_cors(req, (wui_context_t*)arg);
         evhttp_send_reply(req, HTTP_OK, "OK", buf);
