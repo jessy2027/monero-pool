@@ -598,7 +598,15 @@ compare_share(const MDB_val *a, const MDB_val *b)
 {
     const share_t *va = (const share_t*) a->mv_data;
     const share_t *vb = (const share_t*) b->mv_data;
-    return (va->timestamp < vb->timestamp) ? -1 : 1;
+    if (va->timestamp != vb->timestamp)
+        return (va->timestamp < vb->timestamp) ? -1 : 1;
+    /* Same timestamp - compare by address and difficulty to create unique ordering */
+    int addr_cmp = strncmp(va->address, vb->address, sizeof(va->address));
+    if (addr_cmp != 0)
+        return addr_cmp;
+    if (va->difficulty != vb->difficulty)
+        return (va->difficulty < vb->difficulty) ? -1 : 1;
+    return 0;  /* Truly identical shares */
 }
 
 static int
@@ -788,7 +796,21 @@ store_share(uint64_t height, share_t *share)
 
     MDB_val key = { sizeof(height), (void*)&height };
     MDB_val val = { sizeof(share_t), (void*)share };
-    if ((rc = mdb_cursor_put(cursor, &key, &val, MDB_APPENDDUP)))
+    /* Try fast append first, fall back to regular insert for out-of-order shares from upstream */
+    rc = mdb_cursor_put(cursor, &key, &val, MDB_APPENDDUP);
+    if (rc == MDB_KEYEXIST)
+    {
+        /* Share arrived out of order or is a duplicate - try without APPENDDUP */
+        rc = mdb_cursor_put(cursor, &key, &val, MDB_NODUPDATA);
+        if (rc == MDB_KEYEXIST)
+        {
+            /* True duplicate share - silently ignore */
+            log_debug("Ignoring duplicate share at height %"PRIu64, height);
+            mdb_txn_abort(txn);
+            return 0;
+        }
+    }
+    if (rc)
     {
         err = mdb_strerror(rc);
         log_error("%s", err);
