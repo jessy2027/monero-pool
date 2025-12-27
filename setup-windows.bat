@@ -4,8 +4,6 @@ REM Monero Pool - Windows Setup Script
 REM =============================================================================
 REM This script creates the required directory structure and prepares
 REM the configuration for Docker deployment.
-REM
-REM Run this script as Administrator!
 REM =============================================================================
 
 echo.
@@ -14,7 +12,17 @@ echo   Monero Pool - Docker Setup for Windows
 echo ============================================
 echo.
 
-REM Create main directory
+REM [0/5] Check for Administrator privileges
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo    ERROR: This script requires Administrator privileges!
+    echo    Please right-click and select "Run as Administrator".
+    echo.
+    pause
+    exit /b 1
+)
+
+REM [1/5] Creating main directory structure...
 echo [1/5] Creating main directory structure...
 if not exist "C:\MoneroPool" mkdir "C:\MoneroPool"
 if not exist "C:\MoneroPool\blockchain" mkdir "C:\MoneroPool\blockchain"
@@ -28,13 +36,17 @@ if not exist "C:\MoneroPool\lottery-output" mkdir "C:\MoneroPool\lottery-output"
 echo    Done!
 echo.
 
+REM Create .env file for Docker Compose
+echo [1/5] Configuring Docker environment...
+echo DATA_ROOT=C:\MoneroPool> .env
+echo    Created .env file with DATA_ROOT=C:\MoneroPool
+echo.
 
-REM Copy configuration
+REM [2/5] Copying configuration files...
 echo [2/5] Copying configuration files...
 if not exist "C:\MoneroPool\config\pool.conf" (
     copy "%~dp0pool.conf" "C:\MoneroPool\config\pool.conf"
     echo    Configuration copied to C:\MoneroPool\config\pool.conf
-    echo    IMPORTANT: Edit this file and set your wallet address!
 ) else (
     echo    Pool configuration already exists, skipping...
 )
@@ -52,14 +64,24 @@ if not exist "C:\MoneroPool\config\haproxy.cfg" (
 REM Create wallet password file template
 if not exist "C:\MoneroPool\config\wallet-password.txt" (
     echo CHANGEZ_CE_MOT_DE_PASSE> "C:\MoneroPool\config\wallet-password.txt"
-    echo    Wallet password file created: C:\MoneroPool\config\wallet-password.txt
-    echo    IMPORTANT: Edit this file and set a secure password!
+    echo    Wallet password file created.
 ) else (
     echo    Wallet password file already exists, skipping...
 )
 echo.
 
-REM Check Docker
+REM Validate Wallet Address
+echo    Checking configuration...
+findstr "46hcZEDqKfbEzEcchonDsbHpSKK2AkQ3X2ozg3Je78r7Xx5X4dVnaakVDjKgLU2qiHggadYM9fWcce95uCPNjz1MAJ5CyHU" "C:\MoneroPool\config\pool.conf" >nul
+if %errorLevel% equ 0 (
+    echo.
+    echo    WARNING: You are using the default wallet address in pool.conf!
+    echo    Minig rewards will go to the developer/example address.
+    echo    Please edit C:\MoneroPool\config\pool.conf immediately after setup.
+    echo.
+)
+
+REM [3/5] Checking Docker Desktop...
 echo [3/5] Checking Docker Desktop...
 docker --version >nul 2>&1
 if errorlevel 1 (
@@ -72,8 +94,8 @@ if errorlevel 1 (
 echo    Docker is installed and running.
 echo.
 
-REM Build the pool image
-echo [4/5] Building Monero Pool image...
+REM [4/5] Building Monero Pool images...
+echo [4/5] Building Monero Pool images...
 echo    This may take 15-30 minutes on first build...
 echo.
 cd /d "%~dp0"
@@ -86,7 +108,7 @@ if errorlevel 1 (
 echo    Build complete!
 echo.
 
-REM Final instructions
+REM [5/5] Setup Complete!
 echo [5/5] Setup Complete!
 echo.
 echo ============================================
@@ -96,49 +118,10 @@ echo.
 echo 1. Edit your pool configuration:
 echo    notepad C:\MoneroPool\config\pool.conf
 echo.
-echo 2. Set your Monero wallet address in pool.conf:
-echo    pool-wallet = YOUR_WALLET_ADDRESS_HERE
+echo 2. Set your Monero wallet address in pool.conf!
 echo.
 echo 3. Start the pool:
 echo    docker-compose up -d
 echo.
-echo 4. View logs:
-echo    docker-compose logs -f
-echo.
-echo 5. Access Web UI:
-echo    http://localhost:80 or http://euroxmr.eu
-echo.
-echo 6. Miners connect to:
-echo    stratum+tcp://euroxmr.eu:4242
-echo    stratum+ssl://euroxmr.eu:4343 (SSL)
-echo.
 echo ============================================
-echo   SSL SETUP (Optional):
-echo ============================================
-echo    1. Place your certificate in:
-echo       C:\MoneroPool\config\certs\euroxmr.pem
-echo    2. Start with SSL:
-echo       docker-compose --profile ssl up -d
-echo ============================================
-echo.
-echo ============================================
-echo   DATA LOCATIONS (for backup):
-echo ============================================
-echo    Pool Data:   C:\MoneroPool\pool-data
-echo    Wallet:      C:\MoneroPool\wallet
-echo    Blockchain:  C:\MoneroPool\blockchain
-echo    Config:      C:\MoneroPool\config
-echo    SSL Certs:   C:\MoneroPool\config\certs
-echo    Lottery:     C:\MoneroPool\lottery-data
-echo ============================================
-echo.
-echo ============================================
-echo   LOTTERY (Optional):
-echo ============================================
-echo    To enable the weekly lottery:
-echo    docker-compose --profile lottery up -d lottery-cron
-echo ============================================
-echo.
 pause
-
-

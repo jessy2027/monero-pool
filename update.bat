@@ -16,6 +16,14 @@ echo.
 
 cd /d "%~dp0"
 
+REM Check/Create .env for existing users
+if not exist ".env" (
+    echo [0/6] Configuring environment legacy support...
+    echo DATA_ROOT=C:\MoneroPool> .env
+    echo    Created .env file with DATA_ROOT=C:\MoneroPool (Legacy Mode)
+    echo.
+)
+
 echo [1/6] Pulling latest code from git...
 git pull
 if errorlevel 1 (

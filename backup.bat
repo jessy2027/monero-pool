@@ -8,13 +8,29 @@ REM ============================================================================
 
 setlocal enabledelayedexpansion
 
+REM Read DATA_ROOT from .env if it exists
+if exist ".env" (
+    for /f "tokens=1,2 delims==" %%A in (.env) do (
+        if "%%A"=="DATA_ROOT" set DATA_ROOT=%%B
+    )
+)
+REM Default to C:\MoneroPool if not set
+if "!DATA_ROOT!"=="" set DATA_ROOT=C:\MoneroPool
+
+echo.
+echo ============================================
+echo   Monero Pool - Backup
+echo ============================================
+echo   Data Root: %DATA_ROOT%
+echo ============================================
+
 REM Configuration
-set BACKUP_DIR=C:\MoneroPool\backups
-set POOL_DATA=C:\MoneroPool\pool-data
-set WALLET_DATA=C:\MoneroPool\wallet
-set CONFIG_DATA=C:\MoneroPool\config
-set LOTTERY_DATA=C:\MoneroPool\lottery-data
-set LOTTERY_OUTPUT=C:\MoneroPool\lottery-output
+set BACKUP_DIR=%DATA_ROOT%\backups
+set POOL_DATA=%DATA_ROOT%\pool-data
+set WALLET_DATA=%DATA_ROOT%\wallet
+set CONFIG_DATA=%DATA_ROOT%\config
+set LOTTERY_DATA=%DATA_ROOT%\lottery-data
+set LOTTERY_OUTPUT=%DATA_ROOT%\lottery-output
 set KEEP_DAYS=7
 
 
@@ -22,9 +38,7 @@ REM Create timestamp (using PowerShell for reliability)
 for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd_HH-mm'"') do set TIMESTAMP=%%I
 
 echo.
-echo ============================================
-echo   Monero Pool Backup - %TIMESTAMP%
-echo ============================================
+echo   Backup Timestamp: %TIMESTAMP%
 echo.
 
 REM Create backup directory
@@ -39,35 +53,38 @@ REM docker-compose -f "%~dp0docker-compose.yml" stop monero-pool
 REM Backup pool data
 echo [1/4] Backing up pool database...
 if exist "%POOL_DATA%" (
+    echo    Copying: %POOL_DATA%
     xcopy "%POOL_DATA%\*" "%CURRENT_BACKUP%\pool-data\" /E /I /H /Y >nul
-    echo    Pool data backed up successfully.
+    echo    Pool data backed up.
 ) else (
-    echo    WARNING: Pool data directory not found!
+    echo    WARNING: Pool data directory not found at %POOL_DATA%
 )
 
 REM Backup wallet
 echo [2/4] Backing up wallet...
 if exist "%WALLET_DATA%" (
+    echo    Copying: %WALLET_DATA%
     xcopy "%WALLET_DATA%\*" "%CURRENT_BACKUP%\wallet\" /E /I /H /Y >nul
-    echo    Wallet backed up successfully.
+    echo    Wallet backed up.
 ) else (
-    echo    WARNING: Wallet directory not found!
+    echo    WARNING: Wallet directory not found at %WALLET_DATA%
 )
 
 REM Backup config
 echo [3/4] Backing up configuration...
 if exist "%CONFIG_DATA%" (
+    echo    Copying: %CONFIG_DATA%
     xcopy "%CONFIG_DATA%\*" "%CURRENT_BACKUP%\config\" /E /I /H /Y >nul
-    echo    Configuration backed up successfully.
+    echo    Configuration backed up.
 ) else (
-    echo    WARNING: Config directory not found!
+    echo    WARNING: Config directory not found at %CONFIG_DATA%
 )
 
 REM Backup lottery data
 echo [4/4] Backing up lottery data...
 if exist "%LOTTERY_DATA%" (
     xcopy "%LOTTERY_DATA%\*" "%CURRENT_BACKUP%\lottery-data\" /E /I /H /Y >nul
-    echo    Lottery data backed up successfully.
+    echo    Lottery data backed up.
 ) else (
     echo    INFO: Lottery data directory not found (lottery may not be enabled).
 )
@@ -104,7 +121,7 @@ echo Backup location: %CURRENT_BACKUP%.zip
 echo.
 echo To restore from backup:
 echo   1. Stop the pool: docker-compose down
-echo   2. Extract backup to C:\MoneroPool\
+echo   2. Extract backup to %DATA_ROOT%
 echo   3. Start the pool: docker-compose up -d
 echo.
 
