@@ -3031,6 +3031,26 @@ trusted_on_client_share(client_t *client)
     pool_stats.round_hashes += s.difficulty;
     client->hr_stats.diff_since += s.difficulty;
     hr_update(&client->hr_stats);
+
+    /* Update account stats */
+    account_t *account = NULL;
+    pthread_rwlock_wrlock(&rwlock_acc);
+    HASH_FIND_STR(accounts, s.address, account);
+    if (!account)
+    {
+        account = gbag_get(bag_accounts);
+        strncpy(account->address, s.address, ADDRESS_MAX-1);
+        account->worker_count = 1;
+        account->connected_since = time(NULL);
+        account->hashes = 0;
+        HASH_ADD_STR(accounts, address, account);
+        account_count++;
+    }
+    account->hashes += s.difficulty;
+    account->hr_stats.diff_since += s.difficulty;
+    hr_update(&account->hr_stats);
+    pthread_rwlock_unlock(&rwlock_acc);
+
     if ((rc = store_share(s.height, &s)))
         log_warn("Failed to store share: %s", mdb_strerror(rc));
     trusted_send_stats(client);
