@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Primary Meta Tags -->
-    <title>EuroXMR Mining - European Monero Pool (No Fees)</title>
-    <meta name="title" content="EuroXMR Mining - European Monero Pool (No Fees)">
+    <title>EuroXMR - Global Monero Pool (No Fees)</title>
+    <meta name="title" content="EuroXMR - Global Monero Pool (No Fees)">
     <meta name="description"
-        content="EuroXMR Mining - The trusted European Monero Mining Pool. 0% fees, PPLNS payouts, low 0.005 XMR threshold. Secure, transparent, and fair. Not affiliated with Euroxen.">
+        content="EuroXMR - The trusted Global Monero Mining Pool with nodes in Europe and USA. 0% fees, PPLNS payouts, low 0.005 XMR threshold. Secure, transparent, and fair.">
     <meta name="keywords"
-        content="Monero, XMR, mining pool, EuroXMR, minage, crypto, cryptocurrency, RandomX, PPLNS, Europe, gratuit, pool minage, mineur Monero, safe mining">
+        content="Monero, XMR, mining pool, EuroXMR, minage, crypto, cryptocurrency, RandomX, PPLNS, Europe, USA, Global, gratuit, pool minage, mineur Monero, safe mining">
     <meta name="author" content="EuroXMR">
     <meta name="robots" content="index, follow">
     <meta name="language" content="French, English">
@@ -21,9 +21,9 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://euroxmr.eu/">
-    <meta property="og:title" content="EuroXMR - Pool de Minage Monero Européen">
+    <meta property="og:title" content="EuroXMR - Global Monero Mining Pool">
     <meta property="og:description"
-        content="Rejoignez la pool Monero européenne sans frais. Paiements PPLNS rapides, seuil bas de 0.005 XMR, serveurs haute performance.">
+        content="Join the global Monero pool with 0% fees. Fast PPLNS payouts, low 0.005 XMR threshold, high-performance servers in EU & USA.">
     <meta property="og:image" content="https://euroxmr.eu/og-image.png">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:locale:alternate" content="en_US">
@@ -31,9 +31,9 @@
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://euroxmr.eu/">
-    <meta property="twitter:title" content="EuroXMR - Pool de Minage Monero Européen">
+    <meta property="twitter:title" content="EuroXMR - Global Monero Mining Pool">
     <meta property="twitter:description"
-        content="Rejoignez la pool Monero européenne sans frais. Paiements PPLNS rapides, seuil bas de 0.005 XMR.">
+        content="Join the global Monero pool with 0% fees. Fast PPLNS payouts, low 0.005 XMR threshold, nodes in EU & USA.">
     <meta property="twitter:image" content="https://euroxmr.eu/og-image.png">
 
     <!-- Additional SEO -->
@@ -56,9 +56,9 @@
         "name": "EuroXMR Mining Pool",
         "url": "https://euroxmr.eu",
         "logo": "https://euroxmr.eu/og-image.png",
-        "description": "Premium European Monero Mining Pool with 0% fees, PPLNS payouts, and SSL security. Transparent and fair.",
+        "description": "Premium Global Monero Mining Pool with 0% fees, PPLNS payouts, and SSL security. Nodes in Europe and USA. Transparent and fair.",
         "foundingDate": "2025-12",
-        "areaServed": "Europe",
+        "areaServed": ["Europe", "North America"],
         "knowsAbout": "Monero Mining",
         "contactPoint": {
             "@type": "ContactPoint",
@@ -581,26 +581,34 @@
                 </div>
                 <div class="connection-box">
                     <h3 data-i18n="conn_details">Connection Details</h3>
-                    <div class="conn-grid">
-                        <div class="conn-item">
-                            <div class="label" data-i18n="stratum_url">Stratum URL</div>
-                            <code id="stratum_url" onclick="copyToClipboard(this)">stratum+tcp://euroxmr.eu:4242</code>
+                    <div class="conn-grid-wrapper">
+                        <div class="region-block">
+                            <h4 class="region-title" data-i18n="region_eu">Europe</h4>
+                            <div class="conn-grid">
+                                <div class="conn-item">
+                                    <div class="label" data-i18n="stratum_eu">Stratum TCP</div>
+                                    <code id="stratum_url"
+                                        onclick="copyToClipboard(this)">stratum+tcp://euroxmr.eu:4242</code>
+                                </div>
+                                <div class="conn-item">
+                                    <div class="label" data-i18n="stratum_eu_ssl">Stratum SSL 🔒</div>
+                                    <code onclick="copyToClipboard(this)">stratum+ssl://euroxmr.eu:4343</code>
+                                </div>
+                            </div>
                         </div>
-                        <div class="conn-item">
-                            <div class="label" data-i18n="stratum_ssl_url">Stratum SSL 🔒</div>
-                            <code onclick="copyToClipboard(this)">stratum+ssl://euroxmr.eu:4343</code>
-                        </div>
-                        <div class="conn-item">
-                            <div class="label" data-i18n="username">Username</div>
-                            <code onclick="copyToClipboard(this)">YOUR_WALLET_ADDRESS</code>
-                        </div>
-                        <div class="conn-item">
-                            <div class="label" data-i18n="password">Password</div>
-                            <code onclick="copyToClipboard(this)">x</code>
-                        </div>
-                        <div class="conn-item">
-                            <div class="label" data-i18n="algorithm">Algorithm</div>
-                            <code>RandomX</code>
+
+                        <div class="region-block" style="margin-top: 1.5rem;">
+                            <h4 class="region-title" data-i18n="region_us">USA</h4>
+                            <div class="conn-grid">
+                                <div class="conn-item">
+                                    <div class="label" data-i18n="stratum_us">Stratum TCP</div>
+                                    <code onclick="copyToClipboard(this)">stratum+tcp://us.euroxmr.eu:4242</code>
+                                </div>
+                                <div class="conn-item">
+                                    <div class="label" data-i18n="stratum_us_ssl">Stratum SSL 🔒</div>
+                                    <code onclick="copyToClipboard(this)">stratum+ssl://us.euroxmr.eu:4343</code>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

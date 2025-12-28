@@ -36,10 +36,10 @@ if not exist "C:\MoneroPool\lottery-output" mkdir "C:\MoneroPool\lottery-output"
 echo    Done!
 echo.
 
-REM Create .env file for Docker Compose
+REM Create .env file for Docker Compose (Strict Enforcement)
 echo [1/5] Configuring Docker environment...
 echo DATA_ROOT=C:\MoneroPool> .env
-echo    Created .env file with DATA_ROOT=C:\MoneroPool
+echo    Enforced .env file with DATA_ROOT=C:\MoneroPool
 echo.
 
 REM [2/5] Copying configuration files...
@@ -100,6 +100,10 @@ echo    This may take 15-30 minutes on first build...
 echo.
 cd /d "%~dp0"
 docker-compose build
+echo    Building Lottery service...
+docker-compose --profile lottery build
+echo    Building SSL Gateway (HAProxy)...
+docker-compose --profile ssl build
 if errorlevel 1 (
     echo    ERROR: Failed to build Docker images!
     pause

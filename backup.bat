@@ -8,14 +8,8 @@ REM ============================================================================
 
 setlocal enabledelayedexpansion
 
-REM Read DATA_ROOT from .env if it exists
-if exist ".env" (
-    for /f "tokens=1,2 delims==" %%A in (.env) do (
-        if "%%A"=="DATA_ROOT" set DATA_ROOT=%%B
-    )
-)
-REM Default to C:\MoneroPool if not set
-if "!DATA_ROOT!"=="" set DATA_ROOT=C:\MoneroPool
+REM Hardcoded Paths
+set DATA_ROOT=C:\MoneroPool
 
 echo.
 echo ============================================

@@ -6,12 +6,15 @@ set -e
 # =============================================================================
 
 # Default config
-DATA_ROOT="./data"
+# Hardcoded path
+DATA_ROOT="/opt/monero-pool"
 
-# Read from .env if exists
+# Read from .env only if needed for other vars, but force DATA_ROOT
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
+# Re-enforce DATA_ROOT just in case
+DATA_ROOT="/opt/monero-pool"
 
 BACKUP_DIR="$DATA_ROOT/backups"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")

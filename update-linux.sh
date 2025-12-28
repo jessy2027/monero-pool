@@ -12,11 +12,10 @@ echo "============================================"
 echo ""
 
 # Check environment
-if [ ! -f .env ]; then
-    echo "WARNING: .env file not found/configured."
-    echo "Creating default .env with DATA_ROOT=./data"
-    echo "DATA_ROOT=./data" > .env
-fi
+# Enforce .env
+echo "[0/6] Enforcing environment..."
+echo "DATA_ROOT=/opt/monero-pool" > .env
+echo "   Enforced .env file with DATA_ROOT=/opt/monero-pool"
 
 # [1/6] Pulling latest code...
 echo "[1/6] Pulling latest code from git..."

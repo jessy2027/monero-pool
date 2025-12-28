@@ -11,9 +11,15 @@ echo "  Monero Pool - Docker Setup for Linux"
 echo "============================================"
 echo ""
 
+# Check for root
+if [ "$EUID" -ne 0 ]; then
+  echo "ERROR: Please run as root (required for /opt/monero-pool installation)"
+  exit 1
+fi
+
 # Configuration
-# Default to creating data directory in the current folder
-DATA_DIR="./data"
+# Hardcoded installation path
+DATA_DIR="/opt/monero-pool"
 
 # [1/5] Checking Docker...
 echo "[1/5] Checking Docker..."
@@ -71,6 +77,10 @@ fi
 echo "[4/5] Building Monero Pool images..."
 echo "   This may take a while..."
 docker compose build
+echo "   Building Lottery service..."
+docker compose --profile lottery build
+echo "   Building SSL Gateway (HAProxy)..."
+docker compose --profile ssl build
 
 # [5/5] Setup Complete
 echo ""
