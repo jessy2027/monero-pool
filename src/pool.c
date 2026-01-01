@@ -5082,13 +5082,6 @@ run(void)
         pthread_detach(trusted_th);
     }
 
-    if (*config.upstream_host && config.upstream_port)
-    {
-        log_info("Starting upstream connection to: %s:%d",
-                config.upstream_host, config.upstream_port);
-        upstream_connect();
-    }
-
     timer_template = evtimer_new(pool_base, timer_on_template, NULL);
     timer_on_template(-1, EV_TIMEOUT, NULL);
 
@@ -5100,11 +5093,19 @@ run(void)
         timer_on_10m(-1, EV_TIMEOUT, NULL);
     }
 
+    /* Create upstream timers BEFORE connecting, since the event callback may need them */
     if (*config.upstream_host)
     {
         timer_10s = evtimer_new(pool_base, timer_on_10s, NULL);
         timer_30s = evtimer_new(pool_base, timer_on_30s, NULL);
         timer_on_30s(-1, EV_TIMEOUT, NULL);
+    }
+
+    if (*config.upstream_host && config.upstream_port)
+    {
+        log_info("Starting upstream connection to: %s:%d",
+                config.upstream_host, config.upstream_port);
+        upstream_connect();
     }
 
     event_base_dispatch(pool_base);
