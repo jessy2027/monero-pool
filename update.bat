@@ -16,11 +16,7 @@ echo.
 
 cd /d "%~dp0"
 
-REM Enforce .env for Docker Compose
-echo [0/6] Check/Enforce Environment...
-echo DATA_ROOT=C:\MoneroPool> .env
-echo    Enforced .env file with DATA_ROOT=C:\MoneroPool
-echo.
+
 
 echo [1/6] Pulling latest code from git...
 git pull
@@ -56,7 +52,7 @@ echo [2/6] Rebuilding ALL Docker images...
 echo    This may take several minutes...
 
 REM Build core services
-docker-compose build --no-cache monerod monero-wallet-rpc monero-pool
+docker compose -f docker-compose.windows.yml build --no-cache monerod monero-wallet-rpc monero-pool
 if errorlevel 1 (
     echo    ERROR: Core build failed!
     pause
@@ -64,13 +60,13 @@ if errorlevel 1 (
 )
 
 REM Build lottery service (profile)
-docker-compose --profile lottery build --no-cache lottery-cron
+docker compose -f docker-compose.windows.yml --profile lottery build --no-cache lottery-cron
 if errorlevel 1 (
     echo    WARNING: Lottery build failed. Skipping...
 )
 
 REM Build haproxy service (profile)
-docker-compose --profile ssl build --no-cache haproxy
+docker compose -f docker-compose.windows.yml --profile ssl build --no-cache haproxy
 if errorlevel 1 (
     echo    WARNING: HAProxy build skipped (may not have SSL cert configured)
 )
@@ -79,17 +75,17 @@ echo    All builds complete!
 echo.
 
 echo [3/6] Restarting ALL services...
-docker-compose up -d monerod monero-wallet-rpc monero-pool
-docker-compose --profile lottery up -d lottery-cron
+docker compose -f docker-compose.windows.yml up -d monerod monero-wallet-rpc monero-pool
+docker compose -f docker-compose.windows.yml --profile lottery up -d lottery-cron
 REM Note: haproxy only started if SSL is configured
-docker-compose --profile ssl up -d haproxy 2>nul
+docker compose -f docker-compose.windows.yml --profile ssl up -d haproxy 2>nul
 echo    All services restarted!
 goto :VERIFY
 
 :CORE_ONLY
 echo.
 echo [2/6] Rebuilding CORE Docker images (daemon, wallet, pool)...
-docker-compose build --no-cache monerod monero-wallet-rpc monero-pool
+docker compose -f docker-compose.windows.yml build --no-cache monerod monero-wallet-rpc monero-pool
 if errorlevel 1 (
     echo    ERROR: Build failed!
     pause
@@ -99,7 +95,7 @@ echo    Build complete!
 echo.
 
 echo [3/6] Restarting CORE services...
-docker-compose up -d monerod monero-wallet-rpc monero-pool
+docker compose -f docker-compose.windows.yml up -d monerod monero-wallet-rpc monero-pool
 if errorlevel 1 (
     echo    ERROR: Failed to restart!
     pause
@@ -111,7 +107,7 @@ goto :VERIFY
 :POOL_ONLY
 echo.
 echo [2/6] Rebuilding monero-pool...
-docker-compose build --no-cache monero-pool
+docker compose -f docker-compose.windows.yml build --no-cache monero-pool
 if errorlevel 1 (
     echo    ERROR: Build failed!
     pause
@@ -121,7 +117,7 @@ echo    Build complete!
 echo.
 
 echo [3/6] Restarting monero-pool...
-docker-compose up -d monero-pool
+docker compose -f docker-compose.windows.yml up -d monero-pool
 if errorlevel 1 (
     echo    ERROR: Failed to restart!
     pause
@@ -133,7 +129,7 @@ goto :VERIFY
 :LOTTERY_ONLY
 echo.
 echo [2/6] Rebuilding lottery-cron...
-docker-compose --profile lottery build --no-cache lottery-cron
+docker compose -f docker-compose.windows.yml --profile lottery build --no-cache lottery-cron
 if errorlevel 1 (
     echo    ERROR: Build failed!
     pause
@@ -143,7 +139,7 @@ echo    Build complete!
 echo.
 
 echo [3/6] Restarting lottery-cron...
-docker-compose --profile lottery up -d lottery-cron
+docker compose -f docker-compose.windows.yml --profile lottery up -d lottery-cron
 if errorlevel 1 (
     echo    ERROR: Failed to restart!
     pause
@@ -160,13 +156,13 @@ timeout /t 5 /nobreak >nul
 echo.
 echo [5/6] Service Status:
 echo ============================================
-docker-compose ps
-docker-compose --profile lottery ps 2>nul
+docker compose -f docker-compose.windows.yml ps
+docker compose -f docker-compose.windows.yml --profile lottery ps 2>nul
 echo.
 
 echo [6/6] Health Check:
 echo ============================================
-docker-compose ps --format "{{.Name}}: {{.Status}}"
+docker compose -f docker-compose.windows.yml ps --format "{{.Name}}: {{.Status}}"
 echo.
 
 echo ============================================
@@ -174,8 +170,9 @@ echo   Update Complete!
 echo ============================================
 echo.
 echo Useful commands:
-echo   View pool logs:     docker-compose logs -f monero-pool
-echo   View lottery logs:  docker-compose logs -f lottery-cron
-echo   View all logs:      docker-compose logs -f
+echo   View pool logs:     docker compose -f docker-compose.windows.yml logs -f monero-pool
+echo   View lottery logs:  docker compose -f docker-compose.windows.yml logs -f lottery-cron
+echo   View all logs:      docker compose -f docker-compose.windows.yml logs -f
 echo.
 pause
+

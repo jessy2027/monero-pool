@@ -36,11 +36,7 @@ if not exist "C:\MoneroPool\lottery-output" mkdir "C:\MoneroPool\lottery-output"
 echo    Done!
 echo.
 
-REM Create .env file for Docker Compose (Strict Enforcement)
-echo [1/5] Configuring Docker environment...
-echo DATA_ROOT=C:\MoneroPool> .env
-echo    Enforced .env file with DATA_ROOT=C:\MoneroPool
-echo.
+
 
 REM [2/5] Copying configuration files...
 echo [2/5] Copying configuration files...
@@ -99,11 +95,11 @@ echo [4/5] Building Monero Pool images...
 echo    This may take 15-30 minutes on first build...
 echo.
 cd /d "%~dp0"
-docker-compose build
+docker compose -f docker-compose.windows.yml build
 echo    Building Lottery service...
-docker-compose --profile lottery build
+docker compose -f docker-compose.windows.yml --profile lottery build
 echo    Building SSL Gateway (HAProxy)...
-docker-compose --profile ssl build
+docker compose -f docker-compose.windows.yml --profile ssl build
 if errorlevel 1 (
     echo    ERROR: Failed to build Docker images!
     pause
@@ -125,7 +121,8 @@ echo.
 echo 2. Set your Monero wallet address in pool.conf!
 echo.
 echo 3. Start the pool:
-echo    docker-compose up -d
+echo    docker compose -f docker-compose.windows.yml up -d
 echo.
 echo ============================================
 pause
+

@@ -41,10 +41,7 @@ mkdir -p "$DATA_DIR/lottery-data"
 mkdir -p "$DATA_DIR/lottery-output"
 echo "   Done!"
 
-# Configure .env
-echo "   Configuring environment..."
-echo "DATA_ROOT=$DATA_DIR" > .env
-echo "   Created .env file with DATA_ROOT=$DATA_DIR"
+
 
 # [3/5] Copying configuration files...
 echo "[3/5] Copying configuration files..."
@@ -76,11 +73,11 @@ fi
 # [4/5] Building Docker images...
 echo "[4/5] Building Monero Pool images..."
 echo "   This may take a while..."
-docker compose build
+docker compose -f docker-compose.linux.yml build
 echo "   Building Lottery service..."
-docker compose --profile lottery build
+docker compose -f docker-compose.linux.yml --profile lottery build
 echo "   Building SSL Gateway (HAProxy)..."
-docker compose --profile ssl build
+docker compose -f docker-compose.linux.yml --profile ssl build
 
 # [5/5] Setup Complete
 echo ""
@@ -91,6 +88,7 @@ echo "1. Edit your pool configuration:"
 echo "   nano $DATA_DIR/config/pool.conf"
 echo ""
 echo "2. Start the pool:"
-echo "   docker compose up -d"
+echo "   docker compose -f docker-compose.linux.yml up -d"
 echo ""
 echo "============================================"
+
