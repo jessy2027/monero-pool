@@ -179,7 +179,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 enum block_status { BLOCK_LOCKED, BLOCK_UNLOCKED, BLOCK_ORPHANED };
 enum stratum_mode { MODE_NORMAL, MODE_SELF_SELECT };
 enum msgbin_type  { BIN_PING, BIN_CONNECT, BIN_DISCONNECT, BIN_SHARE,
-                    BIN_BLOCK, BIN_STATS, BIN_BALANCE };
+                    BIN_BLOCK, BIN_STATS, BIN_BALANCE, BIN_ADD_MINER, BIN_DEL_MINER };
 const unsigned char msgbin[] = {0x4D,0x4E,0x52,0x4F,0x50,0x4F,0x4F,0x4C};
 
 /* 2m, 10m, 30m, 1h, 1d, 1w */
@@ -382,6 +382,7 @@ static time_t upstream_last_time;
 static uint64_t upstream_last_height;
 static uint32_t account_count;
 static client_t *clients_by_fd = NULL;
+static client_t *remote_clients = NULL;
 static account_t *accounts = NULL;
 static gbag_t *bag_accounts;
 static gbag_t *bag_clients;
@@ -2849,15 +2850,20 @@ upstream_send_account_disconnect(void)
 }
 
 static void
-upstream_send_client_share(share_t *share)
+upstream_send_client_share(share_t *share, const char *client_id)
 {
     struct evbuffer *output = bufferevent_get_output(upstream_event);
-    size_t z = 9 + sizeof(share_t);
+    size_t z = 9 + sizeof(share_t) + 32;
     char data[z];
+    char empty[32] = {0};
     int t = BIN_SHARE;
     memcpy(data, msgbin, 8);
     memcpy(data+8, &t, 1);
-    memcpy(data+9, share, z-9);
+    memcpy(data+9, share, sizeof(share_t));
+    if (client_id)
+        memcpy(data+9+sizeof(share_t), client_id, 32);
+    else
+        memcpy(data+9+sizeof(share_t), empty, 32);
     evbuffer_add(output, data, z);
     bool update_req = false;
     if (share->height > upstream_last_height)
@@ -2874,6 +2880,36 @@ upstream_send_client_share(share_t *share)
         store_last_height_time();
     log_trace("Sending share upstream: %"PRIu64", %"PRIu64", %"PRIu64,
             share->difficulty, share->height, share->timestamp);
+}
+
+static void
+upstream_send_add_miner(client_t *client)
+{
+    struct evbuffer *output = bufferevent_get_output(upstream_event);
+    size_t z = 9 + 32 + ADDRESS_MAX + MAX_RIG_ID;
+    char data[z];
+    int t = BIN_ADD_MINER;
+    memcpy(data, msgbin, 8);
+    memcpy(data+8, &t, 1);
+    memcpy(data+9, client->client_id, 32);
+    memcpy(data+9+32, client->address, ADDRESS_MAX);
+    memcpy(data+9+32+ADDRESS_MAX, client->rig_id, MAX_RIG_ID);
+    evbuffer_add(output, data, z);
+    log_trace("Sending miner add upstream: %.32s", client->client_id);
+}
+
+static void
+upstream_send_del_miner(client_t *client)
+{
+    struct evbuffer *output = bufferevent_get_output(upstream_event);
+    size_t z = 9 + 32;
+    char data[z];
+    int t = BIN_DEL_MINER;
+    memcpy(data, msgbin, 8);
+    memcpy(data+8, &t, 1);
+    memcpy(data+9, client->client_id, 32);
+    evbuffer_add(output, data, z);
+    log_trace("Sending miner del upstream: %.32s", client->client_id);
 }
 
 static void
@@ -2955,7 +2991,7 @@ upstream_send_backlog(void)
         share_t *s = (share_t*) v.mv_data;
         if (s->timestamp <= t)
             continue;
-        upstream_send_client_share(s);
+        upstream_send_client_share(s, NULL);
     }
     op = MDB_SET;
     while (1)
@@ -2977,7 +3013,14 @@ upstream_send_backlog(void)
     mdb_cursor_close(curshr);
     mdb_cursor_close(curblk);
     mdb_txn_abort(txn);
-    upstream_send_account_connect(pool_stats.connected_accounts);
+    mdb_txn_abort(txn);
+    // Sync all current clients
+    client_t *c = (client_t*)gbag_first(bag_clients);
+    while ((c = gbag_next(bag_clients, 0)))
+    {
+        if (c->downstream) continue;
+        upstream_send_add_miner(c);
+    }
 }
 
 static void
@@ -3016,6 +3059,104 @@ trusted_on_account_disconnect(client_t *client)
 }
 
 static void
+client_find_remote(const char *client_id, client_t **client)
+{
+    pthread_rwlock_rdlock(&rwlock_cfd);
+    HASH_FIND(hh, remote_clients, client_id, 32, *client);
+    pthread_rwlock_unlock(&rwlock_cfd);
+}
+
+static void
+client_add_remote(const char *client_id, const char *address, const char *rig_id)
+{
+    client_t *c = NULL;
+    /* Check if exists first */
+    client_find_remote(client_id, &c);
+    if (c) return;
+
+    bool resize = gbag_used(bag_clients) == gbag_max(bag_clients);
+    if (resize)
+    {
+        pthread_mutex_lock(&mutex_clients);
+        while (clients_reading)
+            pthread_cond_wait(&cond_clients, &mutex_clients);
+        c = gbag_get(bag_clients);
+        pthread_mutex_unlock(&mutex_clients);
+    }
+    else
+        c = gbag_get(bag_clients);
+    
+    c->fd = -1;
+    memcpy(c->client_id, client_id, 32);
+    strncpy(c->address, address, ADDRESS_MAX-1);
+    strncpy(c->rig_id, rig_id, MAX_RIG_ID-1);
+    c->connected_since = time(NULL);
+    c->downstream = false;
+    
+    /* Add to account */
+    account_t *account = NULL;
+    pthread_rwlock_rdlock(&rwlock_acc);
+    HASH_FIND_STR(accounts, c->address, account);
+    pthread_rwlock_unlock(&rwlock_acc);
+    if (!account)
+    {
+        account = gbag_get(bag_accounts);
+        strncpy(account->address, c->address, sizeof(account->address)-1);
+        account->worker_count = 1;
+        account->connected_since = time(NULL);
+        account->hashes = 0;
+        pthread_rwlock_wrlock(&rwlock_acc);
+        HASH_ADD_STR(accounts, address, account);
+        pthread_rwlock_unlock(&rwlock_acc);
+        pool_stats.connected_accounts++;
+    }
+    else
+        account->worker_count++;
+
+    pthread_rwlock_wrlock(&rwlock_cfd);
+    HASH_ADD(hh, remote_clients, client_id, 32, c);
+    pthread_rwlock_unlock(&rwlock_cfd);
+    
+    log_trace("Added remote miner: %.32s", client_id);
+}
+
+static void
+client_del_remote(const char *client_id)
+{
+    client_t *client = NULL;
+    client_find_remote(client_id, &client);
+    if (!client) return;
+
+    account_t *account = NULL;
+    bool removed_account = false;
+    pthread_rwlock_wrlock(&rwlock_acc);
+    HASH_FIND_STR(accounts, client->address, account);
+    if (account)
+    {
+        if (account->worker_count <= 1)
+        {
+            HASH_DEL(accounts, account);
+            removed_account = true;
+        }
+        else
+            account->worker_count--;
+    }
+    pthread_rwlock_unlock(&rwlock_acc);
+    if (removed_account)
+    {
+        pool_stats.connected_accounts--;
+        gbag_put(bag_accounts, account);
+    }
+    
+    client_clear_jobs(client);
+    pthread_rwlock_wrlock(&rwlock_cfd);
+    HASH_DELETE(hh, remote_clients, client);
+    pthread_rwlock_unlock(&rwlock_cfd);
+    gbag_put(bag_clients, client);
+    log_trace("Removed remote miner: %.32s", client_id);
+}
+
+static void
 trusted_on_client_share(client_t *client)
 {
     /*
@@ -3024,19 +3165,47 @@ trusted_on_client_share(client_t *client)
     struct evbuffer *input = bufferevent_get_input(client->bev);
     share_t s;
     int rc = 0;
+    size_t len = evbuffer_get_length(input); // Check remaining length
+    
     evbuffer_remove(input, (void*)&s, sizeof(share_t));
+    
+    // Check for client_id
+    char cid[32] = {0};
+    if (evbuffer_get_length(input) >= 32)
+    {
+         evbuffer_remove(input, cid, 32);
+         client_t *remote = NULL;
+         client_find_remote(cid, &remote);
+         if (remote)
+         {
+             remote->hashes += s.difficulty;
+             remote->hr_stats.diff_since += s.difficulty;
+             hr_update(&remote->hr_stats);
+             
+             account_t *account = NULL;
+             pthread_rwlock_rdlock(&rwlock_acc);
+             HASH_FIND_STR(accounts, remote->address, account);
+             if (account)
+             {
+                 account->hashes += s.difficulty;
+                 account->hr_stats.diff_since += s.difficulty;
+                 hr_update(&account->hr_stats);
+             }
+             pthread_rwlock_unlock(&rwlock_acc);
+         }
+    }
+    
     log_debug("Received share from downstream with difficulty: %"PRIu64,
             s.difficulty);
-    client->hashes += s.difficulty;
+    
     pool_stats.round_hashes += s.difficulty;
-    client->hr_stats.diff_since += s.difficulty;
-    hr_update(&client->hr_stats);
+
     if ((rc = store_share(s.height, &s)))
         log_warn("Failed to store share: %s", mdb_strerror(rc));
     trusted_send_stats(client);
     trusted_send_balance(client, s.address);
     if (upstream_event)
-        upstream_send_client_share(&s);
+        upstream_send_client_share(&s, cid);
 }
 
 static void
@@ -3419,7 +3588,7 @@ client_clear(struct bufferevent *bev)
         if (pool_stats.connected_accounts)
             pool_stats.connected_accounts--;
         if (upstream_event)
-            upstream_send_account_disconnect();
+            upstream_send_del_miner(client);
         gbag_put(bag_accounts, account);
     }
 clear:
@@ -3542,7 +3711,7 @@ miner_on_login(json_object *message, client_t *client)
         if (!client->downstream)
             pool_stats.connected_accounts++;
         if (upstream_event)
-            upstream_send_account_connect(1);
+            upstream_send_add_miner(client);
         account = gbag_get(bag_accounts);
         strncpy(account->address, address, sizeof(account->address)-1);
         account->worker_count = 1;
@@ -3988,7 +4157,7 @@ post_hash:
         stratum_get_status_body(body, client->json_id, "OK");
         evbuffer_add(output, body, strlen(body));
         if (upstream_event)
-            upstream_send_client_share(&share);
+            upstream_send_client_share(&share, client->client_id);
     }
     if (retarget_required(client, job))
     {
@@ -4173,10 +4342,34 @@ trusted_on_read(struct bufferevent *bev, void *ctx)
                 trusted_on_account_disconnect(client);
                 break;
             case BIN_SHARE:
-                if (len - 9 < sizeof(share_t))
+                if (len - 9 < sizeof(share_t) + 32)
                     goto unlock;
                 evbuffer_drain(input, 9);
                 trusted_on_client_share(client);
+                break;
+            case BIN_ADD_MINER:
+                if (len - 9 < 32 + ADDRESS_MAX + MAX_RIG_ID)
+                    goto unlock;
+                evbuffer_drain(input, 9);
+                {
+                    char cid[32] = {0};
+                    char addr[ADDRESS_MAX] = {0};
+                    char rid[MAX_RIG_ID] = {0};
+                    evbuffer_remove(input, cid, 32);
+                    evbuffer_remove(input, addr, ADDRESS_MAX);
+                    evbuffer_remove(input, rid, MAX_RIG_ID);
+                    client_add_remote(cid, addr, rid);
+                }
+                break;
+            case BIN_DEL_MINER:
+                if (len - 9 < 32)
+                    goto unlock;
+                evbuffer_drain(input, 9);
+                {
+                    char cid[32] = {0};
+                    evbuffer_remove(input, cid, 32);
+                    client_del_remote(cid);
+                }
                 break;
             case BIN_BLOCK:
                 if (len - 9 < sizeof(block_t))
@@ -5187,7 +5380,7 @@ int main(int argc, char **argv)
     snprintf(uic.allowed_origin, sizeof(uic.allowed_origin), "%s",
             config.webui_allowed_origin);
     snprintf(uic.token, sizeof(uic.token), "%s", config.webui_token);
-    if (config.webui_port)
+    if (config.webui_port && !*config.upstream_host)
         start_web_ui(&uic);
 
     run();
