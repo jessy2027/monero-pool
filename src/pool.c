@@ -179,7 +179,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 enum block_status { BLOCK_LOCKED, BLOCK_UNLOCKED, BLOCK_ORPHANED };
 enum stratum_mode { MODE_NORMAL, MODE_SELF_SELECT };
 enum msgbin_type  { BIN_PING, BIN_CONNECT, BIN_DISCONNECT, BIN_SHARE,
-                    BIN_BLOCK, BIN_STATS, BIN_BALANCE };
+                    BIN_BLOCK, BIN_STATS, BIN_BALANCE, BIN_WORKER_CONNECT,
+                    BIN_WORKER_DISCONNECT };
 const unsigned char msgbin[] = {0x4D,0x4E,0x52,0x4F,0x50,0x4F,0x4F,0x4C};
 
 /* 2m, 10m, 30m, 1h, 1d, 1w */
@@ -303,6 +304,16 @@ typedef struct account_t
     UT_hash_handle hh;
 } account_t;
 
+typedef struct downstream_worker_t
+{
+    char key[ADDRESS_MAX + MAX_RIG_ID + 1];  /* Combined key: address:rig_id */
+    char address[ADDRESS_MAX];
+    char rig_id[MAX_RIG_ID];
+    uint64_t hashrate;
+    void *source;  /* The downstream client that owns this worker */
+    UT_hash_handle hh;
+} downstream_worker_t;
+
 typedef struct share_t
 {
     uint64_t height;
@@ -383,8 +394,10 @@ static uint64_t upstream_last_height;
 static uint32_t account_count;
 static client_t *clients_by_fd = NULL;
 static account_t *accounts = NULL;
+static downstream_worker_t *downstream_workers = NULL;
 static gbag_t *bag_accounts;
 static gbag_t *bag_clients;
+static pthread_rwlock_t rwlock_dwk = PTHREAD_RWLOCK_INITIALIZER;
 static bool abattoir;
 
 extern void rx_slow_hash_free_state();
@@ -929,11 +942,20 @@ worker_count(const char *address)
     uint64_t wc = 0;
     pthread_rwlock_rdlock(&rwlock_acc);
     HASH_FIND_STR(accounts, address, account);
-    if (!account)
-        goto bail;
-    wc = (uint64_t)account->worker_count;
-bail:
+    if (account)
+        wc = (uint64_t)account->worker_count;
     pthread_rwlock_unlock(&rwlock_acc);
+    
+    /* Count downstream workers for this address */
+    pthread_rwlock_rdlock(&rwlock_dwk);
+    downstream_worker_t *dw, *tmp;
+    HASH_ITER(hh, downstream_workers, dw, tmp)
+    {
+        if (!strncmp(dw->address, address, ADDRESS_MAX))
+            wc++;
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
+    
     return wc;
 }
 
@@ -946,27 +968,46 @@ worker_list(char *list_start, char *list_end, const char *address)
 
     if (strlen(address) > ADDRESS_MAX)
         return;
+    
+    /* List local workers */
     pthread_rwlock_rdlock(&rwlock_acc);
     HASH_FIND_STR(accounts, address, account);
-    if (!account)
-        goto bail;
-
-    client_t *c = (client_t*)gbag_first(bag_clients);
-    while ((c = gbag_next(bag_clients, 0)) &&
-            body < (end - (int)(MAX_RIG_ID*2 + 32)))
+    if (account)
     {
-        if (!strncmp(c->address, address, ADDRESS_MAX))
+        client_t *c = (client_t*)gbag_first(bag_clients);
+        while ((c = gbag_next(bag_clients, 0)) &&
+                body < (end - (int)(MAX_RIG_ID*2 + 32)))
         {
-            char rig_escaped[MAX_RIG_ID*2 + 4] = {0};
-            json_escape(c->rig_id, rig_escaped, sizeof(rig_escaped));
-            if (body != list_start)
-                *body++ = ',';
-            body += sprintf(body, "\"%s\",%"PRIu64,
-                    rig_escaped, (uint64_t)(c->hr_stats.avg[1]));
+            if (!strncmp(c->address, address, ADDRESS_MAX))
+            {
+                char rig_escaped[MAX_RIG_ID*2 + 4] = {0};
+                json_escape(c->rig_id, rig_escaped, sizeof(rig_escaped));
+                if (body != list_start)
+                    *body++ = ',';
+                body += sprintf(body, "\"%s\",%"PRIu64,
+                        rig_escaped, (uint64_t)(c->hr_stats.avg[1]));
+            }
         }
     }
-bail:
     pthread_rwlock_unlock(&rwlock_acc);
+
+    /* List downstream workers */
+    pthread_rwlock_rdlock(&rwlock_dwk);
+    downstream_worker_t *dw, *tmp;
+    HASH_ITER(hh, downstream_workers, dw, tmp)
+    {
+        if (body >= (end - (int)(MAX_RIG_ID*2 + 32)))
+            break;
+        if (!strncmp(dw->address, address, ADDRESS_MAX))
+        {
+            char rig_escaped[MAX_RIG_ID*2 + 4] = {0};
+            json_escape(dw->rig_id, rig_escaped, sizeof(rig_escaped));
+            if (body != list_start)
+                *body++ = ',';
+            body += sprintf(body, "\"%s\",%"PRIu64, rig_escaped, dw->hashrate);
+        }
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
 }
 
 void
@@ -2849,6 +2890,38 @@ upstream_send_account_disconnect(void)
 }
 
 static void
+upstream_send_worker_connect(const char *address, const char *rig_id)
+{
+    struct evbuffer *output = bufferevent_get_output(upstream_event);
+    size_t z = 9 + ADDRESS_MAX + MAX_RIG_ID;
+    char data[z];
+    int t = BIN_WORKER_CONNECT;
+    memcpy(data, msgbin, 8);
+    memcpy(data+8, &t, 1);
+    memset(data+9, 0, ADDRESS_MAX + MAX_RIG_ID);
+    strncpy(data+9, address, ADDRESS_MAX-1);
+    strncpy(data+9+ADDRESS_MAX, rig_id, MAX_RIG_ID-1);
+    evbuffer_add(output, data, z);
+    log_trace("Sending worker connect upstream: %.8s, %s", address, rig_id);
+}
+
+static void
+upstream_send_worker_disconnect(const char *address, const char *rig_id)
+{
+    struct evbuffer *output = bufferevent_get_output(upstream_event);
+    size_t z = 9 + ADDRESS_MAX + MAX_RIG_ID;
+    char data[z];
+    int t = BIN_WORKER_DISCONNECT;
+    memcpy(data, msgbin, 8);
+    memcpy(data+8, &t, 1);
+    memset(data+9, 0, ADDRESS_MAX + MAX_RIG_ID);
+    strncpy(data+9, address, ADDRESS_MAX-1);
+    strncpy(data+9+ADDRESS_MAX, rig_id, MAX_RIG_ID-1);
+    evbuffer_add(output, data, z);
+    log_trace("Sending worker disconnect upstream: %.8s, %s", address, rig_id);
+}
+
+static void
 upstream_send_client_share(share_t *share)
 {
     struct evbuffer *output = bufferevent_get_output(upstream_event);
@@ -3013,6 +3086,68 @@ trusted_on_account_disconnect(client_t *client)
             pool_stats.connected_accounts,
             gbag_used(bag_clients),
             pool_stats.pool_hashrate);
+}
+
+static void
+trusted_on_worker_connect(client_t *client)
+{
+    struct evbuffer *input = bufferevent_get_input(client->bev);
+    char address[ADDRESS_MAX] = {0};
+    char rig_id[MAX_RIG_ID] = {0};
+    evbuffer_remove(input, address, ADDRESS_MAX);
+    evbuffer_remove(input, rig_id, MAX_RIG_ID);
+    
+    /* Create unique key for this worker */
+    char key[ADDRESS_MAX + MAX_RIG_ID + 1];
+    snprintf(key, sizeof(key), "%s:%s", address, rig_id);
+    
+    pthread_rwlock_wrlock(&rwlock_dwk);
+    downstream_worker_t *dw = NULL;
+    HASH_FIND_STR(downstream_workers, key, dw);
+    if (!dw)
+    {
+        dw = calloc(1, sizeof(downstream_worker_t));
+        strncpy(dw->key, key, sizeof(dw->key)-1);
+        strncpy(dw->address, address, ADDRESS_MAX-1);
+        strncpy(dw->rig_id, rig_id, MAX_RIG_ID-1);
+        dw->source = client;
+        dw->hashrate = 0;
+        HASH_ADD_STR(downstream_workers, key, dw);
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
+    
+    log_trace("Downstream worker connected: %.8s, %s", address, rig_id);
+    
+    if (upstream_event)
+        upstream_send_worker_connect(address, rig_id);
+}
+
+static void
+trusted_on_worker_disconnect(client_t *client)
+{
+    struct evbuffer *input = bufferevent_get_input(client->bev);
+    char address[ADDRESS_MAX] = {0};
+    char rig_id[MAX_RIG_ID] = {0};
+    evbuffer_remove(input, address, ADDRESS_MAX);
+    evbuffer_remove(input, rig_id, MAX_RIG_ID);
+    
+    char key[ADDRESS_MAX + MAX_RIG_ID + 1];
+    snprintf(key, sizeof(key), "%s:%s", address, rig_id);
+    
+    pthread_rwlock_wrlock(&rwlock_dwk);
+    downstream_worker_t *dw = NULL;
+    HASH_FIND_STR(downstream_workers, key, dw);
+    if (dw)
+    {
+        HASH_DEL(downstream_workers, dw);
+        free(dw);
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
+    
+    log_trace("Downstream worker disconnected: %.8s, %s", address, rig_id);
+    
+    if (upstream_event)
+        upstream_send_worker_disconnect(address, rig_id);
 }
 
 static void
@@ -3392,8 +3527,27 @@ client_clear(struct bufferevent *bev)
     {
         if (pool_stats.connected_accounts >= client->downstream_accounts)
             pool_stats.connected_accounts -= client->downstream_accounts;
+        
+        /* Remove all workers from this downstream */
+        pthread_rwlock_wrlock(&rwlock_dwk);
+        downstream_worker_t *dw, *tmp;
+        HASH_ITER(hh, downstream_workers, dw, tmp)
+        {
+            if (dw->source == client)
+            {
+                HASH_DEL(downstream_workers, dw);
+                free(dw);
+            }
+        }
+        pthread_rwlock_unlock(&rwlock_dwk);
+        
         goto clear;
     }
+    
+    /* Notify upstream of worker disconnect before removing */
+    if (upstream_event && client->address[0])
+        upstream_send_worker_disconnect(client->address, client->rig_id);
+    
     bool removed_account = false;
     pthread_rwlock_wrlock(&rwlock_acc);
     HASH_FIND_STR(accounts, client->address, account);
@@ -3559,6 +3713,10 @@ miner_on_login(json_object *message, client_t *client)
     uuid_generate(cid);
     bin_to_hex((const unsigned char*)cid, sizeof(uuid_t), client->client_id);
     miner_send_job(client, true);
+    
+    /* Notify upstream of new worker */
+    if (upstream_event)
+        upstream_send_worker_connect(client->address, client->rig_id);
 }
 
 static void
@@ -4183,6 +4341,18 @@ trusted_on_read(struct bufferevent *bev, void *ctx)
                     goto unlock;
                 evbuffer_drain(input, 9);
                 trusted_on_client_block(client);
+                break;
+            case BIN_WORKER_CONNECT:
+                if (len - 9 < ADDRESS_MAX + MAX_RIG_ID)
+                    goto unlock;
+                evbuffer_drain(input, 9);
+                trusted_on_worker_connect(client);
+                break;
+            case BIN_WORKER_DISCONNECT:
+                if (len - 9 < ADDRESS_MAX + MAX_RIG_ID)
+                    goto unlock;
+                evbuffer_drain(input, 9);
+                trusted_on_worker_disconnect(client);
                 break;
             default:
                 log_warn("[%s:%d] Unknown message: %d",
