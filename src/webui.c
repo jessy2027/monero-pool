@@ -274,7 +274,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
             "}", ph, rh, nh, nd, height, ltf, lbf, pbf,
             context->payment_threshold, context->pool_fee,
             context->pool_port, context->pool_ssl_port,
-            ss, context->pool_stats->connected_accounts,
+            ss, get_unique_miner_count(),
             (uint64_t)mh[1],
             (uint64_t)mh[0], (uint64_t)mh[1], (uint64_t)mh[2],
             (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, wc);

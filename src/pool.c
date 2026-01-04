@@ -959,6 +959,38 @@ worker_count(const char *address)
     return wc;
 }
 
+uint32_t
+get_unique_miner_count(void)
+{
+    /* Start with count of local accounts */
+    uint32_t count = account_count;
+    
+    /* Count downstream addresses that are not already in local accounts */
+    pthread_rwlock_rdlock(&rwlock_dwk);
+    downstream_worker_t *dw, *tmp;
+    char last_address[ADDRESS_MAX] = {0};
+    
+    HASH_ITER(hh, downstream_workers, dw, tmp)
+    {
+        /* Skip if same address as previous (avoid counting same downstream address twice) */
+        if (!strncmp(last_address, dw->address, ADDRESS_MAX))
+            continue;
+        strncpy(last_address, dw->address, ADDRESS_MAX - 1);
+        
+        /* Check if this address exists in local accounts */
+        account_t *acc = NULL;
+        pthread_rwlock_rdlock(&rwlock_acc);
+        HASH_FIND_STR(accounts, dw->address, acc);
+        pthread_rwlock_unlock(&rwlock_acc);
+        
+        if (!acc)
+            count++;
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
+    
+    return count;
+}
+
 void
 worker_list(char *list_start, char *list_end, const char *address)
 {
@@ -3051,6 +3083,14 @@ upstream_send_backlog(void)
     mdb_cursor_close(curblk);
     mdb_txn_abort(txn);
     upstream_send_account_connect(pool_stats.connected_accounts);
+    
+    /* Send all currently connected workers to upstream */
+    client_t *c = (client_t*)gbag_first(bag_clients);
+    while ((c = gbag_next(bag_clients, 0)))
+    {
+        if (c->address[0])
+            upstream_send_worker_connect(c->address, c->rig_id);
+    }
 }
 
 static void

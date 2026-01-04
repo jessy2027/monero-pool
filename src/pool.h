@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void account_hr(double *avg, const char *address);
 uint64_t account_balance(const char *address);
 uint64_t worker_count(const char *address);
+uint32_t get_unique_miner_count(void);
 void worker_list(char *list_start, char *list_end, const char *address);
 void block_list(char *list_start, char *list_end, int limit);
 void payment_list(char *list_start, char *list_end, const char *address, int limit);
