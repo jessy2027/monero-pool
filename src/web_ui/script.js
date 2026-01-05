@@ -947,8 +947,8 @@ function updatePage(s) {
     var host = window.location.hostname || 'euroxmr.eu';
     safelyUpdateText('stratum_url', 'stratum+tcp://' + host + ':' + s.pool_port, true);
 
-    // Miner stats
-    if (s.miner_hashrate > 0 || s.miner_balance > 0) {
+    // Miner stats - also show if worker_count > 0 (for downstream workers)
+    if (s.miner_hashrate > 0 || s.miner_balance > 0 || s.worker_count > 0) {
         document.getElementById('miner_stats').classList.remove('hidden');
         safelyUpdateText('miner_hashrate', formatHashrate(s.miner_hashrate), true);
         safelyUpdateText('miner_balance', s.miner_balance.toFixed(8) + ' XMR', true);

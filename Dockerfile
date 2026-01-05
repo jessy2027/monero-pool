@@ -38,7 +38,7 @@ RUN git clone --recursive --depth 1 --branch ${MONERO_VERSION} \
     https://github.com/monero-project/monero.git
 
 WORKDIR /build/monero
-RUN make -j$(nproc) release
+RUN make -j4 release
 
 # -----------------------------------------------------------------------------
 # Stage 2: Build monero-pool

@@ -126,6 +126,7 @@ send_json_workers(struct evhttp_request *req, void *arg)
     const char *wa = fetch_wa_cookie(req);
     wui_context_t *context = (wui_context_t*) arg;
 
+
     if (!is_token_valid(req, context) || !wa)
     {
         maybe_add_cors(req, context);

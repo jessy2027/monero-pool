@@ -180,7 +180,7 @@ enum block_status { BLOCK_LOCKED, BLOCK_UNLOCKED, BLOCK_ORPHANED };
 enum stratum_mode { MODE_NORMAL, MODE_SELF_SELECT };
 enum msgbin_type  { BIN_PING, BIN_CONNECT, BIN_DISCONNECT, BIN_SHARE,
                     BIN_BLOCK, BIN_STATS, BIN_BALANCE, BIN_WORKER_CONNECT,
-                    BIN_WORKER_DISCONNECT };
+                    BIN_WORKER_DISCONNECT, BIN_WORKER_HASHRATE };
 const unsigned char msgbin[] = {0x4D,0x4E,0x52,0x4F,0x50,0x4F,0x4F,0x4C};
 
 /* 2m, 10m, 30m, 1h, 1d, 1w */
@@ -2954,6 +2954,25 @@ upstream_send_worker_disconnect(const char *address, const char *rig_id)
 }
 
 static void
+upstream_send_worker_hashrate(const char *address, const char *rig_id, uint64_t hashrate)
+{
+    if (!upstream_event)
+        return;
+    struct evbuffer *output = bufferevent_get_output(upstream_event);
+    size_t z = 9 + ADDRESS_MAX + MAX_RIG_ID + sizeof(uint64_t);
+    char data[z];
+    int t = BIN_WORKER_HASHRATE;
+    memcpy(data, msgbin, 8);
+    memcpy(data+8, &t, 1);
+    memset(data+9, 0, ADDRESS_MAX + MAX_RIG_ID);
+    strncpy(data+9, address, ADDRESS_MAX-1);
+    strncpy(data+9+ADDRESS_MAX, rig_id, MAX_RIG_ID-1);
+    memcpy(data+9+ADDRESS_MAX+MAX_RIG_ID, &hashrate, sizeof(uint64_t));
+    evbuffer_add(output, data, z);
+    log_trace("Sending worker hashrate upstream: %.8s, %s, %"PRIu64, address, rig_id, hashrate);
+}
+
+static void
 upstream_send_client_share(share_t *share)
 {
     struct evbuffer *output = bufferevent_get_output(upstream_event);
@@ -3084,12 +3103,15 @@ upstream_send_backlog(void)
     mdb_txn_abort(txn);
     upstream_send_account_connect(pool_stats.connected_accounts);
     
-    /* Send all currently connected workers to upstream */
+    /* Send all currently connected workers and their hashrates to upstream */
     client_t *c = (client_t*)gbag_first(bag_clients);
     while ((c = gbag_next(bag_clients, 0)))
     {
         if (c->address[0])
+        {
             upstream_send_worker_connect(c->address, c->rig_id);
+            upstream_send_worker_hashrate(c->address, c->rig_id, (uint64_t)c->hr_stats.avg[1]);
+        }
     }
 }
 
@@ -3188,6 +3210,35 @@ trusted_on_worker_disconnect(client_t *client)
     
     if (upstream_event)
         upstream_send_worker_disconnect(address, rig_id);
+}
+
+static void
+trusted_on_worker_hashrate(client_t *client)
+{
+    struct evbuffer *input = bufferevent_get_input(client->bev);
+    char address[ADDRESS_MAX] = {0};
+    char rig_id[MAX_RIG_ID] = {0};
+    uint64_t hashrate = 0;
+    evbuffer_remove(input, address, ADDRESS_MAX);
+    evbuffer_remove(input, rig_id, MAX_RIG_ID);
+    evbuffer_remove(input, &hashrate, sizeof(uint64_t));
+    
+    char key[ADDRESS_MAX + MAX_RIG_ID + 1];
+    snprintf(key, sizeof(key), "%s:%s", address, rig_id);
+    
+    pthread_rwlock_wrlock(&rwlock_dwk);
+    downstream_worker_t *dw = NULL;
+    HASH_FIND_STR(downstream_workers, key, dw);
+    if (dw)
+    {
+        dw->hashrate = hashrate;
+    }
+    pthread_rwlock_unlock(&rwlock_dwk);
+    
+    log_debug("Downstream worker hashrate update: %.8s, %s, %"PRIu64, address, rig_id, hashrate);
+    
+    if (upstream_event)
+        upstream_send_worker_hashrate(address, rig_id, hashrate);
 }
 
 static void
@@ -3421,7 +3472,16 @@ static void
 timer_on_30s(int fd, short kind, void *ctx)
 {
     if (upstream_event)
+    {
         upstream_send_ping();
+        /* Send hashrate updates for all local workers to upstream */
+        client_t *c = (client_t*)gbag_first(bag_clients);
+        while ((c = gbag_next(bag_clients, 0)))
+        {
+            if (c->address[0] && !c->downstream)
+                upstream_send_worker_hashrate(c->address, c->rig_id, (uint64_t)c->hr_stats.avg[1]);
+        }
+    }
     struct timeval timeout = { .tv_sec = 30, .tv_usec = 0 };
     evtimer_add(timer_30s, &timeout);
 }
@@ -4393,6 +4453,12 @@ trusted_on_read(struct bufferevent *bev, void *ctx)
                     goto unlock;
                 evbuffer_drain(input, 9);
                 trusted_on_worker_disconnect(client);
+                break;
+            case BIN_WORKER_HASHRATE:
+                if (len - 9 < ADDRESS_MAX + MAX_RIG_ID + sizeof(uint64_t))
+                    goto unlock;
+                evbuffer_drain(input, 9);
+                trusted_on_worker_hashrate(client);
                 break;
             default:
                 log_warn("[%s:%d] Unknown message: %d",
