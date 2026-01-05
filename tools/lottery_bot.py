@@ -244,7 +244,6 @@ class HashrateLottery:
             'total_tickets': total_tickets,
             'total_participants': len(participants),
             'winner': {
-                'address': winner_wallet,
                 'address_short': format_address(winner_wallet),
                 'shares': winner_shares,
                 'probability': winner_probability
@@ -253,7 +252,6 @@ class HashrateLottery:
             'txid': None,  # À remplir manuellement après le paiement
             'top_participants': [
                 {
-                    'address': wallet,
                     'address_short': format_address(wallet),
                     'shares': shares,
                     'probability': self.calculate_probability(shares, total_tickets)
@@ -266,6 +264,18 @@ class HashrateLottery:
         if not dry_run:
             self.save_results(result)
             print(f"\n💾 Résultats sauvegardés dans: {self.results_file}")
+            
+            # Sauvegarde le fichier de paiement admin (avec adresse complète)
+            payment_file = self.results_file.replace('lottery_results.json', 'winner_payment.txt')
+            with open(payment_file, 'w', encoding='utf-8') as f:
+                f.write(f"=== LOTTERY WINNER PAYMENT INFO ===\n")
+                f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Prize: {self.prize_xmr} XMR\n")
+                f.write(f"Winner Address: {winner_wallet}\n")
+                f.write(f"Winner Shares: {winner_shares}\n")
+                f.write(f"Winner Probability: {winner_probability:.4f}%\n")
+                f.write(f"===================================\n")
+            print(f"💰 Fichier paiement: {payment_file}")
         else:
             print("\n⚠️  Mode DRY-RUN: résultats non sauvegardés")
             
