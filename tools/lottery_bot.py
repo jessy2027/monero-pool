@@ -244,6 +244,7 @@ class HashrateLottery:
             'total_tickets': total_tickets,
             'total_participants': len(participants),
             'winner': {
+                'address': winner_wallet,
                 'address_short': format_address(winner_wallet),
                 'shares': winner_shares,
                 'probability': winner_probability
@@ -252,6 +253,7 @@ class HashrateLottery:
             'txid': None,  # À remplir manuellement après le paiement
             'top_participants': [
                 {
+                    'address': wallet,
                     'address_short': format_address(wallet),
                     'shares': shares,
                     'probability': self.calculate_probability(shares, total_tickets)

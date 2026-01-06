@@ -91,6 +91,7 @@ def get_lottery_stats(db_path, period_days=7, prize_xmr=0.05):
     for wallet, shares in sorted_participants[:50]:  # Top 50
         probability = (shares / total_shares * 100) if total_shares > 0 else 0
         participants_data.append({
+            'address': wallet,
             'address_short': format_address(wallet),
             'shares': shares,
             'probability': round(probability, 4)
