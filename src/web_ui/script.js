@@ -1774,7 +1774,10 @@ function updateLotteryUI(data) {
     // Update user probability if wallet is saved
     var savedWallet = getCookie('wa');
     if (savedWallet && data.participants) {
-        var userStats = data.participants.find(p => p.address === savedWallet);
+        // Generate short address from saved wallet for comparison
+        // (server now filters full addresses for privacy)
+        var savedWalletShort = savedWallet.substring(0, 4) + '...' + savedWallet.slice(-4);
+        var userStats = data.participants.find(p => p.address_short === savedWalletShort);
         if (userStats) {
             document.getElementById('lottery_user_probability').textContent =
                 userStats.probability.toFixed(2) + '%';
