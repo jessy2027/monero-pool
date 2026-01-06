@@ -49,58 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pool.h"
 #include "webui.h"
 
-/**
- * Filter out full address fields from JSON, keeping only address_short.
- * Removes patterns like: "address": "4...", (full Monero addresses)
- * This protects user privacy while keeping short addresses for display.
- */
-static void
-filter_address_fields(char *json, size_t max_len)
-{
-    char *src = json;
-    char *dst = json;
-    
-    while (*src)
-    {
-        /* Look for "address": pattern (not "address_short") */
-        if (strncmp(src, "\"address\":", 10) == 0)
-        {
-            /* Check it's not "address_short" */
-            if (strncmp(src, "\"address_short\":", 16) != 0)
-            {
-                /* Skip the "address": key */
-                src += 10;
-                
-                /* Skip whitespace */
-                while (*src == ' ' || *src == '\t') src++;
-                
-                /* Skip the quoted value */
-                if (*src == '"')
-                {
-                    src++; /* Skip opening quote */
-                    while (*src && *src != '"')
-                    {
-                        if (*src == '\\' && *(src+1)) src++; /* Skip escaped chars */
-                        src++;
-                    }
-                    if (*src == '"') src++; /* Skip closing quote */
-                }
-                
-                /* Skip trailing comma if present */
-                while (*src == ' ' || *src == '\t') src++;
-                if (*src == ',') src++;
-                
-                /* Skip whitespace/newlines after comma */
-                while (*src == ' ' || *src == '\t' || *src == '\n' || *src == '\r') src++;
-                
-                continue;
-            }
-        }
-        *dst++ = *src++;
-    }
-    *dst = '\0';
-}
-
 /* Some libevent builds omit HTTP_FORBIDDEN; define if missing */
 #ifndef HTTP_FORBIDDEN
 #define HTTP_FORBIDDEN 403
@@ -391,9 +339,6 @@ process_request(struct evhttp_request *req, void *arg)
             size_t len = fread(lottery_buf, 1, sizeof(lottery_buf) - 1, fp);
             lottery_buf[len] = '\0';
             fclose(fp);
-            /* Filter out full addresses, keep only address_short */
-            filter_address_fields(lottery_buf, sizeof(lottery_buf));
-            len = strlen(lottery_buf);
             evbuffer_add(buf, lottery_buf, len);
             hdrs_out = evhttp_request_get_output_headers(req);
             evhttp_add_header(hdrs_out, "Content-Type", "application/json");
@@ -424,9 +369,6 @@ process_request(struct evhttp_request *req, void *arg)
             size_t len = fread(lottery_buf, 1, sizeof(lottery_buf) - 1, fp);
             lottery_buf[len] = '\0';
             fclose(fp);
-            /* Filter out full addresses, keep only address_short */
-            filter_address_fields(lottery_buf, sizeof(lottery_buf));
-            len = strlen(lottery_buf);
             evbuffer_add(buf, lottery_buf, len);
             hdrs_out = evhttp_request_get_output_headers(req);
             evhttp_add_header(hdrs_out, "Content-Type", "application/json");
