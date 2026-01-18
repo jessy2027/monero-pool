@@ -76,6 +76,32 @@ Pool de minage Monero haute performance basée sur [monero-pool](https://github.
 }
 ```
 
+### Minage Dual XMR + XTM (Tari)
+
+Pour miner simultanément XMR et XTM, utilisez le format d'adresse dual :
+
+```json
+{
+  "pools": [{
+    "url": "votre-serveur.com:4242",
+    "user": "ADRESSE_MONERO.ADRESSE_TARI",
+    "pass": "x"
+  }]
+}
+```
+
+Activez le merge mining dans `pool.conf` :
+```ini
+tari-enabled = 1
+tari-base-node-host = tari-base-node
+tari-base-node-grpc-port = 18142
+```
+
+Puis démarrez les services Tari :
+```bash
+docker compose --profile tari up -d
+```
+
 ## 🌐 Interface Web
 
 Accessible sur le port `80` : `http://votre-serveur.com`
@@ -151,6 +177,8 @@ backup.bat
 - `C:\MoneroPool\pool-data` - Base de données (balances, paiements)
 - `C:\MoneroPool\wallet` - Wallet du pool
 - `C:\MoneroPool\config\pool.conf` - Configuration
+- `C:\MoneroPool\tari-data` - Données du nœud Tari
+- `C:\MoneroPool\tari-wallet` - Wallet Tari
 
 ## 🙏 Crédits
 

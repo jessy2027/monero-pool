@@ -113,6 +113,62 @@ services:
     # Health check is defined in Dockerfile
 
   # ---------------------------------------------------------------------------
+  # Tari Base Node (for merge mining)
+  # ---------------------------------------------------------------------------
+  # Enable with: docker compose --profile tari up -d
+  # ---------------------------------------------------------------------------
+  tari-base-node:
+    image: quay.io/tarilabs/minotari_node:latest
+    container_name: tari-base-node
+    restart: unless-stopped
+    profiles: ["tari"]  # Only starts with: docker compose --profile tari up -d
+    ports:
+      - "18142:18142"  # gRPC port
+      - "18189:18189"  # P2P port
+    volumes:
+      - C:\MoneroPool\tari-data:/root/.tari
+      - C:\MoneroPool\config:/config:ro
+    environment:
+      - TARI_NETWORK=mainnet
+      - TARI_BASE_NODE__GRPC__ENABLED=true
+      - TARI_BASE_NODE__GRPC__ADDRESS=0.0.0.0:18142
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Tari Console Wallet (for XTM payouts)
+  # ---------------------------------------------------------------------------
+  tari-wallet:
+    image: quay.io/tarilabs/minotari_console_wallet:latest
+    container_name: tari-wallet
+    restart: unless-stopped
+    profiles: ["tari"]
+    depends_on:
+      - tari-base-node
+    ports:
+      - "18143:18143"  # Wallet gRPC port
+    volumes:
+      - C:\MoneroPool\tari-wallet:/root/.tari-wallet
+      - C:\MoneroPool\config:/config:ro
+    environment:
+      - TARI_NETWORK=mainnet
+      - TARI_WALLET__GRPC__ENABLED=true
+      - TARI_WALLET__GRPC__ADDRESS=0.0.0.0:18143
+      - TARI_BASE_NODE_ADDRESS=tari-base-node:18142
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
   # HAProxy for SSL Stratum (TLS termination)
   # ---------------------------------------------------------------------------
   # NOTE: This service requires a valid SSL certificate to work!

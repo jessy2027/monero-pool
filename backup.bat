@@ -75,7 +75,7 @@ if exist "%CONFIG_DATA%" (
 )
 
 REM Backup lottery data
-echo [4/4] Backing up lottery data...
+echo [4/6] Backing up lottery data...
 if exist "%LOTTERY_DATA%" (
     xcopy "%LOTTERY_DATA%\*" "%CURRENT_BACKUP%\lottery-data\" /E /I /H /Y >nul
     echo    Lottery data backed up.
@@ -84,6 +84,25 @@ if exist "%LOTTERY_DATA%" (
 )
 if exist "%LOTTERY_OUTPUT%" (
     xcopy "%LOTTERY_OUTPUT%\*" "%CURRENT_BACKUP%\lottery-output\" /E /I /H /Y >nul
+)
+
+REM Backup Tari data
+echo [5/6] Backing up Tari node data...
+set TARI_DATA=%DATA_ROOT%\tari-data
+if exist "%TARI_DATA%" (
+    xcopy "%TARI_DATA%\*" "%CURRENT_BACKUP%\tari-data\" /E /I /H /Y >nul
+    echo    Tari node data backed up.
+) else (
+    echo    INFO: Tari data not found (merge mining may not be enabled).
+)
+
+echo [6/6] Backing up Tari wallet...
+set TARI_WALLET=%DATA_ROOT%\tari-wallet
+if exist "%TARI_WALLET%" (
+    xcopy "%TARI_WALLET%\*" "%CURRENT_BACKUP%\tari-wallet\" /E /I /H /Y >nul
+    echo    Tari wallet backed up.
+) else (
+    echo    INFO: Tari wallet not found.
 )
 
 REM Restart pool if it was stopped

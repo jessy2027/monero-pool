@@ -62,6 +62,7 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev \
     libunbound-dev \
     libhidapi-dev \
+    libcurl4-openssl-dev \
     xxd \
     && rm -rf /var/lib/apt/lists/*
 
@@ -117,6 +118,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-regex1.74.0 \
     libboost-serialization1.74.0 \
     libboost-program-options1.74.0 \
+    libcurl4 \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/* \

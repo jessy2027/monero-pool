@@ -39,6 +39,8 @@ mkdir -p "$DATA_DIR/config/certs"
 mkdir -p "$DATA_DIR/backups"
 mkdir -p "$DATA_DIR/lottery-data"
 mkdir -p "$DATA_DIR/lottery-output"
+mkdir -p "$DATA_DIR/tari-data"
+mkdir -p "$DATA_DIR/tari-wallet"
 echo "   Done!"
 
 
