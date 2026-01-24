@@ -31,7 +31,7 @@ extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
  * Write varint to buffer (Monero consensus encoding)
  * Returns bytes written
  */
-static int write_varint(unsigned char *buf, uint64_t val)
+static int write_varint_internal(unsigned char *buf, uint64_t val)
 {
     int i = 0;
     while (val >= 0x80) {
@@ -46,7 +46,7 @@ static int write_varint(unsigned char *buf, uint64_t val)
  * Read varint from buffer
  * Returns bytes read, or -1 on error
  */
-static int read_varint(const unsigned char *buf, size_t max, uint64_t *val)
+static int read_varint_internal(const unsigned char *buf, size_t max, uint64_t *val)
 {
     *val = 0;
     int shift = 0;
@@ -109,17 +109,17 @@ static size_t find_tx_extra_offset(const unsigned char *blob, size_t len)
         return 0;
 
     /* Major version */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
     /* Minor version */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
     /* Timestamp */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
@@ -133,17 +133,17 @@ static size_t find_tx_extra_offset(const unsigned char *blob, size_t len)
 
     /* Now in miner TX */
     /* TX version */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
     /* Unlock time */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
     /* Input count (should be 1) */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
@@ -153,12 +153,12 @@ static size_t find_tx_extra_offset(const unsigned char *blob, size_t len)
     pos++;
 
     /* Height */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     pos += vlen;
 
     /* Output count */
-    vlen = read_varint(blob + pos, len - pos, &val);
+    vlen = read_varint_internal(blob + pos, len - pos, &val);
     if (vlen < 0) return 0;
     uint64_t output_count = val;
     pos += vlen;
@@ -166,7 +166,7 @@ static size_t find_tx_extra_offset(const unsigned char *blob, size_t len)
     /* Skip outputs */
     for (uint64_t i = 0; i < output_count; i++) {
         /* Amount */
-        vlen = read_varint(blob + pos, len - pos, &val);
+        vlen = read_varint_internal(blob + pos, len - pos, &val);
         if (vlen < 0) return 0;
         pos += vlen;
 
@@ -220,7 +220,7 @@ int mm_inject_merge_mining_tag(unsigned char *block_blob, size_t *blob_size,
 
     /* Read current tx_extra length */
     uint64_t current_extra_len;
-    int old_vlen = read_varint(block_blob + extra_offset, *blob_size - extra_offset,
+    int old_vlen = read_varint_internal(block_blob + extra_offset, *blob_size - extra_offset,
                                 &current_extra_len);
     if (old_vlen < 0) {
         log_error("Failed to read tx_extra length");
@@ -269,7 +269,7 @@ int mm_inject_merge_mining_tag(unsigned char *block_blob, size_t *blob_size,
     }
 
     /* Write new tx_extra length */
-    write_varint(block_blob + extra_offset, new_extra_len);
+    write_varint_internal(block_blob + extra_offset, new_extra_len);
 
     /* Write merge mining tag at end of tx_extra */
     unsigned char *tag_pos = block_blob + extra_offset + new_vlen + current_extra_len;
@@ -295,7 +295,7 @@ bool mm_has_merge_mining_tag(const unsigned char *block_blob, size_t blob_size)
         return false;
 
     uint64_t extra_len;
-    int vlen = read_varint(block_blob + extra_offset, blob_size - extra_offset, &extra_len);
+    int vlen = read_varint_internal(block_blob + extra_offset, blob_size - extra_offset, &extra_len);
     if (vlen < 0)
         return false;
 
@@ -401,21 +401,21 @@ int mm_serialize_pow_data(const monero_pow_data_t *pow_data,
     p += MM_HASH_SIZE;
 
     /* Transaction count */
-    p += write_varint(p, pow_data->transaction_count);
+    p += write_varint_internal(p, pow_data->transaction_count);
 
     /* Merkle root */
     memcpy(p, pow_data->merkle_root, MM_HASH_SIZE);
     p += MM_HASH_SIZE;
 
     /* Coinbase merkle proof */
-    p += write_varint(p, pow_data->coinbase_merkle_proof_count);
+    p += write_varint_internal(p, pow_data->coinbase_merkle_proof_count);
     for (size_t i = 0; i < pow_data->coinbase_merkle_proof_count; i++) {
         memcpy(p, pow_data->coinbase_merkle_proof[i], MM_HASH_SIZE);
         p += MM_HASH_SIZE;
     }
 
     /* Coinbase transaction */
-    p += write_varint(p, pow_data->coinbase_tx_size);
+    p += write_varint_internal(p, pow_data->coinbase_tx_size);
     memcpy(p, pow_data->coinbase_tx, pow_data->coinbase_tx_size);
     p += pow_data->coinbase_tx_size;
 
@@ -450,17 +450,17 @@ int mm_extract_pow_data(const unsigned char *block_blob, size_t blob_size,
     size_t header_start = 0;
 
     /* Major version */
-    vlen = read_varint(block_blob + pos, blob_size - pos, &val);
+    vlen = read_varint_internal(block_blob + pos, blob_size - pos, &val);
     if (vlen < 0) return -1;
     pos += vlen;
 
     /* Minor version */
-    vlen = read_varint(block_blob + pos, blob_size - pos, &val);
+    vlen = read_varint_internal(block_blob + pos, blob_size - pos, &val);
     if (vlen < 0) return -1;
     pos += vlen;
 
     /* Timestamp */
-    vlen = read_varint(block_blob + pos, blob_size - pos, &val);
+    vlen = read_varint_internal(block_blob + pos, blob_size - pos, &val);
     if (vlen < 0) return -1;
     pos += vlen;
 
@@ -510,7 +510,7 @@ int mm_extract_pow_data(const unsigned char *block_blob, size_t blob_size,
 
     /* Find end of coinbase (need to parse through tx_extra and RCT) */
     uint64_t extra_len;
-    vlen = read_varint(block_blob + extra_offset, blob_size - extra_offset, &extra_len);
+    vlen = read_varint_internal(block_blob + extra_offset, blob_size - extra_offset, &extra_len);
     if (vlen < 0) return -1;
 
     size_t coinbase_end = extra_offset + vlen + extra_len;

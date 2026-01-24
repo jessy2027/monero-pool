@@ -4635,3 +4635,103 @@
             margin-top: -1px;
             /* Optical adjustment for text baseline */
         }
+/*
+ * ==========================================
+ * MINING MODE TOGGLE (Standard vs Dual)
+ * ==========================================
+ */
+.mining-mode-selector {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(242, 104, 34, 0.1) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Dual Mining Info Panel */
+.dual-info-panel {
+    background: linear-gradient(180deg, rgba(242, 104, 34, 0.08) 0%, rgba(242, 104, 34, 0.02) 100%);
+    border: 1px solid rgba(242, 104, 34, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dual-info-panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--accent-gradient);
+    opacity: 0.5;
+}
+
+.dual-desc {
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.code-block-simple {
+    background: rgba(10, 10, 14, 0.6);
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    position: relative;
+}
+
+.code-block-simple code {
+    font-family: var(--font-mono);
+    color: var(--accent-secondary);
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}

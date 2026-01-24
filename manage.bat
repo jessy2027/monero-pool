@@ -15,7 +15,6 @@ if "%1"=="" goto help
 if "%1"=="setup" goto setup
 if "%1"=="start" goto start
 if "%1"=="start-lottery" goto start_lottery
-if "%1"=="start-tari" goto start_tari
 if "%1"=="stop" goto stop
 if "%1"=="restart" goto restart
 if "%1"=="logs" goto logs
@@ -82,8 +81,6 @@ if not exist "%DATA_DIR%\config\certs" mkdir "%DATA_DIR%\config\certs"
 if not exist "%DATA_DIR%\backups" mkdir "%DATA_DIR%\backups"
 if not exist "%DATA_DIR%\lottery-data" mkdir "%DATA_DIR%\lottery-data"
 if not exist "%DATA_DIR%\lottery-output" mkdir "%DATA_DIR%\lottery-output"
-if not exist "%DATA_DIR%\tari-data" mkdir "%DATA_DIR%\tari-data"
-if not exist "%DATA_DIR%\tari-wallet" mkdir "%DATA_DIR%\tari-wallet"
 
 echo [INFO] Copying configuration files...
 if not exist "%DATA_DIR%\config\pool.conf" (
@@ -137,13 +134,6 @@ call :check_docker || exit /b 1
 call :load_env
 echo [INFO] Starting lottery service...
 docker compose -f "%COMPOSE_FILE%" --profile lottery up -d
-goto :eof
-
-:start_tari
-call :check_docker || exit /b 1
-call :load_env
-echo [INFO] Starting Tari services...
-docker compose -f "%COMPOSE_FILE%" --profile tari up -d
 goto :eof
 
 :stop
@@ -218,8 +208,6 @@ if exist "%DATA_DIR%\wallet" xcopy "%DATA_DIR%\wallet\*" "%TEMP_DIR%\wallet\" /E
 if exist "%DATA_DIR%\config" xcopy "%DATA_DIR%\config\*" "%TEMP_DIR%\config\" /E /I /H /Y >nul
 if exist "%DATA_DIR%\lottery-data" xcopy "%DATA_DIR%\lottery-data\*" "%TEMP_DIR%\lottery-data\" /E /I /H /Y >nul
 if exist "%DATA_DIR%\lottery-output" xcopy "%DATA_DIR%\lottery-output\*" "%TEMP_DIR%\lottery-output\" /E /I /H /Y >nul
-if exist "%DATA_DIR%\tari-data" xcopy "%DATA_DIR%\tari-data\*" "%TEMP_DIR%\tari-data\" /E /I /H /Y >nul
-if exist "%DATA_DIR%\tari-wallet" xcopy "%DATA_DIR%\tari-wallet\*" "%TEMP_DIR%\tari-wallet\" /E /I /H /Y >nul
 
 echo [INFO] Compressing...
 powershell -Command "Compress-Archive -Path '%TEMP_DIR%\*' -DestinationPath '%BACKUP_DIR%\backup_%TIMESTAMP%.zip' -Force"
@@ -297,7 +285,6 @@ echo Commands:
 echo   setup             Initial setup
 echo   start             Start services
 echo   start-lottery     Start lottery service
-echo   start-tari        Start Tari merge mining services
 echo   stop              Stop services
 echo   restart           Restart services
 echo   logs [service]    View logs
