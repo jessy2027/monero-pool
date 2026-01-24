@@ -4296,6 +4296,15 @@ post_hash:
             }
         }
     }
+    else if (BN_cmp(hd, jd) < 0)
+    {
+        can_store = false;
+        char body[ERROR_BODY_MAX] = {0};
+        stratum_get_error_body(body, client->json_id, "Low difficulty share");
+        evbuffer_add(output, body, strlen(body));
+        log_debug("Low difficulty (%lu) share", BN_get_word(jd));
+        client->bad_shares++;
+    }
     else
     {
         /*
@@ -4339,15 +4348,6 @@ post_hash:
             }
             BN_free(td);
         }
-    }
-    else if (BN_cmp(hd, jd) < 0)
-    {
-        can_store = false;
-        char body[ERROR_BODY_MAX] = {0};
-        stratum_get_error_body(body, client->json_id, "Low difficulty share");
-        evbuffer_add(output, body, strlen(body));
-        log_debug("Low difficulty (%lu) share", BN_get_word(jd));
-        client->bad_shares++;
     }
 
     BN_free(hd);
