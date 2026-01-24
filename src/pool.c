@@ -1788,7 +1788,7 @@ miner_send_job(client_t *client, bool response)
     */
 
     /* Copy */
-    unsigned char block_stack[JOB_BODY_MAX];
+    unsigned char block_stack[JOB_BODY_MAX] __attribute__((aligned(16)));
     unsigned char *block = NULL;
 
     if (bt->block_blob_size <= JOB_BODY_MAX)
@@ -4010,7 +4010,14 @@ miner_on_submit(json_object *message, client_t *client)
         bt = job->miner_template;
     else
         bt = job->block_template;
-    unsigned char *block = calloc(bt->block_blob_size, sizeof(char));
+    unsigned char block_stack[JOB_BODY_MAX] __attribute__((aligned(16)));
+    unsigned char *block = NULL;
+
+    if (bt->block_blob_size <= JOB_BODY_MAX)
+        block = block_stack;
+    else
+        block = calloc(bt->block_blob_size, sizeof(char));
+
     memcpy(block, bt->block_blob, bt->block_blob_size);
 
     unsigned char *p = block;
@@ -4069,7 +4076,8 @@ miner_on_submit(json_object *message, client_t *client)
             stratum_get_error_body(body, client->json_id, "Duplicate share");
             evbuffer_add(output, body, strlen(body));
             log_debug("[%s:%d] Duplicate share", client->host, client->port);
-            free(block);
+            if (block != block_stack)
+                free(block);
             return;
         }
     }
@@ -4090,7 +4098,8 @@ miner_on_submit(json_object *message, client_t *client)
             char body[ERROR_BODY_MAX] = {0};
             stratum_get_error_body(body, client->json_id, "Internal error");
             evbuffer_add(output, body, strlen(body));
-            free(block);
+            if (block != block_stack)
+                free(block);
             return;
         }
         else
@@ -4116,7 +4125,8 @@ miner_on_submit(json_object *message, client_t *client)
         stratum_get_error_body(body, client->json_id, "Invalid block");
         evbuffer_add(output, body, strlen(body));
         log_debug("Invalid block");
-        free(block);
+        if (block != block_stack)
+            free(block);
         return;
     }
 
@@ -4154,7 +4164,8 @@ miner_on_submit(json_object *message, client_t *client)
         evbuffer_add(output, body, strlen(body));
         log_debug("Invalid share");
         client->bad_shares++;
-        free(block);
+        if (block != block_stack)
+            free(block);
         free(hashing_blob);
         return;
     }
@@ -4237,7 +4248,8 @@ post_hash:
     BN_free(hd);
     BN_free(jd);
     BN_free(bd);
-    free(block);
+    if (block != block_stack)
+        free(block);
     free(hashing_blob);
 
     if (can_store)
