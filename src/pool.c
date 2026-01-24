@@ -1787,7 +1787,20 @@ miner_send_job(client_t *client, bool response)
     */
 
     /* Copy */
-    unsigned char *block = calloc(bt->block_blob_size, sizeof(char));
+    unsigned char block_stack[JOB_BODY_MAX];
+    unsigned char *block = NULL;
+
+    if (bt->block_blob_size <= JOB_BODY_MAX)
+        block = block_stack;
+    else
+        block = malloc(bt->block_blob_size);
+
+    if (!block)
+    {
+        log_error("Failed to allocate memory for block blob");
+        return;
+    }
+
     memcpy(block, bt->block_blob, bt->block_blob_size);
 
     /* Set the extra nonce in our reserved space */
@@ -1838,7 +1851,8 @@ miner_send_job(client_t *client, bool response)
     log_trace("Miner job: %.*s", strlen(body)-1, body);
     struct evbuffer *output = bufferevent_get_output(client->bev);
     evbuffer_add(output, body, strlen(body));
-    free(block);
+    if (block != block_stack)
+        free(block);
     free(hashing_blob);
 }
 
