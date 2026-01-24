@@ -252,6 +252,7 @@ typedef struct block_template_t
     char prev_hash[65];
     uint32_t reserved_offset;
     char seed_hash[65];
+    unsigned char seed_hash_bin[32];
     char next_seed_hash[65];
     uint64_t tx_count;
 } block_template_t;
@@ -1964,15 +1965,14 @@ response_to_block_template(json_object *result,
 
     if (pow_variant >= 6)
     {
-        unsigned char seed_hash_bin[32] = {0};
         JSON_GET_OR_WARN(seed_hash, result, json_type_string);
         JSON_GET_OR_WARN(next_seed_hash, result, json_type_string);
         strncpy(block_template->seed_hash,
                 json_object_get_string(seed_hash), 64);
         strncpy(block_template->next_seed_hash,
                 json_object_get_string(next_seed_hash), 64);
-        hex_to_bin(block_template->seed_hash, seed_hash_bin, 32);
-        set_rx_main_seedhash(seed_hash_bin);
+        hex_to_bin(block_template->seed_hash, block_template->seed_hash_bin, 32);
+        set_rx_main_seedhash(block_template->seed_hash_bin);
     }
 }
 
@@ -3918,6 +3918,7 @@ miner_on_block_template(json_object *message, client_t *client)
         JSON_GET_OR_WARN(next_seed_hash, params, json_type_string);
         strncpy(job->miner_template->seed_hash,
                 json_object_get_string(seed_hash), 64);
+        hex_to_bin(job->miner_template->seed_hash, job->miner_template->seed_hash_bin, 32);
         const char *nsh = json_object_get_string(next_seed_hash);
         if (nsh)
             strncpy(job->miner_template->next_seed_hash, nsh, 64);
@@ -4138,9 +4139,7 @@ miner_on_submit(json_object *message, client_t *client)
 
     if (pow_variant >= 6)
     {
-        unsigned char seed_hash[32] = {0};
-        hex_to_bin(bt->seed_hash, seed_hash, 32);
-        get_rx_hash(seed_hash, hashing_blob, hashing_blob_size, result_hash);
+        get_rx_hash(bt->seed_hash_bin, hashing_blob, hashing_blob_size, result_hash);
     }
     else
     {
