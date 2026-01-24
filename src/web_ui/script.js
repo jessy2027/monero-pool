@@ -1003,24 +1003,24 @@ function fetchWorkers() {
                 return;
             }
 
-            var html = '<table class="workers-table"><thead><tr>' +
+            var htmlParts = ['<table class="workers-table"><thead><tr>' +
                 '<th>' + t('rig_id') + '</th>' +
                 '<th>' + t('hashrate_10m') + '</th>' +
                 '<th>' + t('status') + '</th>' +
-                '</tr></thead><tbody>';
+                '</tr></thead><tbody>'];
 
             for (var i = 0; i < workers.length; i += 2) {
                 var rigId = workers[i] || 'default';
                 var hashrate = workers[i + 1] || 0;
-                html += '<tr>' +
+                htmlParts.push('<tr>' +
                     '<td>' + rigId + '</td>' +
                     '<td>' + formatHashrate(hashrate) + '</td>' +
                     '<td><span class="worker-status">' + t('status_online') + '</span></td>' +
-                    '</tr>';
+                    '</tr>');
             }
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            htmlParts.push('</tbody></table>');
+            container.innerHTML = htmlParts.join('');
 
         } catch (e) {
             container.innerHTML = '<div class="no-workers">' + t('err_workers') + '</div>';
@@ -1072,29 +1072,29 @@ function fetchBlocks() {
                 2: { text: t('status_orphaned'), class: 'orphaned' }
             };
 
-            var html = '<table class="blocks-table"><thead><tr>' +
+            var htmlParts = ['<table class="blocks-table"><thead><tr>' +
                 '<th>' + t('block_height') + '</th>' +
                 '<th>Hash</th>' +
                 '<th>' + t('status') + '</th>' +
                 '<th>Reward</th>' +
                 '<th>' + t('found') + '</th>' +
-                '</tr></thead><tbody>';
+                '</tr></thead><tbody>'];
 
             for (var i = 0; i < blocks.length; i++) {
                 var block = blocks[i];
                 var status = statusMap[block.status] || { text: 'Unknown', class: 'locked' };
                 var reward = (block.reward / 1e12).toFixed(4);
-                html += '<tr>' +
+                htmlParts.push('<tr>' +
                     '<td>' + block.height.toLocaleString() + '</td>' +
                     '<td><span class="block-hash" title="' + block.hash + '">' + block.hash.substring(0, 16) + '...</span></td>' +
                     '<td><span class="block-status ' + status.class + '">' + status.text + '</span></td>' +
                     '<td>' + reward + ' XMR</td>' +
                     '<td>' + formatTime(block.timestamp) + '</td>' +
-                    '</tr>';
+                    '</tr>');
             }
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            htmlParts.push('</tbody></table>');
+            container.innerHTML = htmlParts.join('');
 
         } catch (e) {
             container.innerHTML = '<div class="no-workers">' + t('loading_error') + '</div>';
@@ -1119,24 +1119,24 @@ function fetchPayments() {
                 return;
             }
 
-            var html = '<table class="payments-table"><thead><tr>' +
+            var htmlParts = ['<table class="payments-table"><thead><tr>' +
                 '<th>Amount</th>' +
                 '<th>Date</th>' +
-                '</tr></thead><tbody>';
+                '</tr></thead><tbody>'];
 
             for (var i = 0; i < payments.length; i++) {
                 var payment = payments[i];
                 var amount = (payment.amount / 1e12).toFixed(8);
                 var date = new Date(payment.timestamp * 1000);
                 var dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-                html += '<tr>' +
+                htmlParts.push('<tr>' +
                     '<td><span class="payment-amount">' + amount + ' XMR</span></td>' +
                     '<td>' + dateStr + '</td>' +
-                    '</tr>';
+                    '</tr>');
             }
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            htmlParts.push('</tbody></table>');
+            container.innerHTML = htmlParts.join('');
 
         } catch (e) {
             container.innerHTML = '<div class="no-workers">' + t('err_payments') + '</div>';
@@ -1809,7 +1809,7 @@ function updateLotteryWinners(data) {
             return;
         }
 
-        var html = '';
+        var htmlParts = [];
 
         data.history.slice(0, 5).forEach(function (draw) {
             var date = new Date(draw.draw_date).toLocaleDateString();
@@ -1820,16 +1820,16 @@ function updateLotteryWinners(data) {
                 draw.txid.substring(0, 8) + '...</a>' :
                 '<span style="color: var(--text-muted)">Pending</span>';
 
-            html += '<tr>' +
+            htmlParts.push('<tr>' +
                 '<td>' + date + '</td>' +
                 '<td class="lottery-winner-address">' + winner + '</td>' +
                 '<td class="lottery-winner-amount">' + amount + '</td>' +
                 '<td class="lottery-txid">' + txid + '</td>' +
-                '</tr>';
+                '</tr>');
         });
 
-        console.log('Setting winners HTML:', html);
-        tbody.innerHTML = html;
+        console.log('Setting winners HTML:', htmlParts.join(''));
+        tbody.innerHTML = htmlParts.join('');
     } else {
         console.log('No history to display');
     }
