@@ -16,10 +16,11 @@
 #   docker compose -f docker-compose.windows.yml up -d
 #
 # DATA LOCATIONS (Linux):
-#   /opt/monero-pool/blockchain  - Monero blockchain (~180 GB)
-#   /opt/monero-pool/wallet      - Wallet data
-#   /opt/monero-pool/pool-data   - Pool database (shares, payments, balances)
-#   /opt/monero-pool/config      - Configuration files
+#   ${DATA_DIR}/blockchain  - Monero blockchain (~180 GB)
+#   ${DATA_DIR}/wallet      - Wallet data
+#   ${DATA_DIR}/pool-data   - Pool database (shares, payments, balances)
+#   ${DATA_DIR}/config      - Configuration files
+#   (Default DATA_DIR: /opt/monero-pool)
 # =============================================================================
 
 services:
@@ -34,7 +35,7 @@ services:
       - "18080:18080"  # P2P network
       - "18081:18081"  # RPC (restricted)
     volumes:
-      - /opt/monero-pool/blockchain:/home/monero/.bitmonero
+      - ${DATA_DIR:-/opt/monero-pool}/blockchain:/home/monero/.bitmonero
     command:
       - "--rpc-bind-ip=0.0.0.0"
       - "--rpc-bind-port=18081"
@@ -63,8 +64,8 @@ services:
     ports:
       - "28084:28084"  # Wallet RPC
     volumes:
-      - /opt/monero-pool/wallet:/home/monero/wallet
-      - /opt/monero-pool/config:/config:ro
+      - ${DATA_DIR:-/opt/monero-pool}/wallet:/home/monero/wallet
+      - ${DATA_DIR:-/opt/monero-pool}/config:/config:ro
     command:
       - "--daemon-host=monerod"
       - "--daemon-port=18081"
@@ -97,10 +98,10 @@ services:
       - "4244:4244"    # Trusted/Upstream port
       - "80:80"      # Web UI (mapped to 8080 on host to avoid conflicts)
     volumes:
-      - /opt/monero-pool/pool-data:/app/data
-      - /opt/monero-pool/config/pool.conf:/app/config/pool.conf:ro
-      - /opt/monero-pool/lottery-output:/app/lottery:ro
-      - /opt/monero-pool/lottery-data:/app/lottery-data:ro
+      - ${DATA_DIR:-/opt/monero-pool}/pool-data:/app/data
+      - ${DATA_DIR:-/opt/monero-pool}/config/pool.conf:/app/config/pool.conf:ro
+      - ${DATA_DIR:-/opt/monero-pool}/lottery-output:/app/lottery:ro
+      - ${DATA_DIR:-/opt/monero-pool}/lottery-data:/app/lottery-data:ro
     environment:
       - TZ=Europe/Paris
     networks:
@@ -116,7 +117,7 @@ services:
   # HAProxy for SSL Stratum (TLS termination)
   # ---------------------------------------------------------------------------
   # NOTE: This service requires a valid SSL certificate to work!
-  # Create the cert file first: /opt/monero-pool/config/certs/euroxmr.pem
+  # Create the cert file first: ${DATA_DIR}/config/certs/euroxmr.pem
   # Then uncomment and start: docker-compose up -d haproxy
   # ---------------------------------------------------------------------------
   haproxy:
@@ -130,8 +131,8 @@ services:
       - "4343:4343"    # SSL Stratum port (miners connect here for TLS)
       - "443:443"      # HTTPS Web UI (SSL)
     volumes:
-      - /opt/monero-pool/config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - /opt/monero-pool/config/certs:/etc/ssl/certs:ro
+      - ${DATA_DIR:-/opt/monero-pool}/config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ${DATA_DIR:-/opt/monero-pool}/config/certs:/etc/ssl/certs:ro
     command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
     networks:
       - monero-network
@@ -157,11 +158,11 @@ services:
     profiles: ["lottery"]  # Only starts with: docker-compose --profile lottery up -d
     volumes:
       # Pool database (read-only access to shares)
-      - /opt/monero-pool/pool-data:/app/data:ro
+      - ${DATA_DIR:-/opt/monero-pool}/pool-data:/app/data:ro
       # Output directory for lottery_stats.json (served by web UI)
-      - /opt/monero-pool/lottery-output:/app/output
+      - ${DATA_DIR:-/opt/monero-pool}/lottery-output:/app/output
       # Lottery results persistent storage
-      - /opt/monero-pool/lottery-data:/app/lottery-data
+      - ${DATA_DIR:-/opt/monero-pool}/lottery-data:/app/lottery-data
     environment:
       - TZ=Europe/Paris
       - LOTTERY_PRIZE=0.02
@@ -189,46 +190,37 @@ networks:
 # =============================================================================
 # 
 # FIRST TIME SETUP:
-# 1. Run the setup script:
-#    sudo ./setup-linux.sh
+# 1. Run the management script:
+#    ./manage.sh setup
 #
 # 2. Edit pool configuration:
-#    nano /opt/monero-pool/config/pool.conf
+#    nano ${DATA_DIR:-/opt/monero-pool}/config/pool.conf
 #
 # 3. Create wallet (run once):
-#    docker compose -f docker-compose.linux.yml run --rm monero-wallet-rpc \
-#      --daemon-host=monerod --generate-new-wallet=/home/monero/wallet/pool-wallet \
-#      --password=YOUR_SECURE_PASSWORD
+#    ./manage.sh create-wallet
 #
 # 4. Start everything:
-#    docker compose -f docker-compose.linux.yml up -d
+#    ./manage.sh start
 #
 # 5. Monitor logs:
-#    docker compose -f docker-compose.linux.yml logs -f monero-pool
+#    ./manage.sh logs
 #
 # BACKUP:
-#   - /opt/monero-pool/pool-data contains all pool data (CRITICAL - backup daily)
-#   - /opt/monero-pool/wallet contains wallet files (CRITICAL - backup securely)
-#   - /opt/monero-pool/blockchain can be re-synced if lost
+#   - ${DATA_DIR}/pool-data contains all pool data (CRITICAL - backup daily)
+#   - ${DATA_DIR}/wallet contains wallet files (CRITICAL - backup securely)
+#   - ${DATA_DIR}/blockchain can be re-synced if lost
 #
 # UPDATE POOL:
-#   docker compose -f docker-compose.linux.yml build --no-cache monero-pool
-#   docker compose -f docker-compose.linux.yml up -d monero-pool
+#   ./manage.sh update
 #
 # LOTTERY SYSTEM:
-#   1. Directories are created by setup-linux.sh
+#   1. Directories are created by setup script
 #
 #   2. Build and start lottery service:
-#      docker compose -f docker-compose.linux.yml --profile lottery build lottery-cron
-#      docker compose -f docker-compose.linux.yml --profile lottery up -d lottery-cron
+#      ./manage.sh start-lottery
 #
 #   3. View lottery logs:
-#      docker compose -f docker-compose.linux.yml logs -f lottery-cron
+#      ./manage.sh logs lottery-cron
 #
-#   4. Run manual lottery draw (for testing):
-#      docker compose -f docker-compose.linux.yml exec lottery-cron python /app/lottery_bot.py /app/data --stats
-#      docker compose -f docker-compose.linux.yml exec lottery-cron python /app/lottery_bot.py /app/data --run --dry-run
-#
-#   5. The lottery_stats.json is generated in /opt/monero-pool/lottery-output
+#   4. The lottery_stats.json is generated in ${DATA_DIR}/lottery-output
 # =============================================================================
-
