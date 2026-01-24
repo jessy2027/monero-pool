@@ -1003,24 +1003,24 @@ function fetchWorkers() {
                 return;
             }
 
-            var html = '<table class="workers-table"><thead><tr>' +
+            var htmlParts = ['<table class="workers-table"><thead><tr>' +
                 '<th>' + t('rig_id') + '</th>' +
                 '<th>' + t('hashrate_10m') + '</th>' +
                 '<th>' + t('status') + '</th>' +
-                '</tr></thead><tbody>';
+                '</tr></thead><tbody>'];
 
             for (var i = 0; i < workers.length; i += 2) {
                 var rigId = workers[i] || 'default';
                 var hashrate = workers[i + 1] || 0;
-                html += '<tr>' +
+                htmlParts.push('<tr>' +
                     '<td>' + rigId + '</td>' +
                     '<td>' + formatHashrate(hashrate) + '</td>' +
                     '<td><span class="worker-status">' + t('status_online') + '</span></td>' +
-                    '</tr>';
+                    '</tr>');
             }
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            htmlParts.push('</tbody></table>');
+            container.innerHTML = htmlParts.join('');
 
         } catch (e) {
             container.innerHTML = '<div class="no-workers">' + t('err_workers') + '</div>';
