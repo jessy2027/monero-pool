@@ -109,6 +109,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "forkoff.h"
 #include "growbag.h"
 #include "uthash.h"
+#include "tari_grpc.h"
+#include "merge_mining.h"
 
 #define MAX_LINE 8192
 #define CLIENTS_INIT 8192
@@ -239,6 +241,15 @@ typedef struct config_t
     int processes;
     int32_t cull_shares;
     uint32_t template_timeout;
+    /* Tari merge mining configuration */
+    bool tari_enabled;
+    char tari_base_node_host[MAX_HOST];
+    uint16_t tari_base_node_grpc_port;
+    char tari_wallet_host[MAX_HOST];
+    uint16_t tari_wallet_grpc_port;
+    double tari_payment_threshold;
+    double tari_pool_fee;
+    uint32_t tari_poll_interval_ms;
 } config_t;
 
 typedef struct block_template_t
@@ -254,6 +265,10 @@ typedef struct block_template_t
     char seed_hash[65];
     char next_seed_hash[65];
     uint64_t tx_count;
+    /* Tari merge mining fields */
+    tari_block_template_t *tari_template;
+    unsigned char tari_mm_hash[32];
+    bool tari_injected;
 } block_template_t;
 
 typedef struct job_t
@@ -276,12 +291,14 @@ typedef struct client_t
     int json_id;
     struct bufferevent *bev;
     char address[ADDRESS_MAX];
+    char tari_address[128];      /* Tari wallet address for merge mining */
     char worker_id[64];
     char client_id[32];
     char rig_id[MAX_RIG_ID];
     char agent[256];
     bstack_t *active_jobs;
     uint64_t hashes;
+    uint64_t tari_hashes;        /* Tari share credits */
     hr_stats_t hr_stats;
     time_t connected_since;
     bool is_xnp;
@@ -3729,6 +3746,44 @@ miner_on_login(json_object *message, client_t *client)
     }
 
     const char *address = json_object_get_string(login);
+    char xmr_address[ADDRESS_MAX] = {0};
+    client->tari_address[0] = '\0';  /* Initialize Tari address */
+
+    /*
+     * Parse dual wallet format for merge mining:
+     * Supported formats:
+     *   - XMR_ADDRESS.TARI_ADDRESS  (dot separator)
+     *   - XMR_ADDRESS+TARI_ADDRESS  (plus separator)
+     *   - XMR_ADDRESS               (Monero only)
+     */
+    const char *separator = strchr(address, '.');
+    if (!separator)
+        separator = strchr(address, '+');
+
+    if (separator)
+    {
+        /* Dual mining format detected */
+        size_t xmr_len = separator - address;
+        if (xmr_len >= ADDRESS_MAX)
+        {
+            send_validation_error(client, "XMR address too long");
+            return;
+        }
+        strncpy(xmr_address, address, xmr_len);
+        xmr_address[xmr_len] = '\0';
+
+        const char *tari_addr = separator + 1;
+        if (!tari_validate_address(tari_addr))
+        {
+            send_validation_error(client, "Invalid Tari address");
+            return;
+        }
+        strncpy(client->tari_address, tari_addr, sizeof(client->tari_address) - 1);
+        log_info("Dual mining login: XMR=%.12s... TARI=%.12s...",
+                 xmr_address, client->tari_address);
+        address = xmr_address;
+    }
+
     uint8_t nt = 0;
     uint64_t pf = 0;
     if (parse_address(address, &pf, &nt, NULL))
@@ -4210,6 +4265,80 @@ post_hash:
             upstream_send_client_block(b);
         rpc_request(pool_base, body, cb);
         free(block_hex);
+
+        /* Also submit to Tari network if merge mining enabled */
+        if (bt->tari_template && client->tari_address[0] && tari_is_enabled())
+        {
+            log_info("+++ TARI BLOCK (via XMR) +++ tari_address=%.12s...",
+                     client->tari_address);
+
+            /* Extract MoneroPowData and submit to Tari */
+            monero_pow_data_t pow_data;
+            unsigned char seed_hash[32];
+            hex_to_bin(bt->seed_hash, seed_hash, 32);
+
+            if (mm_extract_pow_data(block, bt->block_blob_size, seed_hash, &pow_data) == 0)
+            {
+                unsigned char pow_buf[8192];
+                size_t pow_size = sizeof(pow_buf);
+
+                if (mm_serialize_pow_data(&pow_data, pow_buf, &pow_size) == 0)
+                {
+                    tari_submit_block(
+                        bt->tari_template->header, bt->tari_template->header_size,
+                        bt->tari_template->body, bt->tari_template->body_size,
+                        pow_buf, pow_size,
+                        NULL, NULL  /* Callback handled asynchronously */
+                    );
+                    client->tari_hashes += job->target;
+                }
+                mm_pow_data_free(&pow_data);
+            }
+        }
+    }
+    else
+    {
+        /*
+         * Share doesn't meet Monero block difficulty.
+         * Check if it meets Tari difficulty (wins XTM only).
+         */
+        if (bt->tari_template && client->tari_address[0] && tari_is_enabled())
+        {
+            uint64_t tari_diff = bt->tari_template->difficulty;
+            BIGNUM *td = BN_new();
+            BN_set_word(td, tari_diff);
+
+            if (BN_cmp(hd, td) >= 0)
+            {
+                /* Tari block found! Submit to Tari network only */
+                log_info("+++ TARI BLOCK (XTM only) +++ tari_address=%.12s..., "
+                         "height=%"PRIu64,
+                         client->tari_address, bt->tari_template->height);
+
+                monero_pow_data_t pow_data;
+                unsigned char seed_hash[32];
+                hex_to_bin(bt->seed_hash, seed_hash, 32);
+
+                if (mm_extract_pow_data(block, bt->block_blob_size, seed_hash, &pow_data) == 0)
+                {
+                    unsigned char pow_buf[8192];
+                    size_t pow_size = sizeof(pow_buf);
+
+                    if (mm_serialize_pow_data(&pow_data, pow_buf, &pow_size) == 0)
+                    {
+                        tari_submit_block(
+                            bt->tari_template->header, bt->tari_template->header_size,
+                            bt->tari_template->body, bt->tari_template->body_size,
+                            pow_buf, pow_size,
+                            NULL, NULL
+                        );
+                        client->tari_hashes += job->target;
+                    }
+                    mm_pow_data_free(&pow_data);
+                }
+            }
+            BN_free(td);
+        }
     }
     else if (BN_cmp(hd, jd) < 0)
     {

@@ -33,7 +33,10 @@ if not exist "C:\MoneroPool\config\certs" mkdir "C:\MoneroPool\config\certs"
 if not exist "C:\MoneroPool\backups" mkdir "C:\MoneroPool\backups"
 if not exist "C:\MoneroPool\lottery-data" mkdir "C:\MoneroPool\lottery-data"
 if not exist "C:\MoneroPool\lottery-output" mkdir "C:\MoneroPool\lottery-output"
+if not exist "C:\MoneroPool\tari-data" mkdir "C:\MoneroPool\tari-data"
+if not exist "C:\MoneroPool\tari-wallet" mkdir "C:\MoneroPool\tari-wallet"
 echo    Done!
+echo.
 echo.
 
 

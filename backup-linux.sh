@@ -52,6 +52,8 @@ backup_dir "$DATA_ROOT/pool-data" "pool-data" "Pool Data"
 backup_dir "$DATA_ROOT/wallet" "wallet" "Wallet"
 backup_dir "$DATA_ROOT/config" "config" "Configuration"
 backup_dir "$DATA_ROOT/lottery-data" "lottery-data" "Lottery Data"
+backup_dir "$DATA_ROOT/tari-data" "tari-data" "Tari Node Data"
+backup_dir "$DATA_ROOT/tari-wallet" "tari-wallet" "Tari Wallet"
 
 if [ -d "$DATA_ROOT/lottery-output" ]; then
     mkdir -p "$CURRENT_BACKUP/lottery-output"

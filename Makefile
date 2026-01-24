@@ -72,7 +72,9 @@ MODULE_HEADERS = \
   src/stratum.h \
   src/payout.h \
   src/rpc.h \
-  src/compat.h
+  src/compat.h \
+  src/tari_grpc.h \
+  src/merge_mining.h
 
 OS := $(shell uname -s)
 
@@ -129,6 +131,7 @@ PKG_LIBS := $(shell pkg-config \
   json-c \
   openssl \
   libsodium \
+  libcurl \
   --libs)
 
 STATIC_LIBS = 
@@ -143,6 +146,7 @@ PKG_INC := $(shell pkg-config \
   json-c \
   openssl \
   libsodium \
+  libcurl \
   --cflags)
 
 LIBPATH := /opt/local/lib/ /usr/local/lib
@@ -277,4 +281,3 @@ endif
 -include $(DFILES)
 -include $(CDFILES)
 -include $(SDFILES)
-
