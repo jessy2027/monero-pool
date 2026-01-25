@@ -4976,6 +4976,38 @@ read_config(const char *config_file)
         {
             strncpy(config.pool_view_key, val, 64);
         }
+        else if (strcmp(key, "tari-enabled") == 0)
+        {
+            config.tari_enabled = atoi(val);
+        }
+        else if (strcmp(key, "tari-base-node-host") == 0)
+        {
+            strncpy(config.tari_base_node_host, val, MAX_HOST-1);
+        }
+        else if (strcmp(key, "tari-base-node-grpc-port") == 0)
+        {
+            config.tari_base_node_grpc_port = atoi(val);
+        }
+        else if (strcmp(key, "tari-wallet-host") == 0)
+        {
+            strncpy(config.tari_wallet_host, val, MAX_HOST-1);
+        }
+        else if (strcmp(key, "tari-wallet-grpc-port") == 0)
+        {
+            config.tari_wallet_grpc_port = atoi(val);
+        }
+        else if (strcmp(key, "tari-payment-threshold") == 0)
+        {
+            config.tari_payment_threshold = atof(val);
+        }
+        else if (strcmp(key, "tari-pool-fee") == 0)
+        {
+            config.tari_pool_fee = atof(val);
+        }
+        else if (strcmp(key, "tari-poll-interval-ms") == 0)
+        {
+            config.tari_poll_interval_ms = atoi(val);
+        }
     }
     fclose(fp);
 
@@ -5595,8 +5627,31 @@ int main(int argc, char **argv)
     if (config.webui_port)
         start_web_ui(&uic);
 
+    /* Initialize Tari merge mining if enabled */
+    if (config.tari_enabled)
+    {
+        log_info("Initializing Tari merge mining...");
+        tari_config_t tc;
+        memset(&tc, 0, sizeof(tari_config_t));
+        strncpy(tc.base_node_host, config.tari_base_node_host, sizeof(tc.base_node_host)-1);
+        tc.base_node_grpc_port = config.tari_base_node_grpc_port;
+        strncpy(tc.wallet_host, config.tari_wallet_host, sizeof(tc.wallet_host)-1);
+        tc.wallet_grpc_port = config.tari_wallet_grpc_port;
+        tc.enabled = true;
+        tc.poll_interval_ms = config.tari_poll_interval_ms ? config.tari_poll_interval_ms : 1000;
+        tc.timeout_ms = 5000;
+
+        if (tari_init(pool_base, &tc) != 0)
+        {
+            log_error("Failed to initialize Tari merge mining");
+        }
+        else
+        {
+            log_info("Tari merge mining initialized");
+        }
+    }
+
     run();
 
 cleanup:
-    return 0;
 }
