@@ -19,43 +19,70 @@ Pool de minage Monero haute performance basée sur [monero-pool](https://github.
 - **Self-Select** : Option permettant aux mineurs de choisir leur propre template de bloc
 - **Docker** : Déploiement complet containerisé (monerod, wallet-rpc, pool)
 - **SSL/TLS** : Support HAProxy pour les connexions sécurisées (port 4343)
+- **Gestion Unifiée** : Scripts `manage.sh` (Linux) et `manage.bat` (Windows) pour toutes les opérations.
 
 ## 🚀 Démarrage Rapide
 
 ### Prérequis
 
-- Docker Desktop pour Windows
+- Docker Desktop (Windows/Linux) ou Docker Engine (Linux)
 - ~80 Go d'espace disque (blockchain pruned)
 - 4 Go de RAM minimum
 
 ### Installation
 
-1. **Créer les répertoires de données** :
-   ```batch
-   setup-windows.bat
-   ```
+1. **Initialisation** :
+   *   **Linux** :
+       ```bash
+       ./manage.sh setup
+       ```
+   *   **Windows** :
+       ```batch
+       manage.bat setup
+       ```
 
 2. **Configurer le wallet** :
-   Créer le fichier `C:\MoneroPool\config\wallet-password.txt` avec votre mot de passe.
+   Suivez les instructions interactives pour créer le wallet ou placez votre mot de passe dans `config/wallet-password.txt`.
+
+   Pour créer un wallet via le script :
+   ```bash
+   # Linux
+   ./manage.sh create-wallet
+
+   # Windows
+   manage.bat create-wallet
+   ```
 
 3. **Démarrer les services** :
    ```bash
-   docker-compose up -d
+   # Linux
+   ./manage.sh start
+
+   # Windows
+   manage.bat start
    ```
 
 4. **Vérifier les logs** :
    ```bash
-   docker-compose logs -f monero-pool
+   # Linux
+   ./manage.sh logs
+
+   # Windows
+   manage.bat logs
    ```
 
 ## 📁 Structure des Données
 
+Les données sont stockées par défaut dans `/opt/monero-pool` (Linux) ou `C:\MoneroPool` (Windows).
+
 | Répertoire | Description |
 |------------|-------------|
-| `C:\MoneroPool\blockchain` | Blockchain Monero (~70 Go pruned) |
-| `C:\MoneroPool\wallet` | Fichiers du wallet pool |
-| `C:\MoneroPool\pool-data` | Base de données pool (shares, paiements) |
-| `C:\MoneroPool\config` | Fichiers de configuration |
+| `xmr-data` | Blockchain Monero (~70 Go pruned) |
+| `xmr-wallet` | Fichiers du wallet pool |
+| `xmr-pool-data` | Base de données pool (shares, paiements) |
+| `config` | Fichiers de configuration |
+| `tari-data` | Données du nœud Tari (Merge Mining) |
+| `tari-wallet` | Wallet Tari |
 
 ## ⛏️ Connexion des Mineurs
 
@@ -99,7 +126,11 @@ tari-base-node-grpc-port = 18142
 
 Puis démarrez les services Tari :
 ```bash
-docker compose --profile tari up -d
+# Linux
+./manage.sh start-tari
+
+# Windows
+manage.bat start-tari
 ```
 
 ## 🌐 Interface Web
@@ -115,7 +146,7 @@ L'interface fournit :
 
 ### pool.conf
 
-Fichier principal de configuration situé dans `C:\MoneroPool\config\pool.conf` :
+Fichier principal de configuration situé dans `config/pool.conf` :
 
 | Paramètre | Description | Valeur par défaut |
 |-----------|-------------|-------------------|
@@ -126,36 +157,32 @@ Fichier principal de configuration situé dans `C:\MoneroPool\config\pool.conf` 
 | `payment-threshold` | Seuil de paiement (XMR) | `0.005` |
 | `pool-start-diff` | Difficulté initiale | `1000` |
 
-### SSL avec HAProxy
-
-Pour activer les connexions SSL :
-
-1. Placer votre certificat dans `C:\MoneroPool\config\certs\euroxmr.pem`
-2. Démarrer avec le profil SSL :
-   ```bash
-   docker-compose --profile ssl up -d
-   ```
-
 ## 🔧 Commandes Utiles
+
+Les scripts `manage.sh` (Linux) et `manage.bat` (Windows) centralisent toutes les commandes :
 
 ```bash
 # Démarrer tous les services
-docker-compose up -d
+./manage.sh start
 
 # Arrêter tous les services
-docker-compose down
+./manage.sh stop
 
-# Voir les logs du pool
-docker-compose logs -f monero-pool
+# Redémarrer
+./manage.sh restart
 
-# Voir les logs du daemon
-docker-compose logs -f monerod
+# Voir les logs
+./manage.sh logs
+./manage.sh logs monerod
 
-# Reconstruire le pool après modification
-docker-compose build --no-cache monero-pool && docker-compose up -d monero-pool
+# Créer un backup immédiat
+./manage.sh backup
 
-# Backup des données
-backup.bat
+# Restaurer un backup
+./manage.sh restore backup_2023-10-27_10-00.tar.gz
+
+# Mettre à jour (git pull + rebuild)
+./manage.sh update
 ```
 
 ## 📚 Documentation
@@ -169,16 +196,22 @@ backup.bat
 ## 💾 Sauvegarde
 
 Exécuter régulièrement :
-```batch
-backup.bat
+```bash
+# Linux
+./manage.sh backup
+
+# Windows
+manage.bat backup
 ```
 
-**Fichiers critiques à sauvegarder** :
-- `C:\MoneroPool\pool-data` - Base de données (balances, paiements)
-- `C:\MoneroPool\wallet` - Wallet du pool
-- `C:\MoneroPool\config\pool.conf` - Configuration
-- `C:\MoneroPool\tari-data` - Données du nœud Tari
-- `C:\MoneroPool\tari-wallet` - Wallet Tari
+Vous pouvez planifier des backups quotidiens automatiquement :
+```bash
+# Linux (via cron)
+./manage.sh schedule-backups
+
+# Windows (via Task Scheduler)
+manage.bat schedule-backups
+```
 
 ## 🙏 Crédits
 

@@ -18,12 +18,12 @@
 #   docker compose -f docker-compose.windows.yml up -d
 #
 # DATA LOCATIONS (Linux):
-#   ${DATA_DIR}/blockchain  - Monero blockchain (~180 GB)
-#   ${DATA_DIR}/wallet      - Wallet data
-#   ${DATA_DIR}/pool-data   - Pool database (shares, payments, balances)
-#   ${DATA_DIR}/config      - Configuration files
-#   ${DATA_DIR}/tari-data   - Tari blockchain data
-#   ${DATA_DIR}/tari-wallet - Tari wallet data
+#   ${DATA_DIR}/xmr-data       - Monero blockchain (~180 GB)
+#   ${DATA_DIR}/xmr-wallet     - Wallet data
+#   ${DATA_DIR}/xmr-pool-data  - Pool database (shares, payments, balances)
+#   ${DATA_DIR}/config         - Configuration files
+#   ${DATA_DIR}/tari-data      - Tari blockchain data
+#   ${DATA_DIR}/tari-wallet    - Tari wallet data
 #   (Default DATA_DIR: /opt/monero-pool)
 # =============================================================================
 
@@ -39,7 +39,7 @@ services:
       - "18080:18080"  # P2P network
       - "18081:18081"  # RPC (restricted)
     volumes:
-      - ${DATA_DIR:-/opt/monero-pool}/blockchain:/home/monero/.bitmonero
+      - ${DATA_DIR:-/opt/monero-pool}/xmr-data:/home/monero/.bitmonero
     command:
       - "--rpc-bind-ip=0.0.0.0"
       - "--rpc-bind-port=18081"
@@ -68,7 +68,7 @@ services:
     ports:
       - "28084:28084"  # Wallet RPC
     volumes:
-      - ${DATA_DIR:-/opt/monero-pool}/wallet:/home/monero/wallet
+      - ${DATA_DIR:-/opt/monero-pool}/xmr-wallet:/home/monero/wallet
       - ${DATA_DIR:-/opt/monero-pool}/config:/config:ro
     command:
       - "--daemon-host=monerod"
@@ -102,7 +102,7 @@ services:
       - "4244:4244"    # Trusted/Upstream port
       - "80:80"      # Web UI (mapped to 8080 on host to avoid conflicts)
     volumes:
-      - ${DATA_DIR:-/opt/monero-pool}/pool-data:/app/data
+      - ${DATA_DIR:-/opt/monero-pool}/xmr-pool-data:/app/data
       - ${DATA_DIR:-/opt/monero-pool}/config/pool.conf:/app/config/pool.conf:ro
       - ${DATA_DIR:-/opt/monero-pool}/lottery-output:/app/lottery:ro
       - ${DATA_DIR:-/opt/monero-pool}/lottery-data:/app/lottery-data:ro
@@ -218,7 +218,7 @@ services:
     profiles: ["lottery"]  # Only starts with: docker-compose --profile lottery up -d
     volumes:
       # Pool database (read-only access to shares)
-      - ${DATA_DIR:-/opt/monero-pool}/pool-data:/app/data:ro
+      - ${DATA_DIR:-/opt/monero-pool}/xmr-pool-data:/app/data:ro
       # Output directory for lottery_stats.json (served by web UI)
       - ${DATA_DIR:-/opt/monero-pool}/lottery-output:/app/output
       # Lottery results persistent storage
@@ -266,9 +266,9 @@ networks:
 #    ./manage.sh logs
 #
 # BACKUP:
-#   - ${DATA_DIR}/pool-data contains all pool data (CRITICAL - backup daily)
-#   - ${DATA_DIR}/wallet contains wallet files (CRITICAL - backup securely)
-#   - ${DATA_DIR}/blockchain can be re-synced if lost
+#   - ${DATA_DIR}/xmr-pool-data contains all pool data (CRITICAL - backup daily)
+#   - ${DATA_DIR}/xmr-wallet contains wallet files (CRITICAL - backup securely)
+#   - ${DATA_DIR}/xmr-data can be re-synced if lost
 #
 # UPDATE POOL:
 #   ./manage.sh update
