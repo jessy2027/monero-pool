@@ -20,6 +20,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <curl/curl.h>
+#include <ctype.h>
 
 #include "tari_grpc.h"
 #include "util.h"
@@ -181,6 +182,24 @@ tari_status_t tari_get_status(void)
     return g_status;
 }
 
+static size_t header_cb(char *buffer, size_t size, size_t nitems, void *userdata)
+{
+    size_t numbytes = size * nitems;
+    char *line = malloc(numbytes + 1);
+    if (!line) return numbytes;
+    memcpy(line, buffer, numbytes);
+    line[numbytes] = '\0';
+
+    if (strncasecmp(line, "grpc-status:", 12) == 0) {
+        log_warn("Tari gRPC Status: %s", trim(line + 12));
+    } else if (strncasecmp(line, "grpc-message:", 13) == 0) {
+        log_warn("Tari gRPC Message: %s", trim(line + 13));
+    }
+
+    free(line);
+    return numbytes;
+}
+
 static size_t curl_write_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
@@ -236,6 +255,7 @@ static void *tari_fetch_thread_func(void *arg)
 
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_cb);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, g_config.timeout_ms);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, g_config.timeout_ms);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
