@@ -120,13 +120,15 @@ services:
     image: alpine:latest
     container_name: tor
     restart: unless-stopped
-    command: sh -c "apk add --no-cache tor netcat-openbsd && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --CookieAuthentication 0 --Log \"notice stdout\""
+    command: sh -c "apk add --no-cache tor netcat-openbsd && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --CookieAuthentication 1 --CookieAuthFile /var/run/tor/control.authcookie --Log \"notice stdout\""
     ports:
       - "9050:9050"
       - "9051:9051"
     expose:
       - "9050"
       - "9051"
+    volumes:
+      - ${DATA_DIR:-C:\MoneroPool}\run\tor:/var/run/tor
     healthcheck:
       test: ["CMD-SHELL", "nc -z 127.0.0.1 9050 || exit 1"]
       interval: 10s
@@ -154,6 +156,7 @@ services:
     volumes:
       - ${DATA_DIR:-C:\MoneroPool}\tari-data:/var/tari
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
+      - ${DATA_DIR:-C:\MoneroPool}\run\tor:/var/run/tor
     environment:
       - TARI_NETWORK=esmeralda
       - TARI_BASE_NODE__P2P__TRANSPORT__TYPE=tor
@@ -187,6 +190,7 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\tari-wallet:/var/tari/wallet
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
       - ${DATA_DIR:-C:\MoneroPool}\config:/config:ro
+      - ${DATA_DIR:-C:\MoneroPool}\run\tor:/var/run/tor
     environment:
       - TARI_NETWORK=esmeralda
       - TARI_WALLET__GRPC_ENABLED=true
