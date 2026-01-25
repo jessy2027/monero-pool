@@ -177,6 +177,10 @@ services:
       - TARI_WALLET__GRPC_ENABLED=true
       - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
       - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142
+      - TARI_WALLET__USE_LIBTOR=false
+      - MINOTARI_WALLET__USE_LIBTOR=false
+      - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
+      - TARI_P2P__TRANSPORT__TOR__PROXY_ADDRESS=/dns4/tor/tcp/9050
     entrypoint: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
     networks:
       - monero-network
