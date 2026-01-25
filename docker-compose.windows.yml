@@ -120,7 +120,7 @@ services:
     image: alpine:latest
     container_name: tor
     restart: unless-stopped
-    command: sh -c "apk add --no-cache tor netcat-openbsd && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --HashedControlPassword '16:9D63ED0069B9CA4CCE194B5585783538D770B5396EF854B9B1D4DE26' --Log \"notice stdout\""
+    command: sh -c "apk add --no-cache tor netcat-openbsd && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --HashedControlPassword '16:202204488BB46A8460CD6FFD4B2ED77327938' --Log \"notice stdout\""
     ports:
       - "9050:9050"
       - "9051:9051"
