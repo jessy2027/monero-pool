@@ -196,9 +196,17 @@ REM ----------------------------------------------------------------------------
         echo %INFO_PREFIX% Created %TARI_CONFIG_FILE%
     )
 
-    REM Patch obsolete config (requires finding a way to sed in batch or just ignore for now)
-    REM Windows batch is limited for complex sed-like replacements without external tools.
-    REM Assuming default generation is sufficient for new users.
+    REM Patch obsolete config
+    if exist "%TARI_CONFIG_FILE%" (
+        echo %INFO_PREFIX% Checking for obsolete configuration in %TARI_CONFIG_FILE%...
+        findstr /C:"grpc =" "%TARI_CONFIG_FILE%" >nul
+        if !errorlevel! equ 0 (
+            echo %WARN_PREFIX% Obsolete 'grpc' field detected. Patching...
+            copy "%TARI_CONFIG_FILE%" "%TARI_CONFIG_FILE%.bak" >nul
+            powershell -Command "(Get-Content '%TARI_CONFIG_FILE%') | Where-Object { $_ -notmatch '^\s*grpc\s*=' } | Set-Content '%TARI_CONFIG_FILE%'"
+            echo %INFO_PREFIX% Tari configuration patched.
+        )
+    )
 
     echo %INFO_PREFIX% Starting Monero Pool, Tari, Lottery, and SSL Proxy...
     docker compose -f "%COMPOSE_FILE%" --profile tari --profile lottery --profile ssl up -d
@@ -220,6 +228,21 @@ REM ----------------------------------------------------------------------------
     echo %HEADER_PREFIX% Starting Tari Merge Mining Services
     call :check_docker || exit /b 1
     call :load_env
+    set "TARI_CONFIG_DIR=%DATA_DIR%\config\tari"
+    set "TARI_CONFIG_FILE=%TARI_CONFIG_DIR%\config.toml"
+
+    REM Patch obsolete config
+    if exist "%TARI_CONFIG_FILE%" (
+        echo %INFO_PREFIX% Checking for obsolete configuration in %TARI_CONFIG_FILE%...
+        findstr /C:"grpc =" "%TARI_CONFIG_FILE%" >nul
+        if !errorlevel! equ 0 (
+            echo %WARN_PREFIX% Obsolete 'grpc' field detected. Patching...
+            copy "%TARI_CONFIG_FILE%" "%TARI_CONFIG_FILE%.bak" >nul
+            powershell -Command "(Get-Content '%TARI_CONFIG_FILE%') | Where-Object { $_ -notmatch '^\s*grpc\s*=' } | Set-Content '%TARI_CONFIG_FILE%'"
+            echo %INFO_PREFIX% Tari configuration patched.
+        )
+    )
+
     docker compose -f "%COMPOSE_FILE%" --profile tari up -d
     echo %INFO_PREFIX% Tari services started.
     exit /b 0

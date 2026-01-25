@@ -131,8 +131,8 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
       - TARI_NETWORK=mainnet
-      - TARI_BASE_NODE__GRPC__ENABLED=true
-      - TARI_BASE_NODE__GRPC__ADDRESS=0.0.0.0:18142
+      - TARI_BASE_NODE__GRPC_ENABLED=true
+      - TARI_BASE_NODE__GRPC_ADDRESS=0.0.0.0:18142
     networks:
       - monero-network
     logging:
@@ -159,8 +159,8 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config:/config:ro
     environment:
       - TARI_NETWORK=mainnet
-      - TARI_WALLET__GRPC__ENABLED=true
-      - TARI_WALLET__GRPC__ADDRESS=0.0.0.0:18143
+      - TARI_WALLET__GRPC_ENABLED=true
+      - TARI_WALLET__GRPC_ADDRESS=0.0.0.0:18143
       - TARI_BASE_NODE_ADDRESS=tari-base-node:18142
     networks:
       - monero-network
