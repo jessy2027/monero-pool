@@ -130,7 +130,7 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\tari-data:/var/tari
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
-      - TARI_NETWORK=mainnet
+      - TARI_NETWORK=esmeralda
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
     networks:
@@ -158,7 +158,7 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
       - ${DATA_DIR:-C:\MoneroPool}\config:/config:ro
     environment:
-      - TARI_NETWORK=mainnet
+      - TARI_NETWORK=esmeralda
       - TARI_WALLET__GRPC_ENABLED=true
       - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
       - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142

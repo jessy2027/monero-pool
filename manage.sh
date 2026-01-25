@@ -167,7 +167,7 @@ grpc_address = "/ip4/0.0.0.0/tcp/18143"
 base_node_service_peers = ["/dns4/tari-base-node/tcp/18142"]
 db_file = "/var/tari/wallet/console-wallet.sqlite"
 data_dir = "/var/tari/wallet"
-network = "mainnet"
+network = "esmeralda"
 EOL
     fi
 

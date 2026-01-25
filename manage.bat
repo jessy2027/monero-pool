@@ -191,7 +191,7 @@ REM ----------------------------------------------------------------------------
             echo base_node_service_peers = ["/dns4/tari-base-node/tcp/18142"]
             echo db_file = "/var/tari/wallet/console-wallet.sqlite"
             echo data_dir = "/var/tari/wallet"
-            echo network = "mainnet"
+            echo network = "esmeralda"
         ) > "%TARI_CONFIG_FILE%"
         echo %INFO_PREFIX% Created %TARI_CONFIG_FILE%
     )
