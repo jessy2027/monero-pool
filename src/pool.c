@@ -109,6 +109,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "forkoff.h"
 #include "growbag.h"
 #include "uthash.h"
+#include "tari_grpc.h"
+#include "merge_mining.h"
 
 #define MAX_LINE 8192
 #define CLIENTS_INIT 8192
@@ -239,6 +241,15 @@ typedef struct config_t
     int processes;
     int32_t cull_shares;
     uint32_t template_timeout;
+    /* Tari merge mining configuration */
+    bool tari_enabled;
+    char tari_base_node_host[MAX_HOST];
+    uint16_t tari_base_node_grpc_port;
+    char tari_wallet_host[MAX_HOST];
+    uint16_t tari_wallet_grpc_port;
+    double tari_payment_threshold;
+    double tari_pool_fee;
+    uint32_t tari_poll_interval_ms;
 } config_t;
 
 typedef struct block_template_t
@@ -252,9 +263,12 @@ typedef struct block_template_t
     char prev_hash[65];
     uint32_t reserved_offset;
     char seed_hash[65];
-    unsigned char seed_hash_bin[32];
     char next_seed_hash[65];
     uint64_t tx_count;
+    /* Tari merge mining fields */
+    tari_block_template_t *tari_template;
+    unsigned char tari_mm_hash[32];
+    bool tari_injected;
 } block_template_t;
 
 typedef struct job_t
@@ -277,12 +291,14 @@ typedef struct client_t
     int json_id;
     struct bufferevent *bev;
     char address[ADDRESS_MAX];
+    char tari_address[128];      /* Tari wallet address for merge mining */
     char worker_id[64];
     char client_id[32];
     char rig_id[MAX_RIG_ID];
     char agent[256];
     bstack_t *active_jobs;
     uint64_t hashes;
+    uint64_t tari_hashes;        /* Tari share credits */
     hr_stats_t hr_stats;
     time_t connected_since;
     bool is_xnp;
@@ -1486,6 +1502,11 @@ template_recycle(void *item)
         bt->block_blob = NULL;
         bt->block_blob_size = 0;
     }
+    if (bt->tari_template)
+    {
+        tari_template_free(bt->tari_template);
+        bt->tari_template = NULL;
+    }
 }
 
 static uint64_t
@@ -1788,21 +1809,9 @@ miner_send_job(client_t *client, bool response)
     */
 
     /* Copy */
-    unsigned char block_stack[JOB_BODY_MAX] __attribute__((aligned(16)));
-    unsigned char *block = NULL;
-
-    if (bt->block_blob_size <= JOB_BODY_MAX)
-        block = block_stack;
-    else
-        block = malloc(bt->block_blob_size);
-
-    if (!block)
-    {
-        log_error("Failed to allocate memory for block blob");
-        return;
-    }
-
-    memcpy(block, bt->block_blob, bt->block_blob_size);
+    size_t block_size = bt->block_blob_size;
+    unsigned char *block = calloc(block_size + 256, sizeof(char));
+    memcpy(block, bt->block_blob, block_size);
 
     /* Set the extra nonce in our reserved space */
     unsigned char *p = block;
@@ -1815,10 +1824,28 @@ miner_send_job(client_t *client, bool response)
     p += 4;
     memcpy(p, &instance_id, sizeof(instance_id));
 
+    /* Merge Mining: Inject Tari tag if applicable */
+    if (bt->tari_template && client->tari_address[0] && tari_is_enabled())
+    {
+        unsigned char mm_hash[32];
+        if (mm_calculate_tari_hash(bt->tari_template->header,
+                                  bt->tari_template->header_size, mm_hash) == 0)
+        {
+            if (mm_inject_merge_mining_tag(block, &block_size, block_size + 256, mm_hash) == 0)
+            {
+                log_trace("Injected Tari MM tag for client %s", client->client_id);
+            }
+            else
+            {
+                log_error("Failed to inject Tari MM tag");
+            }
+        }
+    }
+
     /* Get hashing blob */
     size_t hashing_blob_size = 0;
     unsigned char *hashing_blob = NULL;
-    get_hashing_blob(block, bt->block_blob_size, &hashing_blob,
+    get_hashing_blob(block, block_size, &hashing_blob,
             &hashing_blob_size);
 
     /* Make hex */
@@ -1852,8 +1879,7 @@ miner_send_job(client_t *client, bool response)
     log_trace("Miner job: %.*s", strlen(body)-1, body);
     struct evbuffer *output = bufferevent_get_output(client->bev);
     evbuffer_add(output, body, strlen(body));
-    if (block != block_stack)
-        free(block);
+    free(block);
     free(hashing_blob);
 }
 
@@ -1965,14 +1991,15 @@ response_to_block_template(json_object *result,
 
     if (pow_variant >= 6)
     {
+        unsigned char seed_hash_bin[32] = {0};
         JSON_GET_OR_WARN(seed_hash, result, json_type_string);
         JSON_GET_OR_WARN(next_seed_hash, result, json_type_string);
         strncpy(block_template->seed_hash,
                 json_object_get_string(seed_hash), 64);
         strncpy(block_template->next_seed_hash,
                 json_object_get_string(next_seed_hash), 64);
-        hex_to_bin(block_template->seed_hash, block_template->seed_hash_bin, 32);
-        set_rx_main_seedhash(block_template->seed_hash_bin);
+        hex_to_bin(block_template->seed_hash, seed_hash_bin, 32);
+        set_rx_main_seedhash(seed_hash_bin);
     }
 }
 
@@ -2218,6 +2245,17 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
 
     pool_stats.last_template_fetched = time(NULL);
     response_to_block_template(result, &cand);
+
+    /* Attach Tari template if enabled */
+    if (tari_is_enabled())
+    {
+        const tari_block_template_t *tt = tari_get_current_template();
+        if (tt)
+        {
+            cand.tari_template = tari_template_copy(tt);
+            log_debug("Attached Tari template height %"PRIu64" to Monero template", tt->height);
+        }
+    }
 
     if ((top = bstack_top(bst)))
     {
@@ -3743,6 +3781,44 @@ miner_on_login(json_object *message, client_t *client)
     }
 
     const char *address = json_object_get_string(login);
+    char xmr_address[ADDRESS_MAX] = {0};
+    client->tari_address[0] = '\0';  /* Initialize Tari address */
+
+    /*
+     * Parse dual wallet format for merge mining:
+     * Supported formats:
+     *   - XMR_ADDRESS.TARI_ADDRESS  (dot separator)
+     *   - XMR_ADDRESS+TARI_ADDRESS  (plus separator)
+     *   - XMR_ADDRESS               (Monero only)
+     */
+    const char *separator = strchr(address, '.');
+    if (!separator)
+        separator = strchr(address, '+');
+
+    if (separator)
+    {
+        /* Dual mining format detected */
+        size_t xmr_len = separator - address;
+        if (xmr_len >= ADDRESS_MAX)
+        {
+            send_validation_error(client, "XMR address too long");
+            return;
+        }
+        strncpy(xmr_address, address, xmr_len);
+        xmr_address[xmr_len] = '\0';
+
+        const char *tari_addr = separator + 1;
+        if (!tari_validate_address(tari_addr))
+        {
+            send_validation_error(client, "Invalid Tari address");
+            return;
+        }
+        strncpy(client->tari_address, tari_addr, sizeof(client->tari_address) - 1);
+        log_info("Dual mining login: XMR=%.12s... TARI=%.12s...",
+                 xmr_address, client->tari_address);
+        address = xmr_address;
+    }
+
     uint8_t nt = 0;
     uint64_t pf = 0;
     if (parse_address(address, &pf, &nt, NULL))
@@ -3918,7 +3994,6 @@ miner_on_block_template(json_object *message, client_t *client)
         JSON_GET_OR_WARN(next_seed_hash, params, json_type_string);
         strncpy(job->miner_template->seed_hash,
                 json_object_get_string(seed_hash), 64);
-        hex_to_bin(job->miner_template->seed_hash, job->miner_template->seed_hash_bin, 32);
         const char *nsh = json_object_get_string(next_seed_hash);
         if (nsh)
             strncpy(job->miner_template->next_seed_hash, nsh, 64);
@@ -4010,15 +4085,9 @@ miner_on_submit(json_object *message, client_t *client)
         bt = job->miner_template;
     else
         bt = job->block_template;
-    unsigned char block_stack[JOB_BODY_MAX] __attribute__((aligned(16)));
-    unsigned char *block = NULL;
-
-    if (bt->block_blob_size <= JOB_BODY_MAX)
-        block = block_stack;
-    else
-        block = calloc(bt->block_blob_size, sizeof(char));
-
-    memcpy(block, bt->block_blob, bt->block_blob_size);
+    size_t block_size = bt->block_blob_size;
+    unsigned char *block = calloc(block_size + 256, sizeof(char));
+    memcpy(block, bt->block_blob, block_size);
 
     unsigned char *p = block;
     uint32_t pool_nonce = 0;
@@ -4076,8 +4145,7 @@ miner_on_submit(json_object *message, client_t *client)
             stratum_get_error_body(body, client->json_id, "Duplicate share");
             evbuffer_add(output, body, strlen(body));
             log_debug("[%s:%d] Duplicate share", client->host, client->port);
-            if (block != block_stack)
-                free(block);
+            free(block);
             return;
         }
     }
@@ -4098,8 +4166,7 @@ miner_on_submit(json_object *message, client_t *client)
             char body[ERROR_BODY_MAX] = {0};
             stratum_get_error_body(body, client->json_id, "Internal error");
             evbuffer_add(output, body, strlen(body));
-            if (block != block_stack)
-                free(block);
+            free(block);
             return;
         }
         else
@@ -4115,18 +4182,28 @@ miner_on_submit(json_object *message, client_t *client)
     p += 39;
     memcpy(p, &result_nonce, sizeof(result_nonce));
 
+    /* Merge Mining: Re-inject Tari tag if applicable */
+    if (client->mode != MODE_SELF_SELECT && bt->tari_template && client->tari_address[0] && tari_is_enabled())
+    {
+        unsigned char mm_hash[32];
+        if (mm_calculate_tari_hash(bt->tari_template->header,
+                                  bt->tari_template->header_size, mm_hash) == 0)
+        {
+             mm_inject_merge_mining_tag(block, &block_size, block_size + 256, mm_hash);
+        }
+    }
+
     /* Get hashing blob */
     size_t hashing_blob_size = 0;
     unsigned char *hashing_blob = NULL;
-    if (get_hashing_blob(block, bt->block_blob_size,
+    if (get_hashing_blob(block, block_size,
                 &hashing_blob, &hashing_blob_size) != 0)
     {
         char body[ERROR_BODY_MAX] = {0};
         stratum_get_error_body(body, client->json_id, "Invalid block");
         evbuffer_add(output, body, strlen(body));
         log_debug("Invalid block");
-        if (block != block_stack)
-            free(block);
+        free(block);
         return;
     }
 
@@ -4149,7 +4226,9 @@ miner_on_submit(json_object *message, client_t *client)
 
     if (pow_variant >= 6)
     {
-        get_rx_hash(bt->seed_hash_bin, hashing_blob, hashing_blob_size, result_hash);
+        unsigned char seed_hash[32] = {0};
+        hex_to_bin(bt->seed_hash, seed_hash, 32);
+        get_rx_hash(seed_hash, hashing_blob, hashing_blob_size, result_hash);
     }
     else
     {
@@ -4164,8 +4243,7 @@ miner_on_submit(json_object *message, client_t *client)
         evbuffer_add(output, body, strlen(body));
         log_debug("Invalid share");
         client->bad_shares++;
-        if (block != block_stack)
-            free(block);
+        free(block);
         free(hashing_blob);
         return;
     }
@@ -4210,8 +4288,8 @@ post_hash:
                  pool_stats.round_hashes + job->target,
                  pool_stats.network_difficulty,
                  pool_stats.network_height);
-        char *block_hex = calloc((bt->block_blob_size << 1)+1, sizeof(char));
-        bin_to_hex(block, bt->block_blob_size, block_hex);
+        char *block_hex = calloc((block_size << 1)+1, sizeof(char));
+        bin_to_hex(block, block_size, block_hex);
         char body[RPC_BODY_MAX] = {0};
         snprintf(body, RPC_BODY_MAX,
                 "{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":"
@@ -4223,7 +4301,7 @@ post_hash:
         block_t* b = (block_t*) cb->data;
         b->height = bt->height;
         unsigned char block_hash[32] = {0};
-        if (get_block_hash(block, bt->block_blob_size, block_hash))
+        if (get_block_hash(block, block_size, block_hash))
             log_error("Error getting block hash!");
         bin_to_hex(block_hash, 32, b->hash);
         strncpy(b->prev_hash, bt->prev_hash, 64);
@@ -4234,6 +4312,36 @@ post_hash:
             upstream_send_client_block(b);
         rpc_request(pool_base, body, cb);
         free(block_hex);
+
+        /* Also submit to Tari network if merge mining enabled */
+        if (bt->tari_template && client->tari_address[0] && tari_is_enabled())
+        {
+            log_info("+++ TARI BLOCK (via XMR) +++ tari_address=%.12s...",
+                     client->tari_address);
+
+            /* Extract MoneroPowData and submit to Tari */
+            monero_pow_data_t pow_data;
+            unsigned char seed_hash[32];
+            hex_to_bin(bt->seed_hash, seed_hash, 32);
+
+            if (mm_extract_pow_data(block, block_size, seed_hash, &pow_data) == 0)
+            {
+                unsigned char pow_buf[8192];
+                size_t pow_size = sizeof(pow_buf);
+
+                if (mm_serialize_pow_data(&pow_data, pow_buf, &pow_size) == 0)
+                {
+                    tari_submit_block(
+                        bt->tari_template->header, bt->tari_template->header_size,
+                        bt->tari_template->body, bt->tari_template->body_size,
+                        pow_buf, pow_size,
+                        NULL, NULL  /* Callback handled asynchronously */
+                    );
+                    client->tari_hashes += job->target;
+                }
+                mm_pow_data_free(&pow_data);
+            }
+        }
     }
     else if (BN_cmp(hd, jd) < 0)
     {
@@ -4244,12 +4352,55 @@ post_hash:
         log_debug("Low difficulty (%lu) share", BN_get_word(jd));
         client->bad_shares++;
     }
+    else
+    {
+        /*
+         * Share doesn't meet Monero block difficulty.
+         * Check if it meets Tari difficulty (wins XTM only).
+         */
+        if (bt->tari_template && client->tari_address[0] && tari_is_enabled())
+        {
+            uint64_t tari_diff = bt->tari_template->difficulty;
+            BIGNUM *td = BN_new();
+            BN_set_word(td, tari_diff);
+
+            if (BN_cmp(hd, td) >= 0)
+            {
+                /* Tari block found! Submit to Tari network only */
+                log_info("+++ TARI BLOCK (XTM only) +++ tari_address=%.12s..., "
+                         "height=%"PRIu64,
+                         client->tari_address, bt->tari_template->height);
+
+                monero_pow_data_t pow_data;
+                unsigned char seed_hash[32];
+                hex_to_bin(bt->seed_hash, seed_hash, 32);
+
+                if (mm_extract_pow_data(block, block_size, seed_hash, &pow_data) == 0)
+                {
+                    unsigned char pow_buf[8192];
+                    size_t pow_size = sizeof(pow_buf);
+
+                    if (mm_serialize_pow_data(&pow_data, pow_buf, &pow_size) == 0)
+                    {
+                        tari_submit_block(
+                            bt->tari_template->header, bt->tari_template->header_size,
+                            bt->tari_template->body, bt->tari_template->body_size,
+                            pow_buf, pow_size,
+                            NULL, NULL
+                        );
+                        client->tari_hashes += job->target;
+                    }
+                    mm_pow_data_free(&pow_data);
+                }
+            }
+            BN_free(td);
+        }
+    }
 
     BN_free(hd);
     BN_free(jd);
     BN_free(bd);
-    if (block != block_stack)
-        free(block);
+    free(block);
     free(hashing_blob);
 
     if (can_store)
@@ -4638,6 +4789,14 @@ read_config(const char *config_file)
     strcpy(config.data_dir, "./data");
     config.cull_shares = -1;
 
+    /* Tari defaults */
+    config.tari_enabled = false;
+    strcpy(config.tari_base_node_host, "127.0.0.1");
+    config.tari_base_node_grpc_port = 18142;
+    strcpy(config.tari_wallet_host, "127.0.0.1");
+    config.tari_wallet_grpc_port = 18143;
+    config.tari_poll_interval_ms = 1000;
+
     if (config_file)
     {
         strncpy(path, config_file, MAX_PATH-1);
@@ -4871,6 +5030,31 @@ read_config(const char *config_file)
         else if (strcmp(key, "pool-view-key") == 0 && strlen(val) == 64)
         {
             strncpy(config.pool_view_key, val, 64);
+        }
+        /* Tari configuration */
+        else if (strcmp(key, "tari-enabled") == 0)
+        {
+            config.tari_enabled = atoi(val);
+        }
+        else if (strcmp(key, "tari-base-node-host") == 0)
+        {
+            strncpy(config.tari_base_node_host, val, sizeof(config.tari_base_node_host)-1);
+        }
+        else if (strcmp(key, "tari-base-node-grpc-port") == 0)
+        {
+            config.tari_base_node_grpc_port = atoi(val);
+        }
+        else if (strcmp(key, "tari-wallet-host") == 0)
+        {
+            strncpy(config.tari_wallet_host, val, sizeof(config.tari_wallet_host)-1);
+        }
+        else if (strcmp(key, "tari-wallet-grpc-port") == 0)
+        {
+            config.tari_wallet_grpc_port = atoi(val);
+        }
+        else if (strcmp(key, "tari-poll-interval-ms") == 0)
+        {
+            config.tari_poll_interval_ms = atoi(val);
         }
     }
     fclose(fp);
@@ -5200,6 +5384,24 @@ run(void)
     timer_template = evtimer_new(pool_base, timer_on_template, NULL);
     timer_on_template(-1, EV_TIMEOUT, NULL);
 
+    /* Initialize Tari gRPC */
+    if (config.tari_enabled)
+    {
+        tari_config_t tari_conf = {0};
+        tari_conf.enabled = true;
+        strncpy(tari_conf.base_node_host, config.tari_base_node_host, sizeof(tari_conf.base_node_host)-1);
+        tari_conf.base_node_grpc_port = config.tari_base_node_grpc_port;
+        strncpy(tari_conf.wallet_host, config.tari_wallet_host, sizeof(tari_conf.wallet_host)-1);
+        tari_conf.wallet_grpc_port = config.tari_wallet_grpc_port;
+        tari_conf.poll_interval_ms = config.tari_poll_interval_ms;
+        tari_conf.timeout_ms = 5000;
+
+        if (tari_init(pool_base, &tari_conf) != 0)
+        {
+            log_error("Failed to initialize Tari gRPC client");
+        }
+    }
+
     fetch_view_key();
 
     if (abattoir)
@@ -5253,6 +5455,7 @@ cleanup(void)
         bstack_free(bsh);
     if (bst)
         bstack_free(bst);
+    tari_cleanup();
     database_close();
     BN_free(base_diff);
     BN_CTX_free(bn_ctx);

@@ -80,6 +80,13 @@ The pool is designed with a focus on **performance** and **efficiency**:
 | Compat | `compat.h` | Cross-platform compatibility layer |
 | ForkOff | `forkoff.c`, `forkoff.h` | Daemonization support |
 
+### Merge Mining Modules
+
+| Module | File(s) | Description |
+|--------|---------|-------------|
+| Tari gRPC | `tari_grpc.c`, `tari_grpc.h` | gRPC client for Tari base node connection |
+| Merge Mining | `merge_mining.c`, `merge_mining.h` | tx_extra injection and MoneroPowData serialization |
+
 ### External Libraries
 
 | Library | Purpose |
@@ -89,6 +96,7 @@ The pool is designed with a focus on **performance** and **efficiency**:
 | json-c | JSON parsing |
 | OpenSSL | BigNum operations for difficulty |
 | libuuid | UUID generation for jobs |
+| libcurl | HTTP/2 for Tari gRPC communication |
 
 ## Data Flow
 
