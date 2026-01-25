@@ -267,8 +267,9 @@ static void *tari_fetch_thread_func(void *arg)
 
     /*
      * Build protobuf request for GetNewBlockTemplate
+     * Minotari v0.52: algo is a message PowAlgo (Tag 1, Type 2)
      */
-    unsigned char payload[] = {0x08, 0x00};  /* field 1, value 0 (Monero) */
+    unsigned char payload[] = {0x0A, 0x02, 0x08, 0x00}; /* Tag 1 (algo), Len 2, Val {Tag 1: 0 (Monero)} */
     size_t frame_len;
     unsigned char *frame = build_grpc_request(payload, sizeof(payload), &frame_len);
     if (!frame) {
