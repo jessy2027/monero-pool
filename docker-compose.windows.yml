@@ -114,6 +114,17 @@ services:
     # Health check is defined in Dockerfile
 
   # ---------------------------------------------------------------------------
+  # Tor Service (External Proxy)
+  # ---------------------------------------------------------------------------
+  tor:
+    image: alpine:latest
+    container_name: tor
+    restart: unless-stopped
+    command: sh -c "apk add --no-cache tor && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --CookieAuthentication 0 --Log \"notice stdout\""
+    networks:
+      - monero-network
+
+  # ---------------------------------------------------------------------------
   # Tari Base Node (for merge mining)
   # ---------------------------------------------------------------------------
   # Enable with: docker compose --profile tari up -d
@@ -131,8 +142,10 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
       - TARI_NETWORK=esmeralda
-      - TARI_BASE_NODE__USE_LIBTOR=true
-      - MINOTARI_BASE_NODE__USE_LIBTOR=true
+      - TARI_BASE_NODE__USE_LIBTOR=false
+      - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
+      - TARI_P2P__TRANSPORT__TOR__PROXY_ADDRESS=/dns4/tor/tcp/9050
+      - MINOTARI_BASE_NODE__USE_LIBTOR=false
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
     networks:
@@ -164,7 +177,7 @@ services:
       - TARI_WALLET__GRPC_ENABLED=true
       - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
       - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142
-    command: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
+    entrypoint: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
     networks:
       - monero-network
     logging:
