@@ -163,6 +163,7 @@ services:
       - TARI_WALLET__GRPC_ENABLED=true
       - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
       - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142
+      - TARI_WALLET__PASSWORD_FILE=/config/wallet-password.txt
     networks:
       - monero-network
     logging:
