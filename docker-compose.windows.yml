@@ -120,7 +120,7 @@ services:
     image: alpine:latest
     container_name: tor
     restart: unless-stopped
-    command: sh -c "apk add --no-cache tor netcat-openbsd && echo 'ClientOnly 1' > /etc/torrc && echo 'SocksPort 0.0.0.0:9050' >> /etc/torrc && echo 'ControlPort 0.0.0.0:9051' >> /etc/torrc && echo 'HashedControlPassword 16:F3C88FEA53A2F5D960374B58BA8C8BCC5F3DA' >> /etc/torrc && echo 'CookieAuthentication 0' >> /etc/torrc && echo 'Log notice stdout' >> /etc/torrc && tor -f /etc/torrc"
+    command: sh -c "apk add --no-cache tor netcat-openbsd && echo 'ClientOnly 1' > /etc/torrc && echo 'SocksPort 0.0.0.0:9050' >> /etc/torrc && echo 'ControlPort 0.0.0.0:9051' >> /etc/torrc && echo 'HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C' >> /etc/torrc && echo 'CookieAuthentication 0' >> /etc/torrc && echo 'Log notice stdout' >> /etc/torrc && tor -f /etc/torrc"
     ports:
       - "9050:9050"
       - "9051:9051"
