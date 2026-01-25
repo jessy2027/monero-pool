@@ -124,11 +124,66 @@ cmd_setup() {
 }
 
 cmd_start() {
-    log_header "Starting Monero Pool"
+    log_header "Starting Monero Pool (All Services)"
     check_docker
     load_env
-    docker compose -f "$COMPOSE_FILE" up -d
-    log_info "Services started."
+
+    # Ensure Tari Config & Password exist before starting
+    # (Reusing logic from start-tari to ensure smooth startup)
+
+    # Check for wallet password (shared with Monero)
+    PASSWORD_FILE="$DATA_DIR/config/wallet-password.txt"
+    if [ ! -f "$PASSWORD_FILE" ]; then
+        log_warn "Wallet password file not found!"
+        echo "Tari Wallet requires a password (same as Monero)."
+        read -s -p "Enter wallet password: " WALLET_PASS
+        echo ""
+        read -s -p "Confirm password: " WALLET_PASS_CONFIRM
+        echo ""
+
+        if [ "$WALLET_PASS" != "$WALLET_PASS_CONFIRM" ]; then
+            log_error "Passwords do not match!"
+            exit 1
+        fi
+
+        echo "$WALLET_PASS" > "$PASSWORD_FILE"
+        log_info "Password saved to $PASSWORD_FILE"
+    fi
+
+    # Centralized config path
+    TARI_CONFIG_DIR="$DATA_DIR/config/tari"
+    TARI_CONFIG_FILE="$TARI_CONFIG_DIR/config.toml"
+
+    if [ ! -d "$TARI_CONFIG_DIR" ]; then
+        mkdir -p "$TARI_CONFIG_DIR"
+    fi
+
+    if [ ! -f "$TARI_CONFIG_FILE" ]; then
+        log_info "Generating default Tari configuration..."
+        cat > "$TARI_CONFIG_FILE" <<EOL
+[wallet]
+grpc_enabled = true
+grpc_address = "/ip4/0.0.0.0/tcp/18143"
+base_node_service_peers = ["/dns4/tari-base-node/tcp/18142"]
+db_file = "/var/tari/wallet/console-wallet.sqlite"
+data_dir = "/var/tari/wallet"
+network = "mainnet"
+EOL
+    fi
+
+    # Patch obsolete config
+    if [ -f "$TARI_CONFIG_FILE" ]; then
+        if grep -q "grpc[[:space:]]*=" "$TARI_CONFIG_FILE"; then
+            sed -i '/^[[:space:]]*grpc[[:space:]]*=/d' "$TARI_CONFIG_FILE"
+            log_info "Tari configuration patched."
+        fi
+    fi
+
+    # Start ALL profiles: tari, lottery, ssl
+    log_info "Starting Monero Pool, Tari, Lottery, and SSL Proxy..."
+    docker compose -f "$COMPOSE_FILE" --profile tari --profile lottery --profile ssl up -d
+
+    log_info "All services started."
     docker compose -f "$COMPOSE_FILE" ps
 }
 
@@ -145,6 +200,25 @@ cmd_start_tari() {
     check_docker
     load_env
 
+    # Check for wallet password (shared with Monero)
+    PASSWORD_FILE="$DATA_DIR/config/wallet-password.txt"
+    if [ ! -f "$PASSWORD_FILE" ]; then
+        log_warn "Wallet password file not found!"
+        echo "Tari Wallet requires a password (same as Monero)."
+        read -s -p "Enter wallet password: " WALLET_PASS
+        echo ""
+        read -s -p "Confirm password: " WALLET_PASS_CONFIRM
+        echo ""
+
+        if [ "$WALLET_PASS" != "$WALLET_PASS_CONFIRM" ]; then
+            log_error "Passwords do not match!"
+            exit 1
+        fi
+
+        echo "$WALLET_PASS" > "$PASSWORD_FILE"
+        log_info "Password saved to $PASSWORD_FILE"
+    fi
+
     # Centralized config path
     TARI_CONFIG_DIR="$DATA_DIR/config/tari"
     TARI_CONFIG_FILE="$TARI_CONFIG_DIR/config.toml"
@@ -155,16 +229,31 @@ cmd_start_tari() {
         mkdir -p "$TARI_CONFIG_DIR"
     fi
 
-    # Check for obsolete configuration
+    # Generate default config if missing
+    if [ ! -f "$TARI_CONFIG_FILE" ]; then
+        log_info "Generating default Tari configuration..."
+        cat > "$TARI_CONFIG_FILE" <<EOL
+[wallet]
+grpc_enabled = true
+grpc_address = "/ip4/0.0.0.0/tcp/18143"
+base_node_service_peers = ["/dns4/tari-base-node/tcp/18142"]
+db_file = "/var/tari/wallet/console-wallet.sqlite"
+data_dir = "/var/tari/wallet"
+network = "mainnet"
+EOL
+        log_info "Created $TARI_CONFIG_FILE"
+    fi
+
+    # Check for obsolete configuration (patching 'grpc = ...')
     if [ -f "$TARI_CONFIG_FILE" ]; then
-        if grep -q "^grpc =" "$TARI_CONFIG_FILE"; then
+        if grep -q "grpc[[:space:]]*=" "$TARI_CONFIG_FILE"; then
             log_warn "Obsolete 'grpc' field detected in $TARI_CONFIG_FILE"
             log_info "Creating backup at $TARI_CONFIG_FILE.bak"
             cp "$TARI_CONFIG_FILE" "$TARI_CONFIG_FILE.bak"
 
             log_info "Removing invalid configuration to allow node start..."
-            # Remove the 'grpc' line which causes the crash
-            sed -i '/^grpc =/d' "$TARI_CONFIG_FILE"
+            # Remove the 'grpc' line which causes the crash (handles indentation)
+            sed -i '/^[[:space:]]*grpc[[:space:]]*=/d' "$TARI_CONFIG_FILE"
             log_info "Configuration patched."
         fi
     fi

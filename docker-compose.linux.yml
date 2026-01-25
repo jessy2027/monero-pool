@@ -156,8 +156,8 @@ services:
     ports:
       - "18143:18143"  # Wallet gRPC port
     volumes:
-      - ${DATA_DIR:-/opt/monero-pool}/tari-wallet:/var/tari-wallet
-      - ${DATA_DIR:-/opt/monero-pool}/config/tari:/var/tari-wallet/config
+      - ${DATA_DIR:-/opt/monero-pool}/tari-wallet:/var/tari/wallet
+      - ${DATA_DIR:-/opt/monero-pool}/config/tari:/var/tari/config
       - ${DATA_DIR:-/opt/monero-pool}/config:/config:ro
     environment:
       - TARI_NETWORK=mainnet
