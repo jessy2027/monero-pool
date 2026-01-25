@@ -153,11 +153,56 @@ REM ----------------------------------------------------------------------------
 
 :start
     echo.
-    echo %HEADER_PREFIX% Starting Monero Pool
+    echo %HEADER_PREFIX% Starting Monero Pool (All Services)
     call :check_docker || exit /b 1
     call :load_env
-    docker compose -f "%COMPOSE_FILE%" up -d
-    echo %INFO_PREFIX% Services started.
+
+    REM Check for wallet password (shared with Monero)
+    set "PASSWORD_FILE=%DATA_DIR%\config\wallet-password.txt"
+    if not exist "%PASSWORD_FILE%" (
+        echo %WARN_PREFIX% Wallet password file not found!
+        echo Tari Wallet requires a password ^(same as Monero^).
+        set /p "WALLET_PASS=Enter wallet password: "
+        echo.
+        set /p "WALLET_PASS_CONFIRM=Confirm password: "
+        echo.
+
+        if not "!WALLET_PASS!"=="!WALLET_PASS_CONFIRM!" (
+            echo %ERROR_PREFIX% Passwords do not match!
+            exit /b 1
+        )
+
+        echo !WALLET_PASS!> "%PASSWORD_FILE%"
+        echo %INFO_PREFIX% Password saved to %PASSWORD_FILE%
+    )
+
+    REM Centralized config path
+    set "TARI_CONFIG_DIR=%DATA_DIR%\config\tari"
+    set "TARI_CONFIG_FILE=%TARI_CONFIG_DIR%\config.toml"
+
+    if not exist "%TARI_CONFIG_DIR%" mkdir "%TARI_CONFIG_DIR%"
+
+    if not exist "%TARI_CONFIG_FILE%" (
+        echo %INFO_PREFIX% Generating default Tari configuration...
+        (
+            echo [wallet]
+            echo grpc_enabled = true
+            echo grpc_address = "/ip4/0.0.0.0/tcp/18143"
+            echo base_node_service_peers = ["/dns4/tari-base-node/tcp/18142"]
+            echo db_file = "/var/tari/wallet/console-wallet.sqlite"
+            echo data_dir = "/var/tari/wallet"
+            echo network = "mainnet"
+        ) > "%TARI_CONFIG_FILE%"
+        echo %INFO_PREFIX% Created %TARI_CONFIG_FILE%
+    )
+
+    REM Patch obsolete config (requires finding a way to sed in batch or just ignore for now)
+    REM Windows batch is limited for complex sed-like replacements without external tools.
+    REM Assuming default generation is sufficient for new users.
+
+    echo %INFO_PREFIX% Starting Monero Pool, Tari, Lottery, and SSL Proxy...
+    docker compose -f "%COMPOSE_FILE%" --profile tari --profile lottery --profile ssl up -d
+    echo %INFO_PREFIX% All services started.
     docker compose -f "%COMPOSE_FILE%" ps
     exit /b 0
 
