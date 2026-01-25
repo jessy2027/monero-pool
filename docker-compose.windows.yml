@@ -131,6 +131,7 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
       - TARI_NETWORK=esmeralda
+      - TARI_BASE_NODE__USE_LIBTOR=1
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
     networks:
