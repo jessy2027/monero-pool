@@ -70,9 +70,9 @@ cmd_setup() {
 
     # Create Directories
     log_info "Creating directories in $DATA_DIR..."
-    mkdir -p "$DATA_DIR/blockchain"
-    mkdir -p "$DATA_DIR/wallet"
-    mkdir -p "$DATA_DIR/pool-data"
+    mkdir -p "$DATA_DIR/xmr-data"
+    mkdir -p "$DATA_DIR/xmr-wallet"
+    mkdir -p "$DATA_DIR/xmr-pool-data"
     mkdir -p "$DATA_DIR/config/certs"
     mkdir -p "$DATA_DIR/backups"
     mkdir -p "$DATA_DIR/lottery-data"
@@ -176,8 +176,8 @@ cmd_create_wallet() {
     check_docker
     load_env
 
-    if [ -f "$DATA_DIR/wallet/pool-wallet" ]; then
-        log_error "Wallet already exists at $DATA_DIR/wallet/pool-wallet"
+    if [ -f "$DATA_DIR/xmr-wallet/pool-wallet" ]; then
+        log_error "Wallet already exists at $DATA_DIR/xmr-wallet/pool-wallet"
         read -p "Do you want to overwrite it? (y/N) " confirm
         if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
             exit 0
@@ -229,8 +229,8 @@ cmd_backup() {
     }
 
     log_info "Backing up data..."
-    safe_copy "$DATA_DIR/pool-data" "$TEMP_DIR/pool-data"
-    safe_copy "$DATA_DIR/wallet" "$TEMP_DIR/wallet"
+    safe_copy "$DATA_DIR/xmr-pool-data" "$TEMP_DIR/xmr-pool-data"
+    safe_copy "$DATA_DIR/xmr-wallet" "$TEMP_DIR/xmr-wallet"
     safe_copy "$DATA_DIR/config" "$TEMP_DIR/config"
     safe_copy "$DATA_DIR/lottery-data" "$TEMP_DIR/lottery-data"
     safe_copy "$DATA_DIR/lottery-output" "$TEMP_DIR/lottery-output"
@@ -295,15 +295,15 @@ cmd_restore() {
     BACKUP_CONTENT_DIR=$(ls "$TEMP_RESTORE" | head -n 1)
     SOURCE_DIR="$TEMP_RESTORE/$BACKUP_CONTENT_DIR"
 
-    if [ ! -d "$SOURCE_DIR/pool-data" ]; then
-        log_error "Invalid backup structure. Aborting."
+    if [ ! -d "$SOURCE_DIR/xmr-pool-data" ]; then
+        log_error "Invalid backup structure (xmr-pool-data not found). Aborting."
         rm -rf "$TEMP_RESTORE"
         exit 1
     fi
 
     # Restore files
-    cp -r "$SOURCE_DIR/pool-data/"* "$DATA_DIR/pool-data/" 2>/dev/null || true
-    cp -r "$SOURCE_DIR/wallet/"* "$DATA_DIR/wallet/" 2>/dev/null || true
+    cp -r "$SOURCE_DIR/xmr-pool-data/"* "$DATA_DIR/xmr-pool-data/" 2>/dev/null || true
+    cp -r "$SOURCE_DIR/xmr-wallet/"* "$DATA_DIR/xmr-wallet/" 2>/dev/null || true
     cp -r "$SOURCE_DIR/config/"* "$DATA_DIR/config/" 2>/dev/null || true
     cp -r "$SOURCE_DIR/lottery-data/"* "$DATA_DIR/lottery-data/" 2>/dev/null || true
     cp -r "$SOURCE_DIR/tari-data/"* "$DATA_DIR/tari-data/" 2>/dev/null || true
