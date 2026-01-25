@@ -132,6 +132,7 @@ services:
     environment:
       - TARI_NETWORK=esmeralda
       - TARI_BASE_NODE__USE_LIBTOR=true
+      - MINOTARI_BASE_NODE__USE_LIBTOR=true
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
     networks:
@@ -163,7 +164,7 @@ services:
       - TARI_WALLET__GRPC_ENABLED=true
       - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
       - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142
-      - TARI_WALLET__PASSWORD_FILE=/config/wallet-password.txt
+    command: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
     networks:
       - monero-network
     logging:
