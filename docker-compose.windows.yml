@@ -127,8 +127,8 @@ services:
       - "18142:18142"  # gRPC port
       - "18189:18189"  # P2P port
     volumes:
-      - ${DATA_DIR:-C:\MoneroPool}\tari-data:/root/.tari
-      - ${DATA_DIR:-C:\MoneroPool}\config:/config:ro
+      - ${DATA_DIR:-C:\MoneroPool}\tari-data:/var/tari
+      - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
       - TARI_NETWORK=mainnet
       - TARI_BASE_NODE__GRPC__ENABLED=true
@@ -154,7 +154,8 @@ services:
     ports:
       - "18143:18143"  # Wallet gRPC port
     volumes:
-      - ${DATA_DIR:-C:\MoneroPool}\tari-wallet:/root/.tari-wallet
+      - ${DATA_DIR:-C:\MoneroPool}\tari-wallet:/var/tari-wallet
+      - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari-wallet/config
       - ${DATA_DIR:-C:\MoneroPool}\config:/config:ro
     environment:
       - TARI_NETWORK=mainnet
