@@ -88,7 +88,6 @@ typedef struct block_template_t {
     char prev_hash[65];
     uint32_t reserved_offset;
     char seed_hash[65];
-    unsigned char seed_hash_bin[32];
     char next_seed_hash[65];
     uint64_t tx_count;
 } block_template_t;

@@ -5,6 +5,8 @@
 # - monerod: Monero daemon (blockchain node)
 # - monero-wallet-rpc: Wallet RPC for payouts
 # - monero-pool: The mining pool server
+# - tari-base-node: Tari Base Node (Merge Mining)
+# - tari-wallet: Tari Console Wallet (Merge Mining Payouts)
 #
 # USAGE:
 #   Start:   docker compose -f docker-compose.linux.yml up -d
@@ -20,6 +22,8 @@
 #   ${DATA_DIR}/wallet      - Wallet data
 #   ${DATA_DIR}/pool-data   - Pool database (shares, payments, balances)
 #   ${DATA_DIR}/config      - Configuration files
+#   ${DATA_DIR}/tari-data   - Tari blockchain data
+#   ${DATA_DIR}/tari-wallet - Tari wallet data
 #   (Default DATA_DIR: /opt/monero-pool)
 # =============================================================================
 
@@ -112,6 +116,62 @@ services:
         max-size: "50m"
         max-file: "5"
     # Health check is defined in Dockerfile
+
+  # ---------------------------------------------------------------------------
+  # Tari Base Node (for merge mining)
+  # ---------------------------------------------------------------------------
+  tari-base-node:
+    image: quay.io/tarilabs/minotari_node:latest
+    container_name: tari-base-node
+    restart: unless-stopped
+    profiles: ["tari"]  # Only starts with: docker compose --profile tari up -d
+    ports:
+      - "18142:18142"  # gRPC port
+      - "18189:18189"  # P2P port
+    volumes:
+      - ${DATA_DIR:-/opt/monero-pool}/tari-data:/root/.tari
+      - ${DATA_DIR:-/opt/monero-pool}/config:/config:ro
+    environment:
+      - TARI_NETWORK=mainnet
+      - TARI_BASE_NODE__GRPC_ENABLED=true
+      - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Tari Console Wallet (for XTM payouts)
+  # ---------------------------------------------------------------------------
+  tari-wallet:
+    image: quay.io/tarilabs/minotari_console_wallet:latest
+    container_name: tari-wallet
+    restart: unless-stopped
+    profiles: ["tari"]
+    depends_on:
+      - tari-base-node
+    ports:
+      - "18143:18143"  # Wallet gRPC port
+    volumes:
+      - ${DATA_DIR:-/opt/monero-pool}/tari-wallet:/root/.tari-wallet
+      - ${DATA_DIR:-/opt/monero-pool}/config:/config:ro
+    environment:
+      - TARI_NETWORK=mainnet
+      - TARI_WALLET__GRPC_ENABLED=true
+      - TARI_WALLET__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18143
+      - TARI_BASE_NODE__ADDRESS=/dns4/tari-base-node/tcp/18142
+      # We use the same password file as Monero for simplicity, or specific one
+      - TARI_WALLET__PASSWORD_FILE=/config/wallet-password.txt
+    networks:
+      - monero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------------------------------------------------------------------------
   # HAProxy for SSL Stratum (TLS termination)
@@ -212,6 +272,13 @@ networks:
 #
 # UPDATE POOL:
 #   ./manage.sh update
+#
+# TARI MERGE MINING:
+#   1. Start Tari services:
+#      ./manage.sh start-tari
+#
+#   2. Monitor Tari:
+#      ./manage.sh logs tari-base-node
 #
 # LOTTERY SYSTEM:
 #   1. Directories are created by setup script

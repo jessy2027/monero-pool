@@ -581,6 +581,24 @@
                 </div>
                 <div class="connection-box">
                     <h3 data-i18n="conn_details">Connection Details</h3>
+
+                    <div class="mining-mode-selector">
+                        <button class="mode-btn active" onclick="switchMiningMode('standard')" id="mode_standard"
+                            data-i18n="mode_standard">Standard (XMR)</button>
+                        <button class="mode-btn" onclick="switchMiningMode('dual')" id="mode_dual"
+                            data-i18n="mode_dual">Dual (XMR + Tari)</button>
+                    </div>
+
+                    <div id="conn_dual" class="conn-content dual-info-panel" style="display:none;">
+                        <p data-i18n="dual_mining_desc" class="dual-desc">Mine both Monero and Tari simultaneously
+                            without losing XMR hashrate.</p>
+                        <div class="code-block-simple">
+                            <code data-i18n="dual_wallet_format_desc">Format: XMR_ADDRESS.TARI_ADDRESS</code>
+                        </div>
+                    </div>
+
+                    <div id="conn_standard" class="conn-content"></div>
+
                     <div class="conn-grid-wrapper">
                         <div class="region-block">
                             <h4 class="region-title" data-i18n="region_eu">Europe</h4>

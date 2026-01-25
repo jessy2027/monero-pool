@@ -77,6 +77,8 @@ cmd_setup() {
     mkdir -p "$DATA_DIR/backups"
     mkdir -p "$DATA_DIR/lottery-data"
     mkdir -p "$DATA_DIR/lottery-output"
+    mkdir -p "$DATA_DIR/tari-data"
+    mkdir -p "$DATA_DIR/tari-wallet"
 
     # Copy Configs
     log_info "Copying configuration files..."
@@ -118,6 +120,7 @@ cmd_setup() {
     echo "  1. Edit config: nano $DATA_DIR/config/pool.conf"
     echo "  2. Create wallet: ./manage.sh create-wallet"
     echo "  3. Start pool: ./manage.sh start"
+    echo "  4. Start Tari (Optional): ./manage.sh start-tari"
 }
 
 cmd_start() {
@@ -135,6 +138,14 @@ cmd_start_lottery() {
     load_env
     docker compose -f "$COMPOSE_FILE" --profile lottery up -d
     log_info "Lottery service started."
+}
+
+cmd_start_tari() {
+    log_header "Starting Tari Merge Mining Services"
+    check_docker
+    load_env
+    docker compose -f "$COMPOSE_FILE" --profile tari up -d
+    log_info "Tari services started."
 }
 
 cmd_stop() {
@@ -223,6 +234,8 @@ cmd_backup() {
     safe_copy "$DATA_DIR/config" "$TEMP_DIR/config"
     safe_copy "$DATA_DIR/lottery-data" "$TEMP_DIR/lottery-data"
     safe_copy "$DATA_DIR/lottery-output" "$TEMP_DIR/lottery-output"
+    safe_copy "$DATA_DIR/tari-data" "$TEMP_DIR/tari-data"
+    safe_copy "$DATA_DIR/tari-wallet" "$TEMP_DIR/tari-wallet"
 
     # Compress
     log_info "Compressing..."
@@ -293,10 +306,8 @@ cmd_restore() {
     cp -r "$SOURCE_DIR/wallet/"* "$DATA_DIR/wallet/" 2>/dev/null || true
     cp -r "$SOURCE_DIR/config/"* "$DATA_DIR/config/" 2>/dev/null || true
     cp -r "$SOURCE_DIR/lottery-data/"* "$DATA_DIR/lottery-data/" 2>/dev/null || true
-
-    # Fix permissions? Docker usually handles volumes as root or specific user.
-    # But usually files on host are owned by root if created by docker-compose unless user mapping is used.
-    # We leave as is for now, maybe chown if needed.
+    cp -r "$SOURCE_DIR/tari-data/"* "$DATA_DIR/tari-data/" 2>/dev/null || true
+    cp -r "$SOURCE_DIR/tari-wallet/"* "$DATA_DIR/tari-wallet/" 2>/dev/null || true
 
     rm -rf "$TEMP_RESTORE"
     log_info "Restore complete."
@@ -355,6 +366,9 @@ case "$1" in
     start-lottery)
         cmd_start_lottery
         ;;
+    start-tari)
+        cmd_start_tari
+        ;;
     stop)
         cmd_stop
         ;;
@@ -387,6 +401,7 @@ case "$1" in
         echo "  setup             Initial setup of the pool"
         echo "  start             Start the pool services"
         echo "  start-lottery     Start the lottery service"
+        echo "  start-tari        Start the Tari merge mining services"
         echo "  stop              Stop all services"
         echo "  restart           Restart services"
         echo "  logs [service]    View logs (optional: monerod, monero-pool)"
