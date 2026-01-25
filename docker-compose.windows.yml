@@ -120,7 +120,15 @@ services:
     image: alpine:latest
     container_name: tor
     restart: unless-stopped
-    command: sh -c "apk add --no-cache tor && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --CookieAuthentication 0 --Log \"notice stdout\""
+    command: sh -c "apk add --no-cache tor netcat-openbsd && tor --ClientOnly 1 --SocksPort 0.0.0.0:9050 --ControlPort 0.0.0.0:9051 --CookieAuthentication 0 --Log \"notice stdout\""
+    expose:
+      - "9050"
+      - "9051"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9050 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - monero-network
 
@@ -135,7 +143,8 @@ services:
     restart: unless-stopped
     profiles: ["tari"]  # Only starts with: docker compose --profile tari up -d
     depends_on:
-      - tor
+      tor:
+        condition: service_healthy
     ports:
       - "18142:18142"  # gRPC port
       - "18189:18189"  # P2P port
@@ -165,8 +174,10 @@ services:
     restart: unless-stopped
     profiles: ["tari"]
     depends_on:
-      - tari-base-node
-      - tor
+      tari-base-node:
+        condition: service_started
+      tor:
+        condition: service_healthy
     ports:
       - "18143:18143"  # Wallet gRPC port
     volumes:
