@@ -134,6 +134,8 @@ services:
     container_name: tari-base-node
     restart: unless-stopped
     profiles: ["tari"]  # Only starts with: docker compose --profile tari up -d
+    depends_on:
+      - tor
     ports:
       - "18142:18142"  # gRPC port
       - "18189:18189"  # P2P port
@@ -142,10 +144,12 @@ services:
       - ${DATA_DIR:-C:\MoneroPool}\config\tari:/var/tari/config
     environment:
       - TARI_NETWORK=esmeralda
-      - TARI_BASE_NODE__USE_LIBTOR=false
-      - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
-      - TARI_P2P__TRANSPORT__TOR__PROXY_ADDRESS=/dns4/tor/tcp/9050
-      - MINOTARI_BASE_NODE__USE_LIBTOR=false
+      - TARI_BASE_NODE__P2P__TRANSPORT__TYPE=tor
+      - TARI_BASE_NODE__P2P__TRANSPORT__TOR__USE_LIBTOR=true
+      - MINOTARI_BASE_NODE__P2P__TRANSPORT__TYPE=tor
+      - MINOTARI_BASE_NODE__P2P__TRANSPORT__TOR__USE_LIBTOR=true
+      - MINOTARI_BASE_NODE__USE_LIBTOR=true
+      - TARI_BASE_NODE__USE_LIBTOR=true
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
     networks:
@@ -166,6 +170,7 @@ services:
     profiles: ["tari"]
     depends_on:
       - tari-base-node
+      - tor
     ports:
       - "18143:18143"  # Wallet gRPC port
     volumes:
@@ -181,6 +186,8 @@ services:
       - MINOTARI_WALLET__USE_LIBTOR=false
       - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
       - TARI_P2P__TRANSPORT__TOR__PROXY_ADDRESS=/dns4/tor/tcp/9050
+      - TARI_WALLET__P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
+      - TARI_WALLET__P2P__TRANSPORT__TOR__PROXY_ADDRESS=/dns4/tor/tcp/9050
     entrypoint: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
     networks:
       - monero-network
