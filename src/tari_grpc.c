@@ -27,13 +27,13 @@
 #include "log.h"
 
 /* gRPC service paths */
-#define GRPC_GET_NEW_BLOCK_TEMPLATE "/tari.base_node.BaseNode/GetNewBlockTemplate"
-#define GRPC_GET_NEW_BLOCK          "/tari.base_node.BaseNode/GetNewBlock"
-#define GRPC_SUBMIT_BLOCK           "/tari.base_node.BaseNode/SubmitBlock"
-#define GRPC_GET_TIP_INFO           "/tari.base_node.BaseNode/GetTipInfo"
+#define GRPC_GET_NEW_BLOCK_TEMPLATE "/tari.rpc.BaseNode/GetNewBlockTemplate"
+#define GRPC_GET_NEW_BLOCK          "/tari.rpc.BaseNode/GetNewBlock"
+#define GRPC_SUBMIT_BLOCK           "/tari.rpc.BaseNode/SubmitBlock"
+#define GRPC_GET_TIP_INFO           "/tari.rpc.BaseNode/GetTipInfo"
 
 /* Wallet gRPC paths */
-#define GRPC_GET_COINBASE           "/tari.wallet.Wallet/GetCoinbase"
+#define GRPC_GET_COINBASE           "/tari.rpc.Wallet/GetCoinbase"
 
 /* gRPC message frame header size */
 #define GRPC_HEADER_SIZE 5
