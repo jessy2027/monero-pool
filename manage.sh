@@ -144,6 +144,31 @@ cmd_start_tari() {
     log_header "Starting Tari Merge Mining Services"
     check_docker
     load_env
+
+    # Centralized config path
+    TARI_CONFIG_DIR="$DATA_DIR/config/tari"
+    TARI_CONFIG_FILE="$TARI_CONFIG_DIR/config.toml"
+
+    # Ensure config dir exists
+    if [ ! -d "$TARI_CONFIG_DIR" ]; then
+        log_info "Creating Tari config directory at $TARI_CONFIG_DIR..."
+        mkdir -p "$TARI_CONFIG_DIR"
+    fi
+
+    # Check for obsolete configuration
+    if [ -f "$TARI_CONFIG_FILE" ]; then
+        if grep -q "^grpc =" "$TARI_CONFIG_FILE"; then
+            log_warn "Obsolete 'grpc' field detected in $TARI_CONFIG_FILE"
+            log_info "Creating backup at $TARI_CONFIG_FILE.bak"
+            cp "$TARI_CONFIG_FILE" "$TARI_CONFIG_FILE.bak"
+
+            log_info "Removing invalid configuration to allow node start..."
+            # Remove the 'grpc' line which causes the crash
+            sed -i '/^grpc =/d' "$TARI_CONFIG_FILE"
+            log_info "Configuration patched."
+        fi
+    fi
+
     docker compose -f "$COMPOSE_FILE" --profile tari up -d
     log_info "Tari services started."
 }
