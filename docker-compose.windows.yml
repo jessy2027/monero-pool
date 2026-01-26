@@ -127,6 +127,8 @@ services:
     expose:
       - "9050"
       - "9051"
+    volumes:
+      - ${DATA_DIR:-C:\MoneroPool}\tor-data:/var/lib/tor
     healthcheck:
       test: ["CMD-SHELL", "nc -z 127.0.0.1 9050 || exit 1"]
       interval: 10s
