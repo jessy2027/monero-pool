@@ -112,6 +112,7 @@ typedef struct client_t {
     int json_id;
     struct bufferevent *bev;
     char address[ADDRESS_MAX];
+    char tari_address[128];
     char worker_id[64];
     char client_id[32];
     char rig_id[MAX_RIG_ID];

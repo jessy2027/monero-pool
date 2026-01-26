@@ -662,14 +662,20 @@ bool tari_validate_address(const char *address)
         return false;
 
     size_t len = strlen(address);
-    if (len < 64 || len > TARI_ADDRESS_MAX)
+    /* 
+     * Tari addresses can be:
+     * 1. Public Key (Hex): 64 chars
+     * 2. Emoji ID: 33 items (variable bytes, usually > 33)
+     * 3. Base58: Variable length
+     * TARI_ADDRESS_MAX is 128.
+     */
+    if (len < 10 || len > TARI_ADDRESS_MAX)
         return false;
 
+    /* Allow printable characters and UTF-8 (extended ASCII) */
     for (size_t i = 0; i < len; i++) {
-        char c = address[i];
-        if (!((c >= '0' && c <= '9') ||
-              (c >= 'a' && c <= 'f') ||
-              (c >= 'A' && c <= 'F')))
+        unsigned char c = (unsigned char)address[i];
+        if (c < 32) /* Control characters */
             return false;
     }
 
