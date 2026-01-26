@@ -161,11 +161,13 @@ services:
       - TARI_BASE_NODE__GRPC_ENABLED=true
       - TARI_BASE_NODE__GRPC_ADDRESS=/ip4/0.0.0.0/tcp/18142
       - TARI_BASE_NODE__P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
-      - TARI_BASE_NODE__P2P__TRANSPORT__TOR__SOCKS_ADDRESS_OVERRIDE=/dns4/tor/tcp/9050
+      - TARI_BASE_NODE__P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
       - TARI_BASE_NODE__P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
+      - MINOTARI_BASE_NODE__P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
+      - MINOTARI_BASE_NODE__P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
       - MINOTARI_BASE_NODE__P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
       - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
-      - TARI_P2P__TRANSPORT__TOR__SOCKS_ADDRESS_OVERRIDE=/dns4/tor/tcp/9050
+      - TARI_P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
       - TARI_P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
       - MINOTARI_P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
     networks:
@@ -203,12 +205,14 @@ services:
       - TARI_WALLET__USE_LIBTOR=false
       - MINOTARI_WALLET__USE_LIBTOR=false
       - TARI_P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
-      - TARI_P2P__TRANSPORT__TOR__SOCKS_ADDRESS_OVERRIDE=/dns4/tor/tcp/9050
+      - TARI_P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
       - TARI_P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
       - TARI_WALLET__P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
-      - TARI_WALLET__P2P__TRANSPORT__TOR__SOCKS_ADDRESS_OVERRIDE=/dns4/tor/tcp/9050
+      - TARI_WALLET__P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
       - TARI_WALLET__P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
       - MINOTARI_WALLET__P2P__TRANSPORT__TOR__CONTROL_AUTH=password=tari
+      - MINOTARI_WALLET__P2P__TRANSPORT__TOR__CONTROL_ADDRESS=/dns4/tor/tcp/9051
+      - MINOTARI_WALLET__P2P__TRANSPORT__TOR__SOCKS_ADDRESS=/dns4/tor/tcp/9050
     entrypoint: ["sh", "-c", "minotari_console_wallet --config /var/tari/config/config.toml --base-path /var/tari/wallet --non-interactive-mode --password $(cat /config/wallet-password.txt)"]
     networks:
       - monero-network
