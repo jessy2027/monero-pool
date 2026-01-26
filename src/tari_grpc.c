@@ -58,7 +58,7 @@ typedef struct {
 static void poll_timer_cb(evutil_socket_t fd, short what, void *arg);
 static size_t curl_write_cb(void *contents, size_t size, size_t nmemb, void *userp);
 static int parse_block_template_response(const unsigned char *data, size_t len,
-                                          tari_block_template_t *tmpl);
+                                          tari_block_template_t *tmpl, int depth);
 static unsigned char *build_grpc_request(const unsigned char *payload, size_t payload_len,
                                           size_t *out_len);
 
@@ -191,7 +191,11 @@ static size_t header_cb(char *buffer, size_t size, size_t nitems, void *userdata
     line[numbytes] = '\0';
 
     if (strncasecmp(line, "grpc-status:", 12) == 0) {
-        log_warn("Tari gRPC Status: %s", trim(line + 12));
+        char *status = trim(line + 12);
+        if (strcmp(status, "0") != 0)
+            log_warn("Tari gRPC Status: %s", status);
+        else
+            log_debug("Tari gRPC Status: %s", status);
     } else if (strncasecmp(line, "grpc-message:", 13) == 0) {
         log_warn("Tari gRPC Message: %s", trim(line + 13));
     }
@@ -331,7 +335,7 @@ static void *tari_fetch_thread_func(void *arg)
         return NULL;
     }
 
-    if (parse_block_template_response(resp.data + payload_start, payload_len, tmpl) != 0) {
+    if (parse_block_template_response(resp.data + payload_start, payload_len, tmpl, 0) != 0) {
         log_warn("Failed to parse Tari block template");
         tari_template_free(tmpl);
         free(resp.data);
@@ -369,9 +373,9 @@ int tari_fetch_block_template(tari_template_callback_t callback, void *data)
 }
 
 static int parse_block_template_response(const unsigned char *data, size_t len,
-                                          tari_block_template_t *tmpl)
+                                          tari_block_template_t *tmpl, int depth)
 {
-    if (len < 5) return -1;
+    if (len < 5 && depth == 0) return -1;
 
     size_t pos = 0;
     while (pos < len) {
@@ -391,28 +395,30 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
 
             if (pos + field_len > len) break;
 
-            log_debug("Tari Proto Field %u (Len %lu)", field_num, field_len);
+            log_debug("Tari Proto Field %u (Len %lu) Depth %d", field_num, field_len, depth);
 
             /* 
              * If this is Tag 2 at top level, it's likely NewBlockTemplate (nested message)
              * Recursively call parser on its content.
              */
-            if (field_num == 2 && pos < len) {
+            if (depth == 0 && field_num == 2) {
                 log_debug("Entering nested NewBlockTemplate message...");
-                parse_block_template_response(data + pos, field_len, tmpl);
+                parse_block_template_response(data + pos, field_len, tmpl, depth + 1);
             }
-            else if (field_num == 1 && !tmpl->header) { /* Header */
-                tmpl->header = malloc(field_len);
-                if (tmpl->header) {
-                    memcpy(tmpl->header, data + pos, field_len);
-                    tmpl->header_size = field_len;
+            else if (depth > 0) {
+                if (field_num == 1 && !tmpl->header) { /* Header */
+                    tmpl->header = malloc(field_len);
+                    if (tmpl->header) {
+                        memcpy(tmpl->header, data + pos, field_len);
+                        tmpl->header_size = field_len;
+                    }
                 }
-            }
-            else if (field_num == 2 && !tmpl->body) { /* Body */
-                tmpl->body = malloc(field_len);
-                if (tmpl->body) {
-                    memcpy(tmpl->body, data + pos, field_len);
-                    tmpl->body_size = field_len;
+                else if (field_num == 2 && !tmpl->body) { /* Body */
+                    tmpl->body = malloc(field_len);
+                    if (tmpl->body) {
+                        memcpy(tmpl->body, data + pos, field_len);
+                        tmpl->body_size = field_len;
+                    }
                 }
             }
             pos += field_len;
@@ -425,11 +431,13 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
 
             log_debug("Tari Proto Field %u (Val %lu)", field_num, val);
 
-            if (field_num == 3 || field_num == 38) { /* Difficulty */
-                tmpl->difficulty = val;
-            }
-            else if (field_num == 4 || field_num == 39) { /* Height */
-                tmpl->height = val;
+            if (depth > 0) {
+                if (field_num == 3 || field_num == 38) { /* Difficulty */
+                    tmpl->difficulty = val;
+                }
+                else if (field_num == 4 || field_num == 39) { /* Height */
+                    tmpl->height = val;
+                }
             }
         }
         else {
@@ -438,7 +446,7 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
         }
     }
 
-    if (tmpl->header && tmpl->header_size > 0) {
+    if (depth == 0 && tmpl->header && tmpl->header_size > 0) {
         extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
         keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
     }
