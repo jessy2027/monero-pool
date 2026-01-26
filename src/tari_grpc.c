@@ -371,66 +371,69 @@ int tari_fetch_block_template(tari_template_callback_t callback, void *data)
 static int parse_block_template_response(const unsigned char *data, size_t len,
                                           tari_block_template_t *tmpl)
 {
-    if (len < 10)
-        return -1;
+    if (len < 5) return -1;
 
     size_t pos = 0;
-
     while (pos < len) {
-        if (pos >= len)
-            break;
-
         uint64_t key;
         int vlen = read_varint_local(data + pos, len - pos, &key);
-        if (vlen < 0)
-            break;
+        if (vlen < 0) break;
         pos += vlen;
 
         uint32_t field_num = key >> 3;
         uint32_t wire_type = key & 0x07;
 
-        if (wire_type == 0) {  /* Varint */
-            uint64_t val;
-            vlen = read_varint_local(data + pos, len - pos, &val);
-            if (vlen < 0)
-                break;
-            pos += vlen;
-
-            if (field_num == 2) {  /* height or difficulty depending on context */
-                if (tmpl->height == 0)
-                    tmpl->height = val;
-                else
-                    tmpl->difficulty = val;
-            }
-        }
-        else if (wire_type == 2) {  /* Length-delimited */
+        if (wire_type == 2) { /* Length-delimited */
             uint64_t field_len;
             vlen = read_varint_local(data + pos, len - pos, &field_len);
-            if (vlen < 0)
-                break;
+            if (vlen < 0) break;
             pos += vlen;
 
-            if (pos + field_len > len)
-                break;
+            if (pos + field_len > len) break;
 
-            if (field_num == 1 && !tmpl->header) {  /* Header */
+            log_debug("Tari Proto Field %u (Len %lu)", field_num, field_len);
+
+            /* 
+             * If this is Tag 2 at top level, it's likely NewBlockTemplate (nested message)
+             * Recursively call parser on its content.
+             */
+            if (field_num == 2 && pos < len) {
+                log_debug("Entering nested NewBlockTemplate message...");
+                parse_block_template_response(data + pos, field_len, tmpl);
+            }
+            else if (field_num == 1 && !tmpl->header) { /* Header */
                 tmpl->header = malloc(field_len);
                 if (tmpl->header) {
                     memcpy(tmpl->header, data + pos, field_len);
                     tmpl->header_size = field_len;
                 }
             }
-            else if (field_num == 2 && !tmpl->body) {  /* Body */
+            else if (field_num == 2 && !tmpl->body) { /* Body */
                 tmpl->body = malloc(field_len);
                 if (tmpl->body) {
                     memcpy(tmpl->body, data + pos, field_len);
                     tmpl->body_size = field_len;
                 }
             }
-
             pos += field_len;
         }
+        else if (wire_type == 0) { /* Varint */
+            uint64_t val;
+            vlen = read_varint_local(data + pos, len - pos, &val);
+            if (vlen < 0) break;
+            pos += vlen;
+
+            log_debug("Tari Proto Field %u (Val %lu)", field_num, val);
+
+            if (field_num == 3 || field_num == 38) { /* Difficulty */
+                tmpl->difficulty = val;
+            }
+            else if (field_num == 4 || field_num == 39) { /* Height */
+                tmpl->height = val;
+            }
+        }
         else {
+            /* Unsupported wire type, skip if possible or break */
             break;
         }
     }
@@ -442,6 +445,7 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
 
     tmpl->timestamp = time(NULL);
 
+    /* We need at least header and body to be successful */
     return (tmpl->header && tmpl->body) ? 0 : -1;
 }
 
