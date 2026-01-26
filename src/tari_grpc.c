@@ -427,11 +427,61 @@ static int parse_proto_fields(const unsigned char *data, size_t len,
             }
         }
         else {
+            log_debug("Unknown Tari Proto Field: %u (WireType %u)", field_num, wire_type);
             /* Unsupported wire type, skip if possible or break */
             break;
         }
     }
     return 0;
+}
+
+static void parse_header_fields(tari_block_template_t *tmpl)
+{
+    if (!tmpl || !tmpl->header || tmpl->header_size == 0)
+        return;
+
+    size_t pos = 0;
+    size_t len = tmpl->header_size;
+    const unsigned char *data = tmpl->header;
+
+    /* 
+     * Minotari BlockHeader:
+     * 1: Version (uint32)
+     * 2: Height (uint64)
+     * 3: Prev Hash (32 bytes)
+     * ...
+     */
+    while (pos < len) {
+        uint64_t key;
+        int vlen = read_varint_local(data + pos, len - pos, &key);
+        if (vlen < 0) break;
+        pos += vlen;
+
+        uint32_t field_num = key >> 3;
+        uint32_t wire_type = key & 0x07;
+
+        if (wire_type == 0) { /* Varint */
+            uint64_t val;
+            vlen = read_varint_local(data + pos, len - pos, &val);
+            if (vlen < 0) break;
+            pos += vlen;
+
+            if (field_num == 2) {
+                tmpl->height = val;
+                // log_debug("Extracted height from header: %lu", val);
+            }
+        }
+        else if (wire_type == 2) { /* Length-delimited */
+            uint64_t field_len;
+            vlen = read_varint_local(data + pos, len - pos, &field_len);
+            if (vlen < 0) break;
+            pos += vlen;
+            pos += field_len;
+        }
+        else {
+            break; /* Unknown or unsupported */
+        }
+    }
 }
 
 static int parse_block_template_response(const unsigned char *data, size_t len,
@@ -442,13 +492,18 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
     /* Strategy 1: Attempt Flat Parse */
     parse_proto_fields(data, len, tmpl);
 
-    if (tmpl->header && tmpl->header_size > 0 && 
-        tmpl->body && tmpl->body_size > 0) {
-        /* Success! Compute hash and return */
-        extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
-        keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
-        tmpl->timestamp = time(NULL);
-        return 0;
+    if (tmpl->header && tmpl->header_size > 0) {
+        /* Try to extract height from header if missing */
+        if (tmpl->height == 0)
+            parse_header_fields(tmpl);
+
+        if (tmpl->body && tmpl->body_size > 0) {
+            /* Success! Compute hash and return */
+            extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
+            keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
+            tmpl->timestamp = time(NULL);
+            return 0;
+        }
     }
 
     /* Strategy 2: Unwrap Tag 1 (header field might be the wrapper) */
@@ -461,6 +516,9 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
             free(tmpl->header); /* Free the wrapper bytes */
             *tmpl = inner;      /* Move ownership */
             
+            if (tmpl->height == 0)
+                parse_header_fields(tmpl);
+
             extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
             keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
             tmpl->timestamp = time(NULL);
@@ -478,6 +536,9 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
         if (inner.header && inner.body) {
             free(tmpl->body); /* Free the wrapper bytes */
             *tmpl = inner;    /* Move ownership */
+
+            if (tmpl->height == 0)
+                parse_header_fields(tmpl);
 
             extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
             keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
