@@ -58,7 +58,7 @@ typedef struct {
 static void poll_timer_cb(evutil_socket_t fd, short what, void *arg);
 static size_t curl_write_cb(void *contents, size_t size, size_t nmemb, void *userp);
 static int parse_block_template_response(const unsigned char *data, size_t len,
-                                          tari_block_template_t *tmpl, int depth);
+                                          tari_block_template_t *tmpl);
 static unsigned char *build_grpc_request(const unsigned char *payload, size_t payload_len,
                                           size_t *out_len);
 
@@ -335,7 +335,7 @@ static void *tari_fetch_thread_func(void *arg)
         return NULL;
     }
 
-    if (parse_block_template_response(resp.data + payload_start, payload_len, tmpl, 0) != 0) {
+    if (parse_block_template_response(resp.data + payload_start, payload_len, tmpl) != 0) {
         log_warn("Failed to parse Tari block template");
         tari_template_free(tmpl);
         free(resp.data);
@@ -372,11 +372,9 @@ int tari_fetch_block_template(tari_template_callback_t callback, void *data)
     return 0;
 }
 
-static int parse_block_template_response(const unsigned char *data, size_t len,
-                                          tari_block_template_t *tmpl, int depth)
+static int parse_proto_fields(const unsigned char *data, size_t len,
+                             tari_block_template_t *tmpl)
 {
-    if (len < 5 && depth == 0) return -1;
-
     size_t pos = 0;
     while (pos < len) {
         uint64_t key;
@@ -395,30 +393,20 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
 
             if (pos + field_len > len) break;
 
-            log_debug("Tari Proto Field %u (Len %lu) Depth %d", field_num, field_len, depth);
+            log_debug("Tari Proto Field %u (Len %lu)", field_num, field_len);
 
-            /* 
-             * If this is Tag 2 at top level, it's likely NewBlockTemplate (nested message)
-             * Recursively call parser on its content.
-             */
-            if (depth == 0 && field_num == 2) {
-                log_debug("Entering nested NewBlockTemplate message...");
-                parse_block_template_response(data + pos, field_len, tmpl, depth + 1);
-            }
-            else if (depth > 0) {
-                if (field_num == 1 && !tmpl->header) { /* Header */
-                    tmpl->header = malloc(field_len);
-                    if (tmpl->header) {
-                        memcpy(tmpl->header, data + pos, field_len);
-                        tmpl->header_size = field_len;
-                    }
+            if (field_num == 1 && !tmpl->header) { /* Header or Wrapper? */
+                tmpl->header = malloc(field_len);
+                if (tmpl->header) {
+                    memcpy(tmpl->header, data + pos, field_len);
+                    tmpl->header_size = field_len;
                 }
-                else if (field_num == 2 && !tmpl->body) { /* Body */
-                    tmpl->body = malloc(field_len);
-                    if (tmpl->body) {
-                        memcpy(tmpl->body, data + pos, field_len);
-                        tmpl->body_size = field_len;
-                    }
+            }
+            else if (field_num == 2 && !tmpl->body) { /* Body or Wrapper? */
+                tmpl->body = malloc(field_len);
+                if (tmpl->body) {
+                    memcpy(tmpl->body, data + pos, field_len);
+                    tmpl->body_size = field_len;
                 }
             }
             pos += field_len;
@@ -431,13 +419,11 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
 
             log_debug("Tari Proto Field %u (Val %lu)", field_num, val);
 
-            if (depth > 0) {
-                if (field_num == 3 || field_num == 38) { /* Difficulty */
-                    tmpl->difficulty = val;
-                }
-                else if (field_num == 4 || field_num == 39) { /* Height */
-                    tmpl->height = val;
-                }
+            if (field_num == 3 || field_num == 38) { /* Difficulty */
+                tmpl->difficulty = val;
+            }
+            else if (field_num == 4 || field_num == 39) { /* Height */
+                tmpl->height = val;
             }
         }
         else {
@@ -445,16 +431,63 @@ static int parse_block_template_response(const unsigned char *data, size_t len,
             break;
         }
     }
+    return 0;
+}
 
-    if (depth == 0 && tmpl->header && tmpl->header_size > 0) {
+static int parse_block_template_response(const unsigned char *data, size_t len,
+                                          tari_block_template_t *tmpl)
+{
+    if (len < 5) return -1;
+
+    /* Strategy 1: Attempt Flat Parse */
+    parse_proto_fields(data, len, tmpl);
+
+    if (tmpl->header && tmpl->header_size > 0 && 
+        tmpl->body && tmpl->body_size > 0) {
+        /* Success! Compute hash and return */
         extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
         keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
+        tmpl->timestamp = time(NULL);
+        return 0;
     }
 
-    tmpl->timestamp = time(NULL);
+    /* Strategy 2: Unwrap Tag 1 (header field might be the wrapper) */
+    if (tmpl->header && !tmpl->body) {
+        log_debug("Attempting to unwrap Tag 1 as nested message...");
+        tari_block_template_t inner = {0};
+        parse_proto_fields(tmpl->header, tmpl->header_size, &inner);
+        
+        if (inner.header && inner.body) {
+            free(tmpl->header); /* Free the wrapper bytes */
+            *tmpl = inner;      /* Move ownership */
+            
+            extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
+            keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
+            tmpl->timestamp = time(NULL);
+            return 0;
+        }
+        tari_template_free(&inner);
+    }
 
-    /* We need at least header and body to be successful */
-    return (tmpl->header && tmpl->body) ? 0 : -1;
+    /* Strategy 3: Unwrap Tag 2 (body field might be the wrapper) */
+    if (tmpl->body && !tmpl->header) {
+        log_debug("Attempting to unwrap Tag 2 as nested message...");
+        tari_block_template_t inner = {0};
+        parse_proto_fields(tmpl->body, tmpl->body_size, &inner);
+
+        if (inner.header && inner.body) {
+            free(tmpl->body); /* Free the wrapper bytes */
+            *tmpl = inner;    /* Move ownership */
+
+            extern void keccak(const uint8_t *in, size_t inlen, uint8_t *md, int mdlen);
+            keccak(tmpl->header, tmpl->header_size, tmpl->merge_mining_hash, 32);
+            tmpl->timestamp = time(NULL);
+            return 0;
+        }
+        tari_template_free(&inner);
+    }
+
+    return -1;
 }
 
 const tari_block_template_t *tari_get_current_template(void)
